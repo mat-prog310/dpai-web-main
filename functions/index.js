@@ -180,6 +180,122 @@ async function updatePurchaseById(purchaseId, stripeId) {
 }
 
 // =============================================================================
+// FONCTIONS D'INITIALISATION (pour le frontend)
+// =============================================================================
+
+/**
+ * Initialise un achat de pack de tokens (crée le document purchases)
+ */
+exports.initTokenPurchase = functions.https.onCall(async (data, context) => {
+    const { userId, packId, tokenAmount } = data;
+
+    try {
+        validateUser(context, userId);
+        
+        const purchaseRef = await db.collection('purchases').add({
+            userId: userId,
+            packId: packId,
+            tokenAmount: tokenAmount,
+            type: 'token_pack',
+            status: 'pending',
+            stripeSessionId: null,
+            stripePaymentIntentId: null,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log('✅ Achat tokens initialisé pour:', userId, 'Pack:', packId, 'PurchaseId:', purchaseRef.id);
+        return { success: true, purchaseId: purchaseRef.id };
+
+    } catch (error) {
+        console.error('❌ Erreur initialisation achat tokens:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            error.message || 'Erreur lors de l\'initialisation de l\'achat'
+        );
+    }
+});
+
+/**
+ * Initialise un achat d'abonnement (crée le document purchases)
+ */
+exports.initSubscription = functions.https.onCall(async (data, context) => {
+    const { userId, planId, isAnnual } = data;
+
+    try {
+        validateUser(context, userId);
+        
+        const purchaseRef = await db.collection('purchases').add({
+            userId: userId,
+            planId: planId,
+            isAnnual: isAnnual || false,
+            type: 'subscription',
+            status: 'pending',
+            stripeSessionId: null,
+            stripePaymentIntentId: null,
+            createdAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+
+        console.log('✅ Achat abonnement initialisé pour:', userId, 'Plan:', planId, 'PurchaseId:', purchaseRef.id);
+        return { success: true, purchaseId: purchaseRef.id };
+
+    } catch (error) {
+        console.error('❌ Erreur initialisation abonnement:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            error.message || 'Erreur lors de l\'initialisation de l\'abonnement'
+        );
+    }
+});
+
+/**
+ * Réclame un pack de tokens gratuit
+ */
+exports.claimFreeTokenPack = functions.https.onCall(async (data, context) => {
+    const { userId, packId, tokenAmount } = data;
+
+    try {
+        validateUser(context, userId);
+        
+        await addTokensToUser(userId, tokenAmount);
+        
+        console.log('✅ Pack gratuit réclamé pour:', userId, 'Pack:', packId, 'Tokens:', tokenAmount);
+        return { success: true, tokenAmount };
+
+    } catch (error) {
+        console.error('❌ Erreur réclamation pack gratuit:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            error.message || 'Erreur lors de la réclamation du pack gratuit'
+        );
+    }
+});
+
+/**
+ * Réclame un abonnement gratuit
+ */
+exports.claimFreeSubscription = functions.https.onCall(async (data, context) => {
+    const { userId, planId } = data;
+
+    try {
+        validateUser(context, userId);
+        
+        const result = await updateUserForSubscription(userId, planId, false);
+        
+        console.log('✅ Abonnement gratuit réclamé pour:', userId, 'Plan:', planId);
+        return { success: true, ...result };
+
+    } catch (error) {
+        console.error('❌ Erreur réclamation abonnement gratuit:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            error.message || 'Erreur lors de la réclamation de l\'abonnement gratuit'
+        );
+    }
+});
+
+// =============================================================================
 // FONCTIONS PRINCIPALES
 // =============================================================================
 
@@ -262,16 +378,34 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     }
 
     // Gestion des événements
-    if (event.type === 'checkout.session.completed' || event.type === 'payment_intent.succeeded') {
-        const obj = event.type === 'checkout.session.completed' ? event.data.object : event.data.object;
+    if (event.type === 'checkout.session.completed' || 
+        event.type === 'payment_intent.succeeded' || 
+        event.type === 'payment_link.payment_succeeded') {
+        const obj = event.data.object;
         const stripeId = obj.id;
-        let clientRef;
+        let clientRef = {};
 
         try {
-            if (event.type === 'checkout.session.completed') {
-                clientRef = JSON.parse(obj.client_reference_id || '{}');
-            } else {
-                clientRef = JSON.parse(obj.metadata.client_reference_id || obj.metadata.purchase_id || '{}');
+            // Checkout Sessions et PaymentIntents
+            if (event.type === 'checkout.session.completed' || event.type === 'payment_intent.succeeded') {
+                if (obj.client_reference_id) {
+                    clientRef = JSON.parse(obj.client_reference_id);
+                } else if (obj.metadata && (obj.metadata.client_reference_id || obj.metadata.purchase_id)) {
+                    clientRef = JSON.parse(obj.metadata.client_reference_id || obj.metadata.purchase_id || '{}');
+                }
+            }
+            // Payment Links
+            else if (event.type === 'payment_link.payment_succeeded') {
+                const metadata = obj.metadata || {};
+                clientRef = {
+                    userId: metadata.userId,
+                    type: metadata.type,
+                    purchaseId: metadata.purchaseId,
+                    packId: metadata.packId,
+                    tokenAmount: metadata.tokenAmount ? parseInt(metadata.tokenAmount) : 0,
+                    planId: metadata.planId,
+                    isAnnual: metadata.isAnnual === 'true' || metadata.isAnnual === true
+                };
             }
         } catch (e) {
             clientRef = {};
@@ -322,6 +456,10 @@ module.exports = {
     confirmStripeSubscription: exports.confirmStripeSubscription,
     confirmTokenPurchase: exports.confirmTokenPurchase,
     stripeWebhook: exports.stripeWebhook,
+    initTokenPurchase: exports.initTokenPurchase,
+    initSubscription: exports.initSubscription,
+    claimFreeTokenPack: exports.claimFreeTokenPack,
+    claimFreeSubscription: exports.claimFreeSubscription,
     // Export des utilitaires pour les tests
     validateUser,
     verifyStripePayment,
