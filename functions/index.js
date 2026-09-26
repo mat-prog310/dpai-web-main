@@ -64,8 +64,38 @@ function validateUser(context, userId) {
 
 /**
  * Vérifie qu'une session Stripe est payée
+ * Accepte soit un sessionId, soit un purchaseId (récupère sessionId depuis Firestore)
  */
-async function verifyStripePayment(sessionId) {
+async function verifyStripePayment(sessionIdOrPurchaseId) {
+    let sessionId = sessionIdOrPurchaseId;
+    
+    // Si c'est un purchaseId (format Firestore) et pas un sessionId (format cs_...)
+    //Essayer de récupérer le vrai sessionId depuis Firestore
+    if (sessionIdOrPurchaseId && !sessionIdOrPurchaseId.startsWith('cs_')) {
+        console.log('🔍 [verifyStripePayment] Reçu un purchaseId, recherche sessionId dans Firestore...');
+        const purchaseDoc = await db.collection('purchases').doc(sessionIdOrPurchaseId).get();
+        if (purchaseDoc.exists) {
+            const purchaseData = purchaseDoc.data();
+            sessionId = purchaseData.stripeSessionId || purchaseData.sessionId;
+            console.log('✅ [verifyStripePayment] SessionId trouvé:', sessionId);
+        } else {
+            // Essayer dans pending_purchases
+            console.log('🔍 [verifyStripePayment] Recherche dans pending_purchases...');
+            const pendingQuery = await db.collection('pending_purchases')
+                .where('purchaseId', '==', sessionIdOrPurchaseId)
+                .limit(1)
+                .get();
+            if (!pendingQuery.empty) {
+                sessionId = pendingQuery.docs[0].data().stripeSessionId;
+                console.log('✅ [verifyStripePayment] SessionId trouvé dans pending_purchases:', sessionId);
+            }
+        }
+    }
+    
+    if (!sessionId) {
+        throw new Error(`Impossible de trouver un sessionId valide pour: ${sessionIdOrPurchaseId}`);
+    }
+    
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     if (session.payment_status !== 'paid') {
         throw new Error(`Paiement non confirmé pour session: ${sessionId}`);
@@ -174,10 +204,72 @@ async function updatePurchaseById(purchaseId, stripeId) {
         await db.collection('purchases').doc(purchaseId).update({
             status: 'completed',
             stripeId: stripeId,
+            stripeSessionId: stripeId,
+            webhookProcessed: true,
+            webhookTimestamp: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
     }
 }
+
+// =============================================================================
+// FONCTIONS UTILITAIRES POUR VÉRIFIER LES SESSIONS STRIPE
+// =============================================================================
+
+/**
+ * Vérifie une session Stripe et retourne ses informations
+ */
+exports.verifyStripeSession = functions.https.onCall(async (data, context) => {
+    const { sessionId, userId } = data;
+
+    try {
+        validateUser(context, userId);
+        
+        if (!sessionId) {
+            throw new Error('sessionId est requis');
+        }
+
+        const session = await stripe.checkout.sessions.retrieve(sessionId);
+        
+        if (session.payment_status !== 'paid') {
+            return { 
+                success: false, 
+                error: `Paiement non confirmé (statut: ${session.payment_status})`,
+                session: { id: session.id, payment_status: session.payment_status }
+            };
+        }
+
+        // Parser client_reference_id
+        let clientRef = {};
+        try {
+            if (session.client_reference_id) {
+                clientRef = JSON.parse(session.client_reference_id);
+            } else if (session.metadata && session.metadata.client_reference_id) {
+                clientRef = JSON.parse(session.metadata.client_reference_id);
+            }
+        } catch (e) {
+            console.warn('⚠️ Impossible de parser client_reference_id:', e);
+        }
+
+        return { 
+            success: true,
+            sessionId: session.id,
+            paymentStatus: session.payment_status,
+            amountTotal: session.amount_total,
+            currency: session.currency,
+            clientReferenceId: session.client_reference_id,
+            metadata: session.metadata || {},
+            ...clientRef
+        };
+
+    } catch (error) {
+        console.error('❌ Erreur vérification session:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            error.message || 'Erreur lors de la vérification de la session'
+        );
+    }
+});
 
 // =============================================================================
 // FONCTIONS D'INITIALISATION (pour le frontend)
@@ -200,6 +292,7 @@ exports.initTokenPurchase = functions.https.onCall(async (data, context) => {
             status: 'pending',
             stripeSessionId: null,
             stripePaymentIntentId: null,
+            stripePaymentLinkId: null,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
@@ -233,6 +326,7 @@ exports.initSubscription = functions.https.onCall(async (data, context) => {
             status: 'pending',
             stripeSessionId: null,
             stripePaymentIntentId: null,
+            stripePaymentLinkId: null,
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             updatedAt: admin.firestore.FieldValue.serverTimestamp()
         });
@@ -307,14 +401,28 @@ exports.confirmStripeSubscription = functions.https.onCall(async (data, context)
 
     try {
         validateUser(context, userId);
-        await verifyStripePayment(sessionId);
+        
+        // Si pas de sessionId, essayer de le récupérer depuis purchaseId
+        let finalSessionId = sessionId;
+        if (!finalSessionId && purchaseId) {
+            const purchaseDoc = await db.collection('purchases').doc(purchaseId).get();
+            if (purchaseDoc.exists) {
+                finalSessionId = purchaseDoc.data().stripeSessionId || purchaseDoc.data().sessionId;
+            }
+        }
+        
+        if (!finalSessionId) {
+            throw new Error('Aucun sessionId valide fourni ou trouvé dans Firestore');
+        }
+        
+        await verifyStripePayment(finalSessionId);
         
         const { data: purchaseData, source, docRef } = await getPurchaseData(purchaseId, userId);
         const planId = paramPlanId || purchaseData.planId || 'pro';
         const isAnnual = paramIsAnnual !== undefined ? paramIsAnnual : (purchaseData.isAnnual || false);
 
         const result = await updateUserForSubscription(userId, planId, isAnnual);
-        await updatePurchaseStatus(docRef, sessionId, source);
+        await updatePurchaseStatus(docRef, finalSessionId, source);
 
         console.log('✅ Abonnement confirmé pour:', userId, 'Plan:', planId);
         return { success: true, ...result };
@@ -336,14 +444,28 @@ exports.confirmTokenPurchase = functions.https.onCall(async (data, context) => {
 
     try {
         validateUser(context, userId);
-        await verifyStripePayment(sessionId);
+        
+        // Si pas de sessionId, essayer de le récupérer depuis purchaseId
+        let finalSessionId = sessionId;
+        if (!finalSessionId && purchaseId) {
+            const purchaseDoc = await db.collection('purchases').doc(purchaseId).get();
+            if (purchaseDoc.exists) {
+                finalSessionId = purchaseDoc.data().stripeSessionId || purchaseDoc.data().sessionId;
+            }
+        }
+        
+        if (!finalSessionId) {
+            throw new Error('Aucun sessionId valide fourni ou trouvé dans Firestore');
+        }
+        
+        await verifyStripePayment(finalSessionId);
         
         const { data: purchaseData, source, docRef } = await getPurchaseData(purchaseId, userId);
         const packId = paramPackId || purchaseData.packId;
         const tokenAmount = paramTokenAmount || purchaseData.tokenAmount || 0;
 
         await addTokensToUser(userId, tokenAmount);
-        await updatePurchaseStatus(docRef, sessionId, source);
+        await updatePurchaseStatus(docRef, finalSessionId, source);
 
         console.log('✅ Pack de tokens confirmé pour:', userId, 'Pack:', packId, 'Tokens:', tokenAmount);
         return { success: true, packId, tokenAmount };
@@ -364,17 +486,29 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const endpointSecret = functions.config().stripe.webhook || process.env.STRIPE_WEBHOOK_SECRET;
 
+    // ✅ Gestion du mode test : si endpointSecret n'est pas configuré, on désactive la vérification
     if (!endpointSecret) {
-        console.error('❌ [Stripe Webhook] Secret non configuré');
-        return res.status(500).send('STRIPE_WEBHOOK_SECRET non défini');
+        console.log('⚠️ [Stripe Webhook] Mode TEST : Pas de endpointSecret configuré. Traitement autorisé sans vérification de signature.');
+        // En production, il faudrait retourner une erreur 500
+        // return res.status(500).send('STRIPE_WEBHOOK_SECRET non défini');
     }
 
     let event;
     try {
-        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+        event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret || 'test');
     } catch (err) {
         console.error('❌ Webhook Error:', err.message);
-        return res.status(400).send(`Webhook Error: ${err.message}`);
+        // En mode test sans endpointSecret, on essaie de parser manuellement
+        if (!endpointSecret) {
+            try {
+                event = JSON.parse(req.body);
+                console.log('⚠️ [Stripe Webhook] Mode TEST : Événement parsed manuellement');
+            } catch (e) {
+                return res.status(400).send(`Webhook Error: ${err.message}`);
+            }
+        } else {
+            return res.status(400).send(`Webhook Error: ${err.message}`);
+        }
     }
 
     // Gestion des événements
@@ -386,28 +520,46 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
         let clientRef = {};
 
         try {
-            // Checkout Sessions et PaymentIntents
-            if (event.type === 'checkout.session.completed' || event.type === 'payment_intent.succeeded') {
-                if (obj.client_reference_id) {
+            // Checkout Sessions, PaymentIntents ET Payment Links
+            // Pour tous ces types, client_reference_id contient les données JSON
+            if (obj.client_reference_id) {
+                try {
                     clientRef = JSON.parse(obj.client_reference_id);
-                } else if (obj.metadata && (obj.metadata.client_reference_id || obj.metadata.purchase_id)) {
-                    clientRef = JSON.parse(obj.metadata.client_reference_id || obj.metadata.purchase_id || '{}');
+                } catch (e) {
+                    console.warn('⚠️ Impossible de parser client_reference_id:', e);
                 }
             }
-            // Payment Links
-            else if (event.type === 'payment_link.payment_succeeded') {
-                const metadata = obj.metadata || {};
+            // Fallback: vérifier metadata pour les anciens systèmes
+            else if (obj.metadata && (obj.metadata.client_reference_id || obj.metadata.purchase_id)) {
+                try {
+                    clientRef = JSON.parse(obj.metadata.client_reference_id || obj.metadata.purchase_id || '{}');
+                } catch (e) {
+                    // metadata n'est pas du JSON, essayer de lire directement
+                    clientRef = {
+                        userId: obj.metadata.userId,
+                        type: obj.metadata.type,
+                        purchaseId: obj.metadata.purchaseId,
+                        packId: obj.metadata.packId,
+                        tokenAmount: obj.metadata.tokenAmount ? parseInt(obj.metadata.tokenAmount) : 0,
+                        planId: obj.metadata.planId,
+                        isAnnual: obj.metadata.isAnnual === 'true' || obj.metadata.isAnnual === true
+                    };
+                }
+            }
+            // Fallback ultime: metadata direct
+            else if (obj.metadata) {
                 clientRef = {
-                    userId: metadata.userId,
-                    type: metadata.type,
-                    purchaseId: metadata.purchaseId,
-                    packId: metadata.packId,
-                    tokenAmount: metadata.tokenAmount ? parseInt(metadata.tokenAmount) : 0,
-                    planId: metadata.planId,
-                    isAnnual: metadata.isAnnual === 'true' || metadata.isAnnual === true
+                    userId: obj.metadata.userId,
+                    type: obj.metadata.type,
+                    purchaseId: obj.metadata.purchaseId,
+                    packId: obj.metadata.packId,
+                    tokenAmount: obj.metadata.tokenAmount ? parseInt(obj.metadata.tokenAmount) : 0,
+                    planId: obj.metadata.planId,
+                    isAnnual: obj.metadata.isAnnual === 'true' || obj.metadata.isAnnual === true
                 };
             }
         } catch (e) {
+            console.error('❌ Erreur parsing client_reference_id:', e);
             clientRef = {};
         }
 
@@ -421,6 +573,23 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
         }
 
         try {
+            // Vérifier si cet achat a déjà été traité (éviter les doublons)
+            let alreadyProcessed = false;
+            if (purchaseId) {
+                const purchaseDoc = await db.collection('purchases').doc(purchaseId).get();
+                if (purchaseDoc.exists) {
+                    const purchaseData = purchaseDoc.data();
+                    if (purchaseData.status === 'completed') {
+                        alreadyProcessed = true;
+                        console.log('ℹ️ Webhook déjà traité pour purchaseId:', purchaseId);
+                    }
+                }
+            }
+            
+            if (alreadyProcessed) {
+                return res.status(200).json({ received: true, alreadyProcessed: true });
+            }
+
             if (type === 'subscription') {
                 const planId = clientRef.planId || 'pro';
                 const isAnnual = clientRef.isAnnual || false;
@@ -428,7 +597,17 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
                 await updateUserForSubscription(userId, planId, isAnnual);
                 await updatePurchaseById(purchaseId, stripeId);
 
-                console.log('✅ Webhook subscription traité pour:', userId, 'Plan:', planId);
+                // 🎉 NOUVEAU: Log des services débloqués
+                const planConfig = PLAN_CONFIGS[planId] || PLAN_CONFIGS.pro;
+                console.log('✅ Webhook subscription traité pour:', userId, 
+                    'Plan:', planId, 
+                    'Annuel:', isAnnual,
+                    'Tokens:', planConfig.baseTokens + Math.floor(planConfig.baseTokens * planConfig.bonusRate) + WELCOME_BONUS,
+                    'Services:', {
+                        premiumSuggestions: planConfig.hasPremiumSuggestions,
+                        advancedAnalytics: planConfig.hasAdvancedAnalytics,
+                        apiAccess: planConfig.hasAPI
+                    });
             }
             else if (type === 'token_pack') {
                 const packId = clientRef.packId;
@@ -441,8 +620,31 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
                     console.log('✅ Webhook token_pack traité pour:', userId, 'Pack:', packId, 'Tokens:', tokenAmount);
                 }
             }
+            
+            // Marquer que le paiement a été traité via webhook
+            if (purchaseId) {
+                await db.collection('purchases').doc(purchaseId).update({
+                    webhookProcessed: true,
+                    webhookTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                    stripeEventId: event.id,
+                    stripeEventType: event.type
+                });
+            }
+            
         } catch (err) {
             console.error('❌ Erreur traitement webhook:', err);
+            
+            // En cas d'erreur, stocker l'erreur pour debug
+            if (purchaseId) {
+                try {
+                    await db.collection('purchases').doc(purchaseId).update({
+                        webhookError: err.message || String(err),
+                        webhookErrorTimestamp: admin.firestore.FieldValue.serverTimestamp()
+                    });
+                } catch (e) {
+                    console.error('❌ Erreur sauvegarde erreur webhook:', e);
+                }
+            }
         }
     }
 

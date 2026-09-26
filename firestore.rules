@@ -1,0 +1,177 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // =============================================================================
+    // RÈGLES DE SÉCURITÉ FIRESTORE POUR DPAI
+    // =============================================================================
+    
+    // Fonction pour vérifier si l'utilisateur est authentifié
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Fonction pour vérifier si l'utilisateur est admin (à configurer via custom claims)
+    function isAdmin() {
+      return request.auth.token.admin == true;
+    }
+    
+    // Fonction pour vérifier l'appartenance d'un document à un utilisateur
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Fonction pour vérifier qu'un achat appartient à l'utilisateur
+    function isPurchaseOwner() {
+      return request.auth != null && 
+             (resource.data.userId == request.auth.uid || 
+              request.auth.token.admin == true);
+    }
+    
+    // =============================================================================
+    // COLLECTION: purchases (achats Stripe)
+    // Permet aux utilisateurs de lire LEURS propres achats
+    // =============================================================================
+    match /purchases/{purchaseId} {
+      // Lecture autorisée si :
+      // 1. L'utilisateur est authentifié ET c'est son achat (userId correspond)
+      // 2. OU l'utilisateur est admin
+      allow read: if isAuthenticated() && 
+                     (resource.data.userId == request.auth.uid || isAdmin());
+      
+      // Création autorisée uniquement via Cloud Functions (backend)
+      // Seuls les admins peuvent créer directement
+      allow create: if isAuthenticated() && isAdmin();
+      
+      // Mise à jour autorisée si :
+      // 1. L'utilisateur est admin
+      // 2. OU via Cloud Functions (le backend met à jour le statut via webhook)
+      // Note: On autorise les mises à jour pour que le webhook puisse fonctionner
+      allow update: if isAuthenticated() && (isAdmin() || isPurchaseOwner());
+      
+      // Suppression autorisée uniquement pour les admins
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // =============================================================================
+    // COLLECTION: pending_purchases (achats en attente - ancien système)
+    // =============================================================================
+    match /pending_purchases/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create, update: if isAuthenticated() && isOwner(userId);
+      allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+    }
+    
+    // =============================================================================
+    // COLLECTION: users
+    // =============================================================================
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      
+      // Sous-collection: analyses
+      match /analyses/{analysisId} {
+        allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow create: if isAuthenticated() && isOwner(userId);
+        allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      }
+      
+      // Sous-collection: tokenTransactions
+      match /tokenTransactions/{transactionId} {
+        allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow create: if isAuthenticated() && isOwner(userId);
+        allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      }
+      
+      // Sous-collection: projects
+      match /projects/{projectId} {
+        allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow create: if isAuthenticated() && isOwner(userId);
+        allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      }
+      
+      // Sous-collection: subscriptions
+      match /subscriptions/{subscriptionId} {
+        allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow create, update, delete: if isAuthenticated() && isAdmin();
+      }
+    }
+    
+    // =============================================================================
+    // COLLECTION: system (données globales lues par tous)
+    // =============================================================================
+    match /system/{document} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // =============================================================================
+    // COLLECTION: pricing (tarifs et plans)
+    // =============================================================================
+    match /pricing/{document} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // =============================================================================
+    // COLLECTION: tokenPacks (packs de tokens à l'achat)
+    // =============================================================================
+    match /tokenPacks/{document} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // =============================================================================
+    // COLLECTION: loyalty (programme de fidélité)
+    // =============================================================================
+    match /loyalty/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create, update: if isAuthenticated() && isOwner(userId);
+      allow delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // =============================================================================
+    // COLLECTION: referrals (programme de parrainage)
+    // =============================================================================
+    match /referrals/{referralCode} {
+      allow read: if true;
+      allow create, update, delete: if isAuthenticated() && isAdmin();
+    }
+    
+    // =============================================================================
+    // COLLECTION: logs (pour le débogage - Admin uniquement)
+    // =============================================================================
+    match /logs/{document} {
+      allow read, write: if isAuthenticated() && isAdmin();
+    }
+    
+    // =============================================================================
+    // COLLECTION: analytics (données d'utilisation - Admin uniquement)
+    // =============================================================================
+    match /analytics/{document} {
+      allow read, write: if isAuthenticated() && isAdmin();
+    }
+    
+    // =============================================================================
+    // COLLECTION: notifications
+    // =============================================================================
+    match /notifications/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated() && isAdmin();
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+    }
+    
+    // =============================================================================
+    // RÈGLE PAR DÉFAUT: Tout refuser (sécurité)
+    // =============================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

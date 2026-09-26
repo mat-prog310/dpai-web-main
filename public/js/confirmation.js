@@ -1,25 +1,32 @@
 // =============================================================================
 // CONFIRMATION.JS - Gestion de la confirmation des paiements Stripe
 // Cette page est appelée par Stripe après un paiement réussi ou annulé
+// NOUVELLE VERSION: Vérification réelle via polling Firestore
 // =============================================================================
 
 // Attendre que Firebase et authService soient prêts
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔍 [confirmation.js] DOM chargé, attente de Firebase...');
     
-    // Attendre que authService soit initialisé
+    // Initialiser authService si pas déjà fait
+    if (typeof authService !== 'undefined' && typeof authService.init === 'function') {
+        console.log('🔐 [confirmation.js] Initialisation de authService...');
+        authService.init();
+    }
+    
+    // Attendre que authService ET currentUser soient prêts
     const initInterval = setInterval(() => {
         if (typeof window.authService !== 'undefined' && 
             typeof window.firebase !== 'undefined' &&
-            window.authService && window.authService.currentUser) {
-            clearInterval(initInterval);
-            console.log('✅ [confirmation.js] Firebase et authService prêts');
-            handleConfirmation();
-        } else if (typeof window.authService !== 'undefined' && window.authService && !window.authService.currentUser) {
-            // Utilisateur non connecté
-            clearInterval(initInterval);
-            console.log('⚠️ [confirmation.js] Pas d\'utilisateur connecté');
-            showErrorState('Utilisateur non connecté', 'Veuillez vous connecter pour confirmer votre achat.');
+            window.authService) {
+            
+            // Si on a un currentUser, on lance la confirmation
+            if (window.authService.currentUser) {
+                clearInterval(initInterval);
+                console.log('✅ [confirmation.js] Firebase et authService prêts, utilisateur connecté');
+                handleConfirmation();
+            }
+            // Sinon, on continue d'attendre (ne pas clearInterval)
         }
     }, 200);
     
@@ -37,6 +44,221 @@ document.addEventListener('DOMContentLoaded', function() {
 window.confirmationHandled = false;
 
 // =============================================================================
+// CONFIGURATION DU POLLING
+// =============================================================================
+const POLLING_CONFIG = {
+    maxAttempts: 10,      // Nombre maximum de tentatives
+    delayMs: 3000,        // Délai entre chaque tentative (3 secondes)
+    timeoutMs: 30000      // Timeout total (30 secondes)
+};
+
+// =============================================================================
+// FONCTION DE POLLING POUR VÉRIFIER LA CONFIRMATION D'ACHAT
+// =============================================================================
+
+/**
+ * Vérifie si Firestore est disponible
+ */
+function isFirestoreAvailable() {
+    return typeof db !== 'undefined' && db && typeof db.collection === 'function';
+}
+
+/**
+ * Attend que l'achat soit confirmé via polling Firestore
+ * @param {string} purchaseId - L'ID de l'achat à vérifier
+ * @param {string} expectedUserId - L'ID de l'utilisateur attendu (optionnel)
+ * @returns {Promise<Object>} - Les données de l'achat si confirmé
+ */
+async function waitForPurchaseConfirmation(purchaseId, expectedUserId = null) {
+    if (!purchaseId) {
+        throw new Error('Aucun purchaseId fourni');
+    }
+    
+    if (!isFirestoreAvailable()) {
+        throw new Error('Firestore non disponible');
+    }
+    
+    console.log('🔄 [confirmation.js] Début du polling pour purchaseId:', purchaseId);
+    
+    let attempts = 0;
+    const startTime = Date.now();
+    
+    while (attempts < POLLING_CONFIG.maxAttempts) {
+        attempts++;
+        const elapsedTime = Date.now() - startTime;
+        
+        // Vérifier timeout
+        if (elapsedTime > POLLING_CONFIG.timeoutMs) {
+            console.error('⏰ [confirmation.js] Timeout atteint après', elapsedTime, 'ms');
+            throw new Error('Timeout: Le webhook Stripe met trop de temps à confirmer le paiement');
+        }
+        
+        try {
+            // Récupérer le document de l'achat
+            const purchaseDoc = await db.collection('purchases').doc(purchaseId).get();
+            
+            if (!purchaseDoc.exists) {
+                console.log(`⚠️ [confirmation.js] Document purchases/${purchaseId} non trouvé (tentative ${attempts}/${POLLING_CONFIG.maxAttempts})`);
+                
+                // Vérifier dans pending_purchases (ancien système)
+                if (expectedUserId) {
+                    const pendingDoc = await db.collection('pending_purchases').doc(expectedUserId).get();
+                    if (pendingDoc.exists) {
+                        const data = pendingDoc.data();
+                        if (data.purchaseId === purchaseId) {
+                            console.log('ℹ️ [confirmation.js] Trouvé dans pending_purchases');
+                            // Continuer à polling
+                        }
+                    }
+                }
+                
+                // Attendre avant la prochaine tentative
+                if (attempts < POLLING_CONFIG.maxAttempts) {
+                    await new Promise(resolve => setTimeout(resolve, POLLING_CONFIG.delayMs));
+                }
+                continue;
+            }
+            
+            const purchaseData = purchaseDoc.data();
+            
+            // Vérifier que l'achat appartient à l'utilisateur attendu
+            if (expectedUserId) {
+                if (!purchaseData.userId) {
+                    console.error('❌ [confirmation.js] Le document achat n\'a pas de userId');
+                    throw new Error('Données d\'achat incomplètes: userId manquant');
+                }
+                if (purchaseData.userId !== expectedUserId) {
+                    console.error('🚫 [confirmation.js] L\'achat n\'appartient pas à l\'utilisateur connecté');
+                    throw new Error('Achat non autorisé: L\'achat appartient à un autre utilisateur');
+                }
+            }
+            
+            // Vérifier le statut
+            if (purchaseData.status === 'completed') {
+                console.log('✅ [confirmation.js] Paiement confirmé pour purchaseId:', purchaseId);
+                console.log('   Statut:', purchaseData.status);
+                console.log('   Type:', purchaseData.type);
+                console.log('   StripeSessionId:', purchaseData.stripeSessionId);
+                console.log('   WebhookProcessed:', purchaseData.webhookProcessed);
+                return purchaseData;
+            }
+            
+            // Si statut est 'pending' ou non défini, on continue le polling
+            const currentStatus = purchaseData.status || 'pending';
+            console.log(`⏳ [confirmation.js] Statut: ${currentStatus} (tentative ${attempts}/${POLLING_CONFIG.maxAttempts})`);
+            
+            // Afficher la progression dans l'UI
+            const newProgress = 50 + (attempts * 4); // 50% à 90%
+            showLoadingState(
+                `Vérification en cours (${attempts}/${POLLING_CONFIG.maxAttempts})...`,
+                Math.min(newProgress, 90)
+            );
+            
+            // Si on a un stripeSessionId, on peut vérifier directement via Stripe API
+            if (purchaseData.stripeSessionId) {
+                console.log('   Session Stripe:', purchaseData.stripeSessionId);
+            }
+            
+            // Attendre avant la prochaine tentative
+            if (attempts < POLLING_CONFIG.maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, POLLING_CONFIG.delayMs));
+            }
+            
+        } catch (error) {
+            console.error('❌ [confirmation.js] Erreur lors du polling:', error);
+            
+            // Attendre avant de réessayer
+            if (attempts < POLLING_CONFIG.maxAttempts) {
+                await new Promise(resolve => setTimeout(resolve, POLLING_CONFIG.delayMs));
+            } else {
+                throw error;
+            }
+        }
+    }
+    
+    // Si on arrive ici, toutes les tentatives ont échoué
+    throw new Error(`Le paiement n'a pas pu être confirmé après ${POLLING_CONFIG.maxAttempts} tentatives`);
+}
+
+/**
+ * Trouve le purchaseId associé à un sessionId Stripe
+ * @param {string} sessionId - Le sessionId Stripe
+ * @param {string} userId - L'ID de l'utilisateur
+ * @returns {Promise<string|null>} - Le purchaseId ou null
+ */
+async function findPurchaseIdBySessionId(sessionId, userId) {
+    if (!isFirestoreAvailable()) {
+        return null;
+    }
+    
+    try {
+        console.log('🔍 [confirmation.js] Recherche de purchaseId pour sessionId:', sessionId);
+        
+        // Rechercher dans les achats de l'utilisateur par stripeSessionId
+        let purchasesQuery = await db.collection('purchases')
+            .where('userId', '==', userId)
+            .where('stripeSessionId', '==', sessionId)
+            .limit(1)
+            .get();
+        
+        if (!purchasesQuery.empty) {
+            console.log('✅ [confirmation.js] Trouvé purchaseId par stripeSessionId:', purchasesQuery.docs[0].id);
+            return purchasesQuery.docs[0].id;
+        }
+        
+        // Rechercher par stripeId (peut contenir le sessionId)
+        purchasesQuery = await db.collection('purchases')
+            .where('userId', '==', userId)
+            .where('stripeId', '==', sessionId)
+            .limit(1)
+            .get();
+        
+        if (!purchasesQuery.empty) {
+            console.log('✅ [confirmation.js] Trouvé purchaseId par stripeId:', purchasesQuery.docs[0].id);
+            return purchasesQuery.docs[0].id;
+        }
+        
+        // Rechercher dans les 10 derniers achats de l'utilisateur
+        const recentPurchases = await db.collection('purchases')
+            .where('userId', '==', userId)
+            .orderBy('createdAt', 'desc')
+            .limit(10)
+            .get();
+        
+        for (const doc of recentPurchases.docs) {
+            const data = doc.data();
+            // Vérifier si le sessionId est dans stripeSessionId, stripeId ou clientReferenceId
+            if (data.stripeSessionId === sessionId || 
+                data.stripeId === sessionId ||
+                (data.clientReferenceId && data.clientReferenceId.includes(sessionId))) {
+                console.log('✅ [confirmation.js] Trouvé purchaseId dans achats récents:', doc.id);
+                return doc.id;
+            }
+        }
+        
+        console.log('⚠️ [confirmation.js] Aucun purchaseId trouvé pour sessionId:', sessionId);
+        return null;
+        
+    } catch (error) {
+        console.error('❌ [confirmation.js] Erreur recherche purchaseId:', error);
+        return null;
+    }
+}
+
+/**
+ * Vérifie une session Stripe directement via l'API Stripe (si disponible)
+ * @param {string} sessionId - Le sessionId Stripe
+ * @returns {Promise<Object>} - Les données de la session
+ */
+async function verifyStripeSession(sessionId) {
+    // Cette fonction nécessiterait d'appeler l'API Stripe depuis le frontend
+    // mais ce n'est pas sécurisé (nécessite la clé secrète)
+    // On utilise donc uniquement le polling Firestore
+    console.log('ℹ️ [confirmation.js] Vérification directe Stripe non disponible depuis frontend');
+    return null;
+}
+
+// =============================================================================
 // FONCTION PRINCIPALE DE GESTION
 // =============================================================================
 async function handleConfirmation() {
@@ -46,7 +268,7 @@ async function handleConfirmation() {
     const urlParams = new URLSearchParams(window.location.search);
     const success = urlParams.get('success');
     const canceled = urlParams.get('canceled');
-    const sessionId = urlParams.get('session_id');
+    const sessionId = urlParams.get('session_id') || urlParams.get('sessionId');
     
     console.log('🔍 [confirmation.js] Paramètres URL:', { success, canceled, sessionId });
     
@@ -56,24 +278,61 @@ async function handleConfirmation() {
     // Cas 1 : Paiement annulé
     if (canceled === 'true') {
         console.log('❌ [confirmation.js] Paiement annulé');
+        
+        // Nettoyer le sessionStorage
+        const stripeKeys = [
+            'stripe_purchase_id',
+            'stripe_purchase_type',
+            'stripe_purchase_planId',
+            'stripe_purchase_isAnnual',
+            'stripe_purchase_packId',
+            'stripe_purchase_tokenAmount'
+        ];
+        stripeKeys.forEach(key => sessionStorage.removeItem(key));
+        
         showCanceledState();
         return;
     }
     
     // Cas 2 : Succès (vrai ou faux)
-    if (success === 'true' || success === 'false') {
-        if (success === 'false') {
-            console.log('⚠️ [confirmation.js] Paiement échoué');
+    if (success === 'true' || success === 'false' || sessionId) {
+        const user = window.authService?.currentUser;
+        
+        if (!user) {
+            console.error('❌ [confirmation.js] Pas d\'utilisateur connecté');
             showErrorState(
-                'Paiement échoué',
-                'Le paiement n\'a pas abouti. Vous pouvez réessayer.'
+                'Connexion requise',
+                'Vous devez être connecté pour vérifier votre paiement.'
             );
             return;
         }
         
-        // Paiement réussi - Vérifier et confirmer
-        console.log('✅ [confirmation.js] Paiement réussi, sessionId:', sessionId);
-        await verifyAndConfirmPayment(sessionId);
+        console.log('🔍 [confirmation.js] Vérification du paiement...');
+        
+        // Priorité 1: On a un sessionId dans l'URL
+        if (sessionId) {
+            console.log('ℹ️ [confirmation.js] SessionId trouvé dans URL:', sessionId);
+            await verifyAndConfirmPayment(sessionId, user.uid);
+            return;
+        }
+        
+        // Priorité 2: On a un success=true mais pas de sessionId
+        // Vérifier sessionStorage pour le purchaseId
+        const purchaseId = sessionStorage.getItem('stripe_purchase_id');
+        const purchaseType = sessionStorage.getItem('stripe_purchase_type');
+        
+        if (purchaseId && purchaseType) {
+            console.log('ℹ️ [confirmation.js] PurchaseId trouvé dans sessionStorage:', purchaseId);
+            await confirmPurchaseFromSessionStorage(purchaseId, purchaseType, user.uid);
+            return;
+        }
+        
+        // Pas d'informations valides
+        console.error('❌ [confirmation.js] Aucune information de paiement valide');
+        showErrorState(
+            'Informations manquantes',
+            'Aucune information de paiement détectée. Si vous avez déjà payé, vos services devraient être activés sous 1-2 minutes.'
+        );
         return;
     }
     
@@ -82,26 +341,39 @@ async function handleConfirmation() {
     const purchaseId = sessionStorage.getItem('stripe_purchase_id');
     const purchaseType = sessionStorage.getItem('stripe_purchase_type');
     
+    const user = window.authService?.currentUser;
+    
+    if (!user) {
+        const fileProtocolMsg = window.FIREBASE_FILE_PROTOCOL 
+            ? ' Utilisez un serveur web local (http://localhost) pour tester.'
+            : '';
+        showErrorState(
+            'Connexion requise',
+            'Vous devez être connecté pour confirmer votre achat.' + fileProtocolMsg
+        );
+        return;
+    }
+    
     if (purchaseId && purchaseType) {
         console.log('ℹ️ [confirmation.js] Données trouvées en sessionStorage:', { purchaseId, purchaseType });
-        await confirmPurchaseFromSessionStorage(purchaseId, purchaseType);
+        await confirmPurchaseFromSessionStorage(purchaseId, purchaseType, user.uid);
     } else {
         // Pas d'informations - afficher état générique
         console.log('⚠️ [confirmation.js] Aucune information de paiement trouvée');
         showErrorState(
             'Informations manquantes',
-            'Aucune information de paiement détectée. Si vous avez déjà payé, vos services devraient être activés.'
+            'Aucune information de paiement détectée. Si vous avez déjà payé, attendez quelques minutes et rechargez la page.'
         );
     }
 }
 
 // =============================================================================
-// VÉRIFIER ET CONFIRMER LE PAIEMENT VIA SESSION_ID
+// VÉRIFIER ET CONFIRMER LE PAIEMENT VIA SESSION_ID OU PURCHASE_ID
 // =============================================================================
-async function verifyAndConfirmPayment(sessionId) {
+async function verifyAndConfirmPayment(sessionId, userId) {
     if (!sessionId) {
         console.error('❌ [confirmation.js] Pas de sessionId');
-        showErrorState('Erreur', 'Aucun identifiant de session Stripe trouvée.');
+        showErrorState('Erreur', 'Aucun identifiant de session Stripe trouvé.');
         return;
     }
     
@@ -113,306 +385,193 @@ async function verifyAndConfirmPayment(sessionId) {
     }
     
     try {
-        // Montre l'état de chargement
-        showLoadingState('Vérification du paiement Stripe...', 50);
+        showLoadingState('Vérification de votre paiement Stripe...', 40);
         
-        // Essayer de récupérer le purchaseId depuis Firestore via sessionId
-        console.log('🔍 [confirmation.js] Recherche du purchaseId pour sessionId:', sessionId);
+        // Étape 1: Essayer de trouver le purchaseId associé au sessionId
+        let purchaseId = null;
         
-        // Rechercher dans purchases collection
-        const purchasesQuery = await db.collection('purchases')
-            .where('stripeSessionId', '==', sessionId)
-            .where('userId', '==', user.uid)
-            .limit(1)
-            .get();
+        // Vérifier d'abord dans sessionStorage
+        const storedPurchaseId = sessionStorage.getItem('stripe_purchase_id');
+        if (storedPurchaseId) {
+            console.log('ℹ️ [confirmation.js] PurchaseId trouvé dans sessionStorage:', storedPurchaseId);
+            purchaseId = storedPurchaseId;
+        }
         
-        if (!purchasesQuery.empty) {
-            const purchaseDoc = purchasesQuery.docs[0];
-            const purchaseData = purchaseDoc.data();
+        // Si pas dans sessionStorage, chercher dans Firestore
+        if (!purchaseId) {
+            purchaseId = await findPurchaseIdBySessionId(sessionId, userId);
+        }
+        
+        // Étape 2: Si on a un purchaseId, faire le polling
+        if (purchaseId) {
+            console.log('🎯 [confirmation.js] Polling pour purchaseId:', purchaseId);
+            const purchaseData = await waitForPurchaseConfirmation(purchaseId, userId);
             
-            console.log('✅ [confirmation.js] Achat trouvé:', purchaseData);
-            
-            if (purchaseData.status === 'completed') {
-                // Déjà traité
-                console.log('ℹ️ [confirmation.js] Achat déjà confirmé');
-                showSuccessState(
-                    purchaseData.type === 'subscription' 
-                        ? `Abonnement ${purchaseData.planId || 'inconnu'}` 
-                        : `Pack de ${purchaseData.tokenAmount || '?'} tokens`,
-                    purchaseData
-                );
-                return;
-            }
-            
-            // Confirmer l'achat
-            await confirmPurchaseData(purchaseData, user.uid, sessionId, purchaseDoc.id);
+            // Étape 3: Afficher le succès avec les bonnes informations
+            await displayConfirmationSuccess(purchaseData, userId);
             return;
         }
         
-        // Rechercher dans pending_purchases
-        console.log('🔍 [confirmation.js] Recherche dans pending_purchases...');
-        const pendingDoc = await db.collection('pending_purchases').doc(user.uid).get();
+        // Étape 3: Si on n'a pas trouvé de purchaseId, créer une vérification basique
+        console.log('⚠️ [confirmation.js] Aucun purchaseId trouvé, vérification basique...');
         
-        if (pendingDoc.exists) {
-            const pendingData = pendingDoc.data();
-            console.log('✅ [confirmation.js] Achat en attente trouvé:', pendingData);
-            
-            // Vérifier si cette session correspond
-            if (pendingData.stripeSessionId === sessionId) {
-                await confirmPurchaseData(pendingData, user.uid, sessionId, pendingDoc.id);
-                return;
+        // Afficher un message indiquant que la confirmation est en cours via webhook
+        showSuccessState(
+            'Paiement en cours de traitement',
+            {
+                type: 'unknown',
+                message: 'Votre paiement a été reçu par Stripe. Le webhook est en train de mettre à jour votre compte. Cela peut prendre 1-2 minutes.'
             }
-        }
-        
-        // Essayer avec le client_reference_id depuis Stripe
-        console.log('🔍 [confirmation.js] Tentative de récupération via Stripe API...');
-        try {
-            const functions = firebase.functions();
-            const verifySession = functions.httpsCallable('verifyStripeSession');
-            const result = await verifySession({ sessionId: sessionId, userId: user.uid });
-            
-            if (result.data.success) {
-                console.log('✅ [confirmation.js] Vérification Stripe réussie');
-                await confirmFromStripeSession(result.data, user.uid, sessionId);
-                return;
-            }
-        } catch (error) {
-            console.warn('⚠️ [confirmation.js] Impossible de vérifier via Stripe API:', error);
-        }
-        
-        // Dernier recours : vérifier si l'utilisateur a déjà été mis à jour
-        console.log('🔍 [confirmation.js] Vérification des données utilisateur...');
-        const userDoc = await db.collection('users').doc(user.uid).get();
-        if (userDoc.exists) {
-            const userData = userDoc.data();
-            // Si l'utilisateur a des tokens ou un plan premium, le paiement a probablement été traité
-            if ((userData.tokenState && userData.tokenState.availableTokens > 50) || 
-                ['pro', 'enterprise'].includes(userData.plan)) {
-                showSuccessState(
-                    `Vos services sont actifs`,
-                    userData
-                );
-                return;
-            }
-        }
-        
-        // Aucune information trouvée
-        console.error('❌ [confirmation.js] Aucune donnée d\'achat trouvée');
-        showErrorState(
-            'Achat introuvable',
-            'Nous ne trouvons pas votre achat. Si vous avez déjà payé, attendez quelques minutes et rechargez la page.'
         );
         
     } catch (error) {
         console.error('❌ [confirmation.js] Erreur:', error);
+        
+        // Nettoyer le sessionStorage en cas d'erreur
+        const stripeKeys = [
+            'stripe_purchase_id',
+            'stripe_purchase_type',
+            'stripe_purchase_planId',
+            'stripe_purchase_isAnnual',
+            'stripe_purchase_packId',
+            'stripe_purchase_tokenAmount'
+        ];
+        stripeKeys.forEach(key => sessionStorage.removeItem(key));
+        
         showErrorState(
             'Erreur de confirmation',
-            error.message || 'Une erreur est survenue lors de la vérification.'
+            error.message || 'Une erreur est survenue lors de la vérification. Si vous avez déjà payé, vos services seront activés sous 1-2 minutes via le webhook Stripe.'
         );
-    }
-}
-
-// =============================================================================
-// CONFIRMER À PARTIR DES DONNÉES DE PURCHASE
-// =============================================================================
-async function confirmPurchaseData(purchaseData, userId, sessionId, purchaseId) {
-    console.log('🔧 [confirmation.js] confirmPurchaseData:', { type: purchaseData.type, purchaseId });
-    
-    const user = window.authService?.currentUser;
-    if (!user) {
-        showErrorState('Erreur', 'Utilisateur non connecté.');
-        return;
-    }
-    
-    try {
-        const functions = firebase.functions();
-        let confirmFn, params;
-        
-        showLoadingState('Confirmation de votre achat...', 70);
-        
-        if (purchaseData.type === 'subscription') {
-            confirmFn = functions.httpsCallable('confirmStripeSubscription');
-            params = {
-                userId: userId,
-                sessionId: sessionId,
-                purchaseId: purchaseId,
-                planId: purchaseData.planId,
-                isAnnual: purchaseData.isAnnual || false
-            };
-        } else if (purchaseData.type === 'token_pack') {
-            confirmFn = functions.httpsCallable('confirmTokenPurchase');
-            params = {
-                userId: userId,
-                sessionId: sessionId,
-                purchaseId: purchaseId,
-                packId: purchaseData.packId,
-                tokenAmount: purchaseData.tokenAmount || 0
-            };
-        } else {
-            throw new Error(`Type d'achat inconnu: ${purchaseData.type}`);
-        }
-        
-        console.log('📤 [confirmation.js] Appel de la fonction de confirmation:', params);
-        const result = await confirmFn(params);
-        
-        if (result.data.success) {
-            console.log('✅ [confirmation.js] Confirmation réussie:', result.data);
-            showSuccessState(
-                purchaseData.type === 'subscription'
-                    ? `Abonnement ${result.data.planId || purchaseData.planId || 'inconnu'}`
-                    : `${result.data.tokenAmount || purchaseData.tokenAmount || '?'} tokens`,
-                { ...purchaseData, ...result.data }
-            );
-        } else {
-            console.error('❌ [confirmation.js] Confirmation échouée:', result.data.error);
-            showErrorState(
-                'Confirmation échouée',
-                result.data.error || 'Une erreur est survenue.'
-            );
-        }
-        
-    } catch (error) {
-        console.error('❌ [confirmation.js] Erreur confirmation:', error);
-        showErrorState(
-            'Erreur de confirmation',
-            error.message || 'Une erreur est survenue.'
-        );
-    }
-}
-
-// =============================================================================
-// CONFIRMER À PARTIR DE SESSION STRIPE
-// =============================================================================
-async function confirmFromStripeSession(sessionData, userId, sessionId) {
-    console.log('🔧 [confirmation.js] confirmFromStripeSession:', sessionData);
-    
-    try {
-        const functions = firebase.functions();
-        
-        // Déterminer le type à partir des métadonnées
-        const metadata = sessionData.metadata || {};
-        const clientRef = sessionData.clientReferenceId ? JSON.parse(sessionData.clientReferenceId) : {};
-        
-        const type = metadata.type || clientRef.type;
-        
-        showLoadingState('Finalisation de votre achat...', 80);
-        
-        if (type === 'subscription') {
-            const confirmFn = functions.httpsCallable('confirmStripeSubscription');
-            const result = await confirmFn({
-                userId: userId,
-                sessionId: sessionId,
-                planId: metadata.planId || clientRef.planId || 'pro',
-                isAnnual: metadata.isAnnual === 'true' || clientRef.isAnnual === true
-            });
-            
-            if (result.data.success) {
-                showSuccessState(
-                    `Abonnement ${result.data.planId || 'inconnu'}`,
-                    result.data
-                );
-            } else {
-                showErrorState('Confirmation échouée', result.data.error || 'Erreur');
-            }
-        } else if (type === 'token_pack') {
-            const confirmFn = functions.httpsCallable('confirmTokenPurchase');
-            const result = await confirmFn({
-                userId: userId,
-                sessionId: sessionId,
-                packId: metadata.packId || clientRef.packId || 'discovery',
-                tokenAmount: parseInt(metadata.tokenAmount) || clientRef.tokenAmount || 0
-            });
-            
-            if (result.data.success) {
-                showSuccessState(
-                    `${result.data.tokenAmount || metadata.tokenAmount || '?'} tokens`,
-                    result.data
-                );
-            } else {
-                showErrorState('Confirmation échouée', result.data.error || 'Erreur');
-            }
-        } else {
-            showErrorState('Type inconnu', 'Impossible de déterminer le type d\'achat.');
-        }
-        
-    } catch (error) {
-        console.error('❌ [confirmation.js] Erreur:', error);
-        showErrorState('Erreur', error.message || 'Erreur de confirmation.');
     }
 }
 
 // =============================================================================
 // CONFIRMER À PARTIR DU SESSION STORAGE
 // =============================================================================
-async function confirmPurchaseFromSessionStorage(purchaseId, purchaseType) {
-    console.log('🔧 [confirmation.js] confirmPurchaseFromSessionStorage:', { purchaseId, purchaseType });
+async function confirmPurchaseFromSessionStorage(purchaseId, purchaseType, userId) {
+    console.log('🔧 [confirmation.js] confirmPurchaseFromSessionStorage:', { purchaseId, purchaseType, userId });
     
     const user = window.authService?.currentUser;
     if (!user) {
-        showErrorState('Erreur', 'Utilisateur non connecté.');
+        const fileProtocolMsg = window.FIREBASE_FILE_PROTOCOL 
+            ? ' Utilisez un serveur web local (http://localhost) pour tester.'
+            : '';
+        showErrorState(
+            'Connexion requise',
+            'Vous devez être connecté pour confirmer votre achat.' + fileProtocolMsg
+        );
         return;
     }
     
     try {
-        const functions = firebase.functions();
+        showLoadingState('Vérification de votre paiement...', 50);
         
-        showLoadingState('Confirmation de votre achat...', 70);
+        // Attendre la confirmation via polling
+        console.log('🎯 [confirmation.js] Polling pour purchaseId:', purchaseId);
+        const purchaseData = await waitForPurchaseConfirmation(purchaseId, userId);
         
-        if (purchaseType === 'subscription') {
-            const planId = sessionStorage.getItem('stripe_purchase_planId') || 'pro';
-            const isAnnual = sessionStorage.getItem('stripe_purchase_isAnnual') === 'true';
-            
-            const confirmFn = functions.httpsCallable('confirmStripeSubscription');
-            const result = await confirmFn({
-                userId: user.uid,
-                purchaseId: purchaseId,
-                planId: planId,
-                isAnnual: isAnnual
-            });
-            
-            if (result.data.success) {
-                showSuccessState(
-                    `Abonnement ${result.data.planId || planId}`,
-                    result.data
-                );
-            } else {
-                showErrorState('Confirmation échouée', result.data.error || 'Erreur');
-            }
-        } else if (purchaseType === 'token_pack') {
-            const packId = sessionStorage.getItem('stripe_purchase_packId') || 'discovery';
-            const tokenAmount = parseInt(sessionStorage.getItem('stripe_purchase_tokenAmount')) || 0;
-            
-            const confirmFn = functions.httpsCallable('confirmTokenPurchase');
-            const result = await confirmFn({
-                userId: user.uid,
-                purchaseId: purchaseId,
-                packId: packId,
-                tokenAmount: tokenAmount
-            });
-            
-            if (result.data.success) {
-                showSuccessState(
-                    `${result.data.tokenAmount || tokenAmount || '?'} tokens`,
-                    result.data
-                );
-            } else {
-                showErrorState('Confirmation échouée', result.data.error || 'Erreur');
-            }
-        } else {
-            showErrorState('Type inconnu', 'Type d\'achat inconnu.');
-        }
-        
-        // Nettoyer sessionStorage
-        sessionStorage.removeItem('stripe_purchase_id');
-        sessionStorage.removeItem('stripe_purchase_type');
-        sessionStorage.removeItem('stripe_purchase_planId');
-        sessionStorage.removeItem('stripe_purchase_isAnnual');
-        sessionStorage.removeItem('stripe_purchase_packId');
-        sessionStorage.removeItem('stripe_purchase_tokenAmount');
+        // Afficher le succès
+        await displayConfirmationSuccess(purchaseData, userId);
         
     } catch (error) {
         console.error('❌ [confirmation.js] Erreur:', error);
-        showErrorState('Erreur', error.message || 'Erreur de confirmation.');
+        
+        // Nettoyage du sessionStorage
+        const stripeKeys = [
+            'stripe_purchase_id',
+            'stripe_purchase_type',
+            'stripe_purchase_planId',
+            'stripe_purchase_isAnnual',
+            'stripe_purchase_packId',
+            'stripe_purchase_tokenAmount'
+        ];
+        stripeKeys.forEach(key => sessionStorage.removeItem(key));
+        
+        showErrorState(
+            'Erreur de confirmation',
+            error.message || 'Une erreur est survenue. Si vous avez déjà payé, vos services seront activés sous 1-2 minutes via le webhook Stripe.'
+        );
+    }
+}
+
+// =============================================================================
+// AFFICHER LE SUCCÈS AVEC LES BONNES INFORMATIONS
+// =============================================================================
+async function displayConfirmationSuccess(purchaseData, userId) {
+    console.log('✅ [confirmation.js] Affichage du succès pour:', purchaseData);
+    
+    // Nettoyer le sessionStorage
+    const stripeKeys = [
+        'stripe_purchase_id',
+        'stripe_purchase_type',
+        'stripe_purchase_planId',
+        'stripe_purchase_isAnnual',
+        'stripe_purchase_packId',
+        'stripe_purchase_tokenAmount'
+    ];
+    stripeKeys.forEach(key => sessionStorage.removeItem(key));
+    
+    // Déterminer le type d'achat
+    const type = purchaseData.type || 
+                 sessionStorage.getItem('stripe_purchase_type') || 
+                 (purchaseData.planId ? 'subscription' : 
+                  purchaseData.packId ? 'token_pack' : 'unknown');
+    
+    let itemDescription, data;
+    
+    if (type === 'subscription') {
+        const planId = purchaseData.planId || sessionStorage.getItem('stripe_purchase_planId') || 'pro';
+        const isAnnual = purchaseData.isAnnual || 
+                       (sessionStorage.getItem('stripe_purchase_isAnnual') === 'true') || 
+                       false;
+        
+        itemDescription = `Abonnement ${planId.toUpperCase()}`;
+        data = {
+            type: 'subscription',
+            planId: planId,
+            isAnnual: isAnnual,
+            message: 'Votre abonnement est activé. Vos tokens et services sont disponibles immédiatement.'
+        };
+        
+    } else if (type === 'token_pack') {
+        const packId = purchaseData.packId || sessionStorage.getItem('stripe_purchase_packId') || 'discovery';
+        const tokenAmount = purchaseData.tokenAmount || 
+                           parseInt(sessionStorage.getItem('stripe_purchase_tokenAmount')) || 
+                           (purchaseData.tokensAdded || 0);
+        
+        const packNames = { 
+            discovery: 'Découverte', 
+            boost: 'Boost', 
+            expert: 'Expert', 
+            unique_report: 'Rapport unique' 
+        };
+        
+        itemDescription = `${tokenAmount} tokens`;
+        data = {
+            type: 'token_pack',
+            packId: packId,
+            packName: packNames[packId] || packId,
+            tokenAmount: tokenAmount,
+            message: 'Vos tokens sont disponibles immédiatement.'
+        };
+        
+    } else {
+        itemDescription = 'Paiement';
+        data = {
+            type: 'unknown',
+            message: 'Votre paiement a été confirmé avec succès.'
+        };
+    }
+    
+    showSuccessState(itemDescription, data);
+    
+    // Recharger les données utilisateur en arrière-plan
+    if (typeof window.syncUserData === 'function') {
+        setTimeout(() => {
+            window.syncUserData().then(() => {
+                console.log('🔄 [confirmation.js] Données utilisateur synchronisées');
+            });
+        }, 1000);
     }
 }
 
@@ -488,19 +647,14 @@ function showSuccessState(itemDescription, data) {
     
     // Mettre à jour le statut
     const statusEl = document.getElementById('successStatus');
-    if (statusEl && data && data.tokenAmount) {
-        statusEl.textContent = `+${data.tokenAmount} tokens disponibles immédiatement`;
-    } else if (statusEl && data && data.planId) {
-        statusEl.textContent = `Abonnement ${data.planId.toUpperCase()} actif`;
-    }
-    
-    // Recharger les données utilisateur en arrière-plan
-    if (typeof window.syncUserData === 'function') {
-        setTimeout(() => {
-            window.syncUserData().then(() => {
-                console.log('🔄 [confirmation.js] Données utilisateur synchronisées');
-            });
-        }, 500);
+    if (statusEl && data) {
+        if (data.tokenAmount) {
+            statusEl.textContent = `+${data.tokenAmount} tokens disponibles immédiatement`;
+        } else if (data.planId) {
+            statusEl.textContent = `Abonnement ${data.planId.toUpperCase()} actif`;
+        } else if (data.message) {
+            statusEl.textContent = data.message;
+        }
     }
 }
 
@@ -518,6 +672,9 @@ function showErrorState(title, message) {
     if (message) {
         const messageEl = document.getElementById('errorMessage');
         if (messageEl) messageEl.textContent = message;
+        
+        const detailsEl = document.getElementById('errorDetails');
+        if (detailsEl) detailsEl.textContent = message;
     }
 }
 
@@ -529,9 +686,9 @@ function showCanceledState() {
 }
 
 // =============================================================================
-// FONCTION POUR VÉRIFIER UNE SESSION STRIPE (à ajouter dans functions/index.js)
+// EXPORT POUR DÉBOGAGE
 // =============================================================================
-// Cette fonction doit être ajoutée dans votre backend Firebase Functions
-// Elle permet de récupérer les infos d'une session Stripe depuis le frontend
+window.waitForPurchaseConfirmation = waitForPurchaseConfirmation;
+window.findPurchaseIdBySessionId = findPurchaseIdBySessionId;
 
 console.log('%c💳 [confirmation.js] Service de confirmation chargé', 'color: #28a745; font-weight: bold;');
