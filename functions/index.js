@@ -1,17 +1,21 @@
 // =============================================================================
-// Firebase Cloud Functions pour DPAI
+// Firebase Cloud Functions pour DPAI - VERSION CORRIGEE ET SECURISEE
+// Gestion des confirmations de paiement Stripe
 // =============================================================================
 
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 
+// =============================================================================
+// INITIALISATION
+// =============================================================================
 if (!admin.apps.length) {
     admin.initializeApp();
 }
 const db = admin.firestore();
 
 // =============================================================================
-// CONFIGURATION STRIPE
+// CONFIGURATION CENTRALISEE
 // =============================================================================
 const stripeSecretKey = functions.config().stripe.secret || process.env.STRIPE_SECRET_KEY;
 const stripe = require('stripe')(stripeSecretKey);
@@ -20,116 +24,226 @@ const isStripeTestMode = stripeSecretKey && stripeSecretKey.startsWith('sk_test_
 if (isStripeTestMode) console.log('🧪 [Stripe] Mode TEST activé');
 else if (stripeSecretKey && stripeSecretKey.startsWith('sk_live_')) console.log('✅ [Stripe] Mode PRODUCTION activé');
 
-// =============================================================================
-// FONCTION: Confirmer un abonnement
-// =============================================================================
-exports.confirmStripeSubscription = functions.https.onCall(async (data, context) => {
-    if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Non autorisé');
+// Configuration des plans (centralisée)
+const PLAN_CONFIGS = {
+    pro: {
+        baseTokens: 500,
+        bonusRate: 0.20,
+        hasPremiumSuggestions: true,
+        hasAdvancedAnalytics: true,
+        hasAPI: false
+    },
+    enterprise: {
+        baseTokens: 5000,
+        bonusRate: 0.30,
+        hasPremiumSuggestions: true,
+        hasAdvancedAnalytics: true,
+        hasAPI: true
+    }
+};
 
+// Constantes
+const WELCOME_BONUS = 10;
+const ANNUAL_DURATION_MS = 365 * 24 * 60 * 60 * 1000;
+
+// =============================================================================
+// UTILITAIRES (fonctions partagées)
+// =============================================================================
+
+/**
+ * Valide que l'utilisateur est authentifié et que userId correspond
+ */
+function validateUser(context, userId) {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Non autorisé');
+    }
+    if (context.auth.uid !== userId) {
+        throw new functions.https.HttpsError('permission-denied', 'Accès refusé');
+    }
+}
+
+/**
+ * Vérifie qu'une session Stripe est payée
+ */
+async function verifyStripePayment(sessionId) {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (session.payment_status !== 'paid') {
+        throw new Error(`Paiement non confirmé pour session: ${sessionId}`);
+    }
+    return session;
+}
+
+/**
+ * Récupère les données d'achat (depuis purchases ou pending_purchases)
+ */
+async function getPurchaseData(purchaseId, userId) {
+    if (purchaseId) {
+        const purchaseDoc = await db.collection('purchases').doc(purchaseId).get();
+        if (!purchaseDoc.exists) {
+            throw new Error(`Aucun achat trouvé pour purchaseId: ${purchaseId}`);
+        }
+        return { source: 'purchases', data: purchaseDoc.data(), docRef: purchaseDoc.ref };
+    } else {
+        const pendingDoc = await db.collection('pending_purchases').doc(userId).get();
+        if (!pendingDoc.exists) {
+            throw new Error(`Aucun achat en attente trouvé pour userId: ${userId}`);
+        }
+        return { source: 'pending_purchases', data: pendingDoc.data(), docRef: pendingDoc.ref };
+    }
+}
+
+/**
+ * Calcule les tokens pour un plan donné
+ */
+function calculatePlanTokens(planId) {
+    const config = PLAN_CONFIGS[planId] || PLAN_CONFIGS.pro;
+    const baseTokens = config.baseTokens;
+    const bonusTokens = Math.floor(baseTokens * config.bonusRate);
+    return {
+        baseTokens,
+        bonusTokens,
+        totalTokens: baseTokens + bonusTokens + WELCOME_BONUS,
+        config
+    };
+}
+
+/**
+ * Met à jour l'utilisateur avec un nouveau plan
+ */
+async function updateUserForSubscription(userId, planId, isAnnual = false) {
+    const { baseTokens, bonusTokens, totalTokens, config } = calculatePlanTokens(planId);
+
+    const subscriptionEndDate = isAnnual
+        ? admin.firestore.Timestamp.fromDate(new Date(Date.now() + ANNUAL_DURATION_MS))
+        : null;
+
+    await db.collection('users').doc(userId).update({
+        plan: planId,
+        subscriptionStartDate: admin.firestore.FieldValue.serverTimestamp(),
+        subscriptionEndDate,
+        hasAccessToPremiumSuggestions: config.hasPremiumSuggestions,
+        hasAccessToAdvancedAnalytics: config.hasAdvancedAnalytics,
+        hasAccessToAPI: config.hasAPI,
+        'tokenState.plan': planId,
+        'tokenState.baseTokens': baseTokens,
+        'tokenState.bonusTokens': bonusTokens,
+        'tokenState.totalTokens': totalTokens,
+        'tokenState.availableTokens': totalTokens,
+        'tokenState.usedTokens': 0,
+        'tokenState.monthlyTokensUsed': 0,
+        'tokenState.lastTokenUpdate': admin.firestore.FieldValue.serverTimestamp(),
+        'tokenState.lastMonthlyReset': admin.firestore.FieldValue.serverTimestamp(),
+        'tokenState.firstAnalysisDone': false
+    });
+
+    return { planId, tokenAmount: totalTokens };
+}
+
+/**
+ * Ajoute des tokens à un utilisateur
+ */
+async function addTokensToUser(userId, tokenAmount) {
+    await db.collection('users').doc(userId).update({
+        'tokenState.availableTokens': admin.firestore.FieldValue.increment(tokenAmount),
+        'tokenState.totalTokens': admin.firestore.FieldValue.increment(tokenAmount)
+    });
+    return { tokenAmount };
+}
+
+/**
+ * Met à jour le statut d'un achat
+ */
+async function updatePurchaseStatus(docRef, sessionId, source) {
+    if (source === 'purchases') {
+        await docRef.update({
+            status: 'completed',
+            stripeSessionId: sessionId,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    } else {
+        // pending_purchases: on delete
+        await docRef.delete();
+    }
+}
+
+/**
+ * Met à jour le statut d'un achat via purchaseId
+ */
+async function updatePurchaseById(purchaseId, stripeId) {
+    if (purchaseId) {
+        await db.collection('purchases').doc(purchaseId).update({
+            status: 'completed',
+            stripeId: stripeId,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+    }
+}
+
+// =============================================================================
+// FONCTIONS PRINCIPALES
+// =============================================================================
+
+/**
+ * Confirmer un abonnement après paiement Stripe
+ */
+exports.confirmStripeSubscription = functions.https.onCall(async (data, context) => {
     const { userId, sessionId, purchaseId, planId: paramPlanId, isAnnual: paramIsAnnual } = data;
 
     try {
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
-        if (session.payment_status !== 'paid') return { success: false, error: 'Paiement non confirmé' };
-
-        let purchaseData;
-        if (purchaseId) {
-            const purchaseDoc = await db.collection('purchases').doc(purchaseId).get();
-            if (!purchaseDoc.exists) return { success: false, error: 'Aucun achat trouvé' };
-            purchaseData = purchaseDoc.data();
-        } else {
-            const pendingDoc = await db.collection('pending_purchases').doc(userId).get();
-            if (!pendingDoc.exists) return { success: false, error: 'Aucun achat en attente' };
-            purchaseData = pendingDoc.data();
-        }
-
+        validateUser(context, userId);
+        await verifyStripePayment(sessionId);
+        
+        const { data: purchaseData, source, docRef } = await getPurchaseData(purchaseId, userId);
         const planId = paramPlanId || purchaseData.planId || 'pro';
         const isAnnual = paramIsAnnual !== undefined ? paramIsAnnual : (purchaseData.isAnnual || false);
-        const planConfigs = { pro: { baseTokens: 500, bonusRate: 0.20 }, enterprise: { baseTokens: 5000, bonusRate: 0.30 } };
-        const config = planConfigs[planId] || planConfigs.pro;
-        const baseTokens = config.baseTokens;
-        const bonusTokens = Math.floor(baseTokens * config.bonusRate);
-        const totalTokens = baseTokens + bonusTokens + 10;
 
-        await db.collection('users').doc(userId).update({
-            plan: planId,
-            subscriptionStartDate: admin.firestore.FieldValue.serverTimestamp(),
-            subscriptionEndDate: isAnnual ? admin.firestore.Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)) : null,
-            hasAccessToPremiumSuggestions: true,
-            hasAccessToAdvancedAnalytics: planId === 'pro' || planId === 'enterprise',
-            hasAccessToAPI: planId === 'enterprise',
-            'tokenState.plan': planId,
-            'tokenState.baseTokens': baseTokens,
-            'tokenState.bonusTokens': bonusTokens,
-            'tokenState.totalTokens': totalTokens,
-            'tokenState.availableTokens': totalTokens,
-            'tokenState.usedTokens': 0,
-            'tokenState.monthlyTokensUsed': 0,
-            'tokenState.lastTokenUpdate': admin.firestore.FieldValue.serverTimestamp(),
-            'tokenState.lastMonthlyReset': admin.firestore.FieldValue.serverTimestamp(),
-            'tokenState.firstAnalysisDone': false
-        });
+        const result = await updateUserForSubscription(userId, planId, isAnnual);
+        await updatePurchaseStatus(docRef, sessionId, source);
 
-        if (purchaseId) {
-            await db.collection('purchases').doc(purchaseId).update({ status: 'completed', stripeSessionId: sessionId, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
-        } else {
-            await db.collection('pending_purchases').doc(userId).delete();
-        }
+        console.log('✅ Abonnement confirmé pour:', userId, 'Plan:', planId);
+        return { success: true, ...result };
 
-        return { success: true, planId, tokenAmount: totalTokens };
     } catch (error) {
-        console.error('Erreur confirmation abonnement:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        console.error('❌ Erreur confirmation abonnement:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            error.message || 'Erreur lors de la confirmation de l\'abonnement'
+        );
     }
 });
 
-// =============================================================================
-// FONCTION: Confirmer achat de tokens
-// =============================================================================
+/**
+ * Confirmer un achat de pack de tokens après paiement Stripe
+ */
 exports.confirmTokenPurchase = functions.https.onCall(async (data, context) => {
-    if (!context.auth) throw new functions.https.HttpsError('unauthenticated', 'Non autorisé');
-
     const { userId, sessionId, purchaseId, packId: paramPackId, tokenAmount: paramTokenAmount } = data;
 
     try {
-        const session = await stripe.checkout.sessions.retrieve(sessionId);
-        if (session.payment_status !== 'paid') return { success: false, error: 'Paiement non confirmé' };
-
-        let purchaseData;
-        if (purchaseId) {
-            const purchaseDoc = await db.collection('purchases').doc(purchaseId).get();
-            if (!purchaseDoc.exists) return { success: false, error: 'Aucun achat trouvé' };
-            purchaseData = purchaseDoc.data();
-        } else {
-            const pendingDoc = await db.collection('pending_purchases').doc(userId).get();
-            if (!pendingDoc.exists) return { success: false, error: 'Aucun achat en attente' };
-            purchaseData = pendingDoc.data();
-        }
-
+        validateUser(context, userId);
+        await verifyStripePayment(sessionId);
+        
+        const { data: purchaseData, source, docRef } = await getPurchaseData(purchaseId, userId);
         const packId = paramPackId || purchaseData.packId;
         const tokenAmount = paramTokenAmount || purchaseData.tokenAmount || 0;
 
-        await db.collection('users').doc(userId).update({
-            'tokenState.availableTokens': admin.firestore.FieldValue.increment(tokenAmount),
-            'tokenState.totalTokens': admin.firestore.FieldValue.increment(tokenAmount)
-        });
+        await addTokensToUser(userId, tokenAmount);
+        await updatePurchaseStatus(docRef, sessionId, source);
 
-        if (purchaseId) {
-            await db.collection('purchases').doc(purchaseId).update({ status: 'completed', stripeSessionId: sessionId, updatedAt: admin.firestore.FieldValue.serverTimestamp() });
-        } else {
-            await db.collection('pending_purchases').doc(userId).delete();
-        }
-
+        console.log('✅ Pack de tokens confirmé pour:', userId, 'Pack:', packId, 'Tokens:', tokenAmount);
         return { success: true, packId, tokenAmount };
+
     } catch (error) {
-        console.error('Erreur achat tokens:', error);
-        throw new functions.https.HttpsError('internal', error.message);
+        console.error('❌ Erreur achat tokens:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            error.message || 'Erreur lors de la confirmation de l\'achat de tokens'
+        );
     }
 });
 
-// =============================================================================
-// FONCTION: Webhook Stripe
-// =============================================================================
+/**
+ * Webhook Stripe pour confirmation en temps réel
+ */
 exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     const sig = req.headers['stripe-signature'];
     const endpointSecret = functions.config().stripe.webhook || process.env.STRIPE_WEBHOOK_SECRET;
@@ -143,13 +257,14 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
     try {
         event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
     } catch (err) {
-        console.error('Webhook Error:', err.message);
+        console.error('❌ Webhook Error:', err.message);
         return res.status(400).send(`Webhook Error: ${err.message}`);
     }
 
     // Gestion des événements
     if (event.type === 'checkout.session.completed' || event.type === 'payment_intent.succeeded') {
         const obj = event.type === 'checkout.session.completed' ? event.data.object : event.data.object;
+        const stripeId = obj.id;
         let clientRef;
 
         try {
@@ -166,71 +281,54 @@ exports.stripeWebhook = functions.https.onRequest(async (req, res) => {
         const type = clientRef.type;
         const purchaseId = clientRef.purchaseId;
 
-        if (!userId || !type) return res.status(200).json({ received: true });
+        if (!userId || !type) {
+            console.log('⚠️ Données manquantes dans client_reference_id');
+            return res.status(200).json({ received: true });
+        }
 
         try {
             if (type === 'subscription') {
                 const planId = clientRef.planId || 'pro';
                 const isAnnual = clientRef.isAnnual || false;
-                const planConfigs = { pro: { baseTokens: 500, bonusRate: 0.20 }, enterprise: { baseTokens: 5000, bonusRate: 0.30 } };
-                const config = planConfigs[planId] || planConfigs.pro;
-                const baseTokens = config.baseTokens;
-                const bonusTokens = Math.floor(baseTokens * config.bonusRate);
-                const totalTokens = baseTokens + bonusTokens + 10;
 
-                await db.collection('users').doc(userId).update({
-                    plan: planId,
-                    subscriptionStartDate: admin.firestore.FieldValue.serverTimestamp(),
-                    subscriptionEndDate: isAnnual ? admin.firestore.Timestamp.fromDate(new Date(Date.now() + 365 * 24 * 60 * 60 * 1000)) : null,
-                    hasAccessToPremiumSuggestions: true,
-                    hasAccessToAdvancedAnalytics: planId === 'pro' || planId === 'enterprise',
-                    hasAccessToAPI: planId === 'enterprise',
-                    'tokenState.plan': planId,
-                    'tokenState.baseTokens': baseTokens,
-                    'tokenState.bonusTokens': bonusTokens,
-                    'tokenState.totalTokens': totalTokens,
-                    'tokenState.availableTokens': totalTokens,
-                    'tokenState.usedTokens': 0,
-                    'tokenState.lastTokenUpdate': admin.firestore.FieldValue.serverTimestamp()
-                });
+                await updateUserForSubscription(userId, planId, isAnnual);
+                await updatePurchaseById(purchaseId, stripeId);
 
-                if (purchaseId) {
-                    await db.collection('purchases').doc(purchaseId).update({
-                        status: 'completed',
-                        stripeId: event.type === 'checkout.session.completed' ? obj.id : obj.id,
-                        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                    });
-                }
+                console.log('✅ Webhook subscription traité pour:', userId, 'Plan:', planId);
             }
             else if (type === 'token_pack') {
                 const packId = clientRef.packId;
                 const tokenAmount = clientRef.tokenAmount || 0;
 
                 if (packId && tokenAmount) {
-                    await db.collection('users').doc(userId).update({
-                        'tokenState.availableTokens': admin.firestore.FieldValue.increment(tokenAmount),
-                        'tokenState.totalTokens': admin.firestore.FieldValue.increment(tokenAmount)
-                    });
+                    await addTokensToUser(userId, tokenAmount);
+                    await updatePurchaseById(purchaseId, stripeId);
 
-                    if (purchaseId) {
-                        await db.collection('purchases').doc(purchaseId).update({
-                            status: 'completed',
-                            stripeId: event.type === 'checkout.session.completed' ? obj.id : obj.id,
-                            updatedAt: admin.firestore.FieldValue.serverTimestamp()
-                        });
-                    }
+                    console.log('✅ Webhook token_pack traité pour:', userId, 'Pack:', packId, 'Tokens:', tokenAmount);
                 }
             }
         } catch (err) {
-            console.error('Erreur webhook:', err);
+            console.error('❌ Erreur traitement webhook:', err);
         }
     }
 
     res.json({ received: true });
 });
 
+// =============================================================================
+// EXPORT POUR TESTS LOCAUX
+// =============================================================================
 module.exports = {
     confirmStripeSubscription: exports.confirmStripeSubscription,
     confirmTokenPurchase: exports.confirmTokenPurchase,
-    stripeWebhook: exports.stripeWebhook
+    stripeWebhook: exports.stripeWebhook,
+    // Export des utilitaires pour les tests
+    validateUser,
+    verifyStripePayment,
+    getPurchaseData,
+    calculatePlanTokens,
+    updateUserForSubscription,
+    addTokensToUser,
+    updatePurchaseStatus,
+    updatePurchaseById
 };
