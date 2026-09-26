@@ -1,5 +1,5 @@
 // =============================================================================
-// STRIPE-SERVICE.JS - VERSION CORRIGÉE (25/09/2026)
+// STRIPE-SERVICE.JS - VERSION CORRIGÉE AVEC CALLABLE FUNCTIONS (26/09/2026)
 // =============================================================================
 
 // =============================================================================
@@ -27,12 +27,6 @@ var TokenPacks = window.TokenPacks = window.TokenPacks || [
 // =============================================================================
 // HELPERS
 // =============================================================================
-function getFieldValue() {
-  if (window.firebaseDB && window.firebaseDB.FieldValue) return window.firebaseDB.FieldValue;
-  if (window.firebase && firebase.firestore) return firebase.firestore.FieldValue;
-  throw new Error('Firebase FieldValue introuvable');
-}
-
 function getPaymentLink(key) {
   const links = window.PAYMENT_LINKS || {};
   return links[key + '_link'] || links[key] || null;
@@ -74,69 +68,69 @@ class StripeService {
   }
 
   // ===========================================================================
-  // ACHAT DE PACKS DE TOKENS - CORRIGÉ
+  // ACHAT DE PACKS DE TOKENS - VERSION SÉCURISÉE AVEC CALLABLE FUNCTIONS
   // ===========================================================================
   async purchaseTokenPack(packId, userId) {
     try {
       const pack = TokenPacks.find(p => p.id === packId);
       if (!pack) throw new Error('Pack de tokens introuvable');
 
-      // Pack gratuit - Traiter immédiatement
-      if (pack.priceEuros === 0) {
-        const FieldValue = getFieldValue();
-        await db.collection('users').doc(userId).update({
-          'tokenState.availableTokens': FieldValue.increment(pack.tokenAmount),
-          'tokenState.totalTokens': FieldValue.increment(pack.tokenAmount)
-        });
-        if (typeof loadUserTokenData === 'function') {
-          await loadUserTokenData(userId);
-        }
-        return { success: true, isFree: true };
-      }
-
-      // Pack payant - Créer document et rediriger
       const user = authService.currentUser;
       if (!user) throw new Error('Utilisateur non connecté');
 
+      // Pack gratuit - Utiliser Callable Function
+      if (pack.priceEuros === 0) {
+        const claimFreeTokenPack = firebase.functions().httpsCallable('claimFreeTokenPack');
+        const result = await claimFreeTokenPack({
+          userId: user.uid,
+          packId: packId,
+          tokenAmount: pack.tokenAmount
+        });
+        if (result.data.success && typeof loadUserTokenData === 'function') {
+          await loadUserTokenData(userId);
+        }
+        return { success: true, isFree: true, ...result.data };
+      }
+
+      // Pack payant - Initialiser via Callable Function puis rediriger
       const paymentUrl = getPaymentLink(packId);
       if (!paymentUrl) {
         throw new Error(`Payment Link non configuré pour ${packId}. Vérifie js/payment-links-config.js`);
       }
 
-      const FieldValue = getFieldValue();
+      // Initialiser l'achat via Callable Function
+      const initTokenPurchase = firebase.functions().httpsCallable('initTokenPurchase');
+      const initResult = await initTokenPurchase({
+        userId: user.uid,
+        packId: packId,
+        tokenAmount: pack.tokenAmount
+      });
 
-      // ✅ CORRECTION: Utilise .add() pour créer un document UNIQUE
-      const purchaseRef = await db.collection('purchases').add({
+      if (!initResult.data.success) {
+        throw new Error('Échec de l\'initialisation de l\'achat');
+      }
+
+      const purchaseId = initResult.data.purchaseId;
+
+      // Construire l'URL Stripe avec purchaseId
+      const finalUrl = buildPaymentUrl(paymentUrl, {
         userId: user.uid,
         packId: packId,
         tokenAmount: pack.tokenAmount,
         type: 'token_pack',
-        status: 'pending',
-        stripeSessionId: null,
-        stripePaymentIntentId: null,
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp()
-      });
-
-      // ✅ CORRECTION: Ajoute purchaseId pour le webhook
-      const finalUrl = buildPaymentUrl(paymentUrl, {
-        userId: user.uid,
-        packId: packId,
-        tokenAmount: pack.tokenAmount, // Ajout pour le webhook
-        type: 'token_pack',
-        purchaseId: purchaseRef.id, // ⬅️ CRITIQUE
+        purchaseId: purchaseId,
         email: user.email || ''
       });
 
       // Stocker purchaseId en sessionStorage pour la confirmation après retour
-      sessionStorage.setItem('stripe_purchase_id', purchaseRef.id);
+      sessionStorage.setItem('stripe_purchase_id', purchaseId);
       sessionStorage.setItem('stripe_purchase_type', 'token_pack');
       sessionStorage.setItem('stripe_purchase_packId', packId);
 
       console.log('🔗 [Stripe] Redirection vers:', finalUrl);
-      console.log('💾 [Stripe] purchaseId stocké en sessionStorage:', purchaseRef.id);
+      console.log('💾 [Stripe] purchaseId stocké en sessionStorage:', purchaseId);
       window.location.href = finalUrl;
-      return { success: true, redirected: true, purchaseId: purchaseRef.id };
+      return { success: true, redirected: true, purchaseId: purchaseId };
 
     } catch (error) {
       console.error('❌ [Stripe] Erreur achat pack tokens:', error);
@@ -145,7 +139,7 @@ class StripeService {
   }
 
   // ===========================================================================
-  // ACHAT D'UN ABONNEMENT - CORRIGÉ
+  // ACHAT D'UN ABONNEMENT - VERSION SÉCURISÉE AVEC CALLABLE FUNCTIONS
   // ===========================================================================
   async purchaseSubscription(planId, userId, isAnnual) {
     if (isAnnual === undefined) isAnnual = false;
@@ -154,85 +148,63 @@ class StripeService {
       const plan = SubscriptionPlansData.find(p => p.id === planId);
       if (!plan) throw new Error('Plan introuvable');
 
-      // Plan gratuit - Traiter immédiatement
-      if (plan.priceEuros === 0) {
-        const baseTokens = plan.tokenLimit;
-        const bonusTokens = Math.floor(baseTokens * plan.bonusRate);
-        const welcomeBonus = 10;
-
-        await db.collection('users').doc(userId).update({
-          plan: planId,
-          subscriptionStartDate: new Date().toISOString(),
-          subscriptionEndDate: null,
-          hasAccessToPremiumSuggestions: planId === 'pro' || planId === 'enterprise',
-          hasAccessToAdvancedAnalytics: planId === 'pro' || planId === 'enterprise',
-          hasAccessToAPI: planId === 'enterprise',
-          tokenState: {
-            userId: userId,
-            plan: planId,
-            baseTokens: baseTokens,
-            bonusTokens: bonusTokens,
-            totalTokens: baseTokens + bonusTokens + welcomeBonus,
-            usedTokens: 0,
-            availableTokens: baseTokens + bonusTokens + welcomeBonus,
-            lastTokenUpdate: new Date().toISOString(),
-            firstAnalysisDone: false,
-            monthlyTokensUsed: 0,
-            lastMonthlyReset: new Date().toISOString()
-          }
-        });
-
-        if (typeof loadUserTokenData === 'function') {
-          await loadUserTokenData(userId);
-        }
-        return { success: true, isFree: true };
-      }
-
-      // Plan payant - Créer document et rediriger
       const user = authService.currentUser;
       if (!user) throw new Error('Utilisateur non connecté');
 
+      // Plan gratuit - Utiliser Callable Function
+      if (plan.priceEuros === 0) {
+        const claimFreeSubscription = firebase.functions().httpsCallable('claimFreeSubscription');
+        const result = await claimFreeSubscription({
+          userId: user.uid,
+          planId: planId
+        });
+        if (result.data.success && typeof loadUserTokenData === 'function') {
+          await loadUserTokenData(userId);
+        }
+        return { success: true, isFree: true, ...result.data };
+      }
+
+      // Plan payant - Initialiser via Callable Function puis rediriger
       const linkKey = isAnnual ? (planId + '_annual') : (planId + '_monthly');
       const paymentUrl = getPaymentLink(linkKey);
       if (!paymentUrl) {
         throw new Error(`Payment Link non configuré pour ${linkKey}. Vérifie js/payment-links-config.js`);
       }
 
-      const FieldValue = getFieldValue();
-
-      // ✅ CORRECTION: Utilise .add() pour créer un document UNIQUE
-      const purchaseRef = await db.collection('purchases').add({
+      // Initialiser l'achat via Callable Function
+      const initSubscription = firebase.functions().httpsCallable('initSubscription');
+      const initResult = await initSubscription({
         userId: user.uid,
         planId: planId,
-        isAnnual: isAnnual,
-        type: 'subscription',
-        status: 'pending',
-        stripeSessionId: null,
-        stripePaymentIntentId: null,
-        createdAt: FieldValue.serverTimestamp(),
-        updatedAt: FieldValue.serverTimestamp()
+        isAnnual: isAnnual
       });
 
-      // ✅ CORRECTION: Ajoute purchaseId pour le webhook
+      if (!initResult.data.success) {
+        throw new Error('Échec de l\'initialisation de l\'abonnement');
+      }
+
+      const purchaseId = initResult.data.purchaseId;
+
+      // Construire l'URL Stripe avec purchaseId
       const finalUrl = buildPaymentUrl(paymentUrl, {
         userId: user.uid,
         planId: planId,
         isAnnual: isAnnual,
         type: 'subscription',
-        purchaseId: purchaseRef.id, // ⬅️ CRITIQUE
+        purchaseId: purchaseId,
         email: user.email || ''
       });
 
       // Stocker purchaseId en sessionStorage pour la confirmation après retour
-      sessionStorage.setItem('stripe_purchase_id', purchaseRef.id);
+      sessionStorage.setItem('stripe_purchase_id', purchaseId);
       sessionStorage.setItem('stripe_purchase_type', 'subscription');
       sessionStorage.setItem('stripe_purchase_planId', planId);
       sessionStorage.setItem('stripe_purchase_isAnnual', isAnnual);
 
       console.log('🔗 [Stripe] Redirection vers:', finalUrl);
-      console.log('💾 [Stripe] purchaseId stocké en sessionStorage:', purchaseRef.id);
+      console.log('💾 [Stripe] purchaseId stocké en sessionStorage:', purchaseId);
       window.location.href = finalUrl;
-      return { success: true, redirected: true, purchaseId: purchaseRef.id };
+      return { success: true, redirected: true, purchaseId: purchaseId };
 
     } catch (error) {
       console.error('❌ [Stripe] Erreur achat abonnement:', error);
@@ -266,21 +238,34 @@ window.stripeService = new StripeService();
 var stripeService = window.stripeService;
 
 // Initialisation automatique avec la clé Stripe si disponible
-if (window.stripePublishableKey) {
+// et vérification que firebase.functions() est disponible
+function checkFirebaseFunctions() {
+  if (window.firebase && typeof window.firebase.functions === 'function') {
+    return true;
+  }
+  return false;
+}
+
+if (window.stripePublishableKey && checkFirebaseFunctions()) {
   stripeService.init(window.stripePublishableKey);
 } else {
-  // Attendre que la clé soit définie (au cas où firebase-config.js est chargé après)
-  const initStripeWhenReady = setInterval(() => {
-    if (window.stripePublishableKey) {
-      clearInterval(initStripeWhenReady);
+  // Attendre que tout soit chargé (firebase + clé Stripe)
+  const initWhenReady = setInterval(() => {
+    if (window.stripePublishableKey && checkFirebaseFunctions()) {
+      clearInterval(initWhenReady);
       stripeService.init(window.stripePublishableKey);
     }
   }, 100);
   
-  // Timeout de sécurité au cas où la clé ne serait jamais définie
+  // Timeout de sécurité
   setTimeout(() => {
-    clearInterval(initStripeWhenReady);
-    console.warn('%c⚠️ [Stripe] Clé publique Stripe non définie après 5 secondes', 'color: #ffc107;');
+    clearInterval(initWhenReady);
+    if (!checkFirebaseFunctions()) {
+      console.error('%c❌ [Firebase] firebase.functions() non disponible - Vérifie que Firebase est initialisé', 'color: #dc3545; font-weight: bold;');
+    }
+    if (!window.stripePublishableKey) {
+      console.warn('%c⚠️ [Stripe] Clé publique Stripe non définie après 5 secondes', 'color: #ffc107;');
+    }
   }, 5000);
 }
 

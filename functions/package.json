@@ -1,6 +1,6 @@
 {
   "name": "functions",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "index.js",
   "dependencies": {
     "firebase-functions": "^4.6.1",
@@ -8,6 +8,6 @@
     "stripe": "^14.0.0"
   },
   "engines": {
-    "node": "16"
+    "node": "20"
   }
 }
