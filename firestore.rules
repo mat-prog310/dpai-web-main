@@ -37,7 +37,8 @@ service cloud.firestore {
       // 1. L'utilisateur est authentifié ET c'est son achat (userId correspond)
       // 2. OU l'utilisateur est admin
       allow read: if isAuthenticated() && 
-                     (resource.data.userId == request.auth.uid || isAdmin());
+                     (get(/databases/$(database)/documents/purchases/$(purchaseId)).data.userId == request.auth.uid || 
+                      isAdmin());
       
       // Création autorisée uniquement via Cloud Functions (backend)
       // Seuls les admins peuvent créer directement
@@ -46,8 +47,12 @@ service cloud.firestore {
       // Mise à jour autorisée si :
       // 1. L'utilisateur est admin
       // 2. OU via Cloud Functions (le backend met à jour le statut via webhook)
-      // Note: On autorise les mises à jour pour que le webhook puisse fonctionner
-      allow update: if isAuthenticated() && (isAdmin() || isPurchaseOwner());
+      // Pour les mises à jour, on vérifie que le userId correspond (si présent dans la requête)
+      allow update: if isAuthenticated() && (
+          isAdmin() || 
+          (request.resource.data.userId == request.auth.uid) ||
+          (get(/databases/$(database)/documents/purchases/$(purchaseId)).data.userId == request.auth.uid)
+      );
       
       // Suppression autorisée uniquement pour les admins
       allow delete: if isAuthenticated() && isAdmin();
