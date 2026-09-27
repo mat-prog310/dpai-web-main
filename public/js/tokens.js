@@ -41,29 +41,27 @@ const TokenConfig = {
   tokenResetDays: 30
 };
 
-// Coûts des analyses par type - NOUVELLE CONFIGURATION
-// Phases 1 & 2 : Coûts raisonnables (dédution de tokens)
+// Coûts des analyses par type - COÛTS FIXES ET ÉLEVÉS
+// Phases 1 & 2 : Tous les services sont GRATUITS (coût en tokens déduit du solde)
 // Phases 3 & 4 : BLOQUÉES (contact par mail)
 // Email: duprey.conseil@gmail.com
 const AnalysisCosts = {
-  // PHASE 1 : Analyses de base
-  swot: { free: 5, pro: 5, enterprise: 5 },
-  porter: { free: 15, pro: 15, enterprise: 15 },
-  pestel: { free: 10, pro: 10, enterprise: 10 },
-  competitive: { free: 15, pro: 15, enterprise: 15 },
-  basic: { free: 5, pro: 5, enterprise: 5 },
-  
-  // PHASE 2 : Analyses avancées
-  advanced: { free: 10, pro: 10, enterprise: 10 },
-  detailed_report: { free: 20, pro: 20, enterprise: 20 },
-  synergy: { free: 25, pro: 25, enterprise: 25 },
-  modeling: { free: 30, pro: 30, enterprise: 30 },
-  benchmark: { free: 20, pro: 20, enterprise: 20 },
-  due_diligence: { free: 40, pro: 40, enterprise: 40 },
-  valuation: { free: 50, pro: 50, enterprise: 50 },
-  mergers_acquisitions: { free: 60, pro: 60, enterprise: 60 },
-  strategic_audit: { free: 35, pro: 35, enterprise: 35 },
-  risk_assessment: { free: 25, pro: 25, enterprise: 25 },
+  // PHASE 1 & 2 : Toutes les analyses sont GRATUITES (mais déduisent des tokens)
+  swot: { free: 10, pro: 10, enterprise: 10 },
+  porter: { free: 30, pro: 30, enterprise: 30 },
+  pestel: { free: 20, pro: 20, enterprise: 20 },
+  competitive: { free: 30, pro: 30, enterprise: 30 },
+  basic: { free: 10, pro: 10, enterprise: 10 },
+  advanced: { free: 20, pro: 20, enterprise: 20 },
+  detailed_report: { free: 40, pro: 40, enterprise: 40 },
+  synergy: { free: 50, pro: 50, enterprise: 50 },
+  modeling: { free: 60, pro: 60, enterprise: 60 },
+  benchmark: { free: 40, pro: 40, enterprise: 40 },
+  due_diligence: { free: 70, pro: 70, enterprise: 70 },
+  valuation: { free: 80, pro: 80, enterprise: 80 },
+  mergers_acquisitions: { free: 100, pro: 100, enterprise: 100 },
+  strategic_audit: { free: 60, pro: 60, enterprise: 60 },
+  risk_assessment: { free: 50, pro: 50, enterprise: 50 },
   
   // PHASE 3 : NÉGOCIATION & SIGNATURE - BLOQUÉ (Contact par mail)
   loi_generation: { free: 999999, pro: 999999, enterprise: 999999 },

@@ -93,29 +93,51 @@ function initLoginForm() {
     if (googleLoginBtn) {
         googleLoginBtn.onclick = function() {
             // Désactiver le bouton
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
             
-            // Utiliser Firebase Google Auth via authService
-            const provider = new (window.firebaseAuth || firebase.auth).GoogleAuthProvider();
-            
-            authService.auth.signInWithPopup(provider)
-                .then(result => {
-                    // Nouveau utilisateur
-                    if (result.additionalUserInfo.isNewUser) {
-                        return createNewUserFromGoogle(result.user);
+            // Attendre que Firebase soit initialisé
+            const checkFirebase = setInterval(() => {
+                if (typeof firebase !== 'undefined' && firebase && firebase.auth) {
+                    clearInterval(checkFirebase);
+                    
+                    // Utiliser Firebase Google Auth
+                    try {
+                        const provider = new firebase.auth.GoogleAuthProvider();
+                        
+                        authService.auth.signInWithPopup(provider)
+                            .then(result => {
+                                // Nouveau utilisateur
+                                if (result.additionalUserInfo.isNewUser) {
+                                    return createNewUserFromGoogle(result.user);
+                                }
+                                return Promise.resolve();
+                            })
+                            .then(() => {
+                                // Rediriger
+                                window.location.href = './dashboard.html';
+                            })
+                            .catch(error => {
+                                showError(loginError, loginErrorTitle, loginErrorMessage, error.message || 'Erreur de connexion Google');
+                                btn.disabled = false;
+                                btn.innerHTML = '<i class="fab fa-google"></i> Continuer avec Google';
+                            });
+                    } catch (e) {
+                        showError(loginError, loginErrorTitle, loginErrorMessage, 'Firebase non initialisé. Veuillez rafraîchir la page.');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fab fa-google"></i> Continuer avec Google';
                     }
-                    return Promise.resolve();
-                })
-                .then(() => {
-                    // Rediriger
-                    window.location.href = './dashboard.html';
-                })
-                .catch(error => {
-                    showError(loginError, loginErrorTitle, loginErrorMessage, error.message || 'Erreur de connexion Google');
-                    this.disabled = false;
-                    this.innerHTML = '<i class="fab fa-google"></i> Continuer avec Google';
-                });
+                }
+            }, 100);
+            
+            // Timeout de sécurité
+            setTimeout(() => {
+                clearInterval(checkFirebase);
+                showError(loginError, loginErrorTitle, loginErrorMessage, 'Firebase met trop de temps à se charger. Veuillez rafraîchir la page.');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fab fa-google"></i> Continuer avec Google';
+            }, 10000);
         };
     }
     
