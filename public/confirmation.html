@@ -30,7 +30,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 600px;
+            max-width: 650px;
             width: 100%;
             padding: 40px;
             text-align: center;
@@ -77,19 +77,58 @@
             margin-bottom: 24px;
         }
         
-        .token-info {
+        .features-section {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 20px;
             margin: 24px 0;
-            text-align: center;
+            text-align: left;
         }
         
-        .token-amount {
-            font-size: 36px;
-            font-weight: 700;
-            color: #667eea;
-            margin: 10px 0;
+        .features-title {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 16px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #495057;
+        }
+        
+        .feature-item i {
+            color: #28a745;
+            font-size: 16px;
+        }
+        
+        .premium-info {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 24px 0;
+            text-align: left;
+        }
+        
+        .premium-info p {
+            margin: 0;
+            color: #856404;
+            line-height: 1.6;
+        }
+        
+        .premium-info strong {
+            color: #ffc107;
         }
         
         .btn-primary {
@@ -134,22 +173,14 @@
             margin-top: 24px;
         }
         
-        .info-message {
-            background: #fff3cd;
-            border-left: 4px solid #ffc107;
-            padding: 16px;
-            border-radius: 8px;
-            margin: 20px 0;
-            text-align: left;
+        .email-link {
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 600;
         }
         
-        .info-message p {
-            margin: 0;
-            color: #856404;
-        }
-        
-        .info-message strong {
-            color: #ffc107;
+        .email-link:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
@@ -161,23 +192,67 @@
         <h1 class="confirmation-title">Bienvenue sur DPAI !</h1>
         <p class="confirmation-subtitle">Votre compte est prêt à être utilisé.</p>
         
-        <div class="token-info">
-            <p style="margin: 0; color: #6c757d; font-size: 14px;">Vos tokens disponibles</p>
-            <div class="token-amount" id="tokenAmount">500</div>
-            <p style="margin: 0; color: #6c757d; font-size: 14px;">tokens</p>
+        <div class="features-section">
+            <div class="features-title">✅ Tous nos services sont GRATUITS :</div>
+            <div class="features-grid">
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Analyse SWOT</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Analyse Porter</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Analyse PESTEL</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Analyse Concurrentielle</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Due Diligence</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Valorisation</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Benchmarking</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Synergies</span>
+                </div>
+                <div class="feature-item">
+                    <i class="fas fa-check-circle"></i>
+                    <span>Modélisation</span>
+                </div>
+            </div>
         </div>
         
-        <div class="info-message">
-            <p><strong>Besoin de plus de tokens ?</strong></p>
-            <p>Envoyez un email à <strong>duprey.conseil@gmail.com</strong> pour obtenir plus de tokens et accéder à des fonctionnalités avancées comme la due diligence ou la valorisation d'entreprise.</p>
+        <div class="premium-info">
+            <p><strong>⚠️ Services Premium :</strong></p>
+            <p>
+                Les services de <strong>Négociation & Intégration</strong> (PHASES 3 & 4) 
+                nécessitent un contact par mail pour un devis personnalisé :
+            </p>
+            <p>
+                <a href="mailto:duprey.conseil@gmail.com" class="email-link">
+                    duprey.conseil@gmail.com
+                </a>
+            </p>
         </div>
         
         <div class="buttons-group">
             <a href="/dashboard.html" class="btn-primary">
                 <i class="fas fa-rocket"></i> Aller au Dashboard
             </a>
-            <a href="/services.html" class="btn-secondary">
-                <i class="fas fa-info-circle"></i> Voir les services
+            <a href="/pricing.html" class="btn-secondary">
+                <i class="fas fa-info-circle"></i> Voir tous les services
             </a>
         </div>
     </div>
@@ -185,26 +260,5 @@
     <!-- Scripts -->
     <script src="/js/auth.js"></script>
     <script src="/js/tokens.js"></script>
-    <script>
-        // Simple script to show actual token count when user is loaded
-        document.addEventListener('DOMContentLoaded', function() {
-            const tokenAmountEl = document.getElementById('tokenAmount');
-            
-            // Check for tokens in TokenManager after a delay
-            const checkTokens = setInterval(() => {
-                if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
-                    const available = TokenManager.tokenState.availableTokens;
-                    const total = TokenManager.tokenState.totalTokens;
-                    tokenAmountEl.textContent = available;
-                    tokenAmountEl.parentElement.querySelector('p:last-child').textContent = 
-                        `tokens (total: ${total})`;
-                    clearInterval(checkTokens);
-                }
-            }, 500);
-            
-            // Timeout after 10 seconds
-            setTimeout(() => clearInterval(checkTokens), 10000);
-        });
-    </script>
 </body>
 </html>

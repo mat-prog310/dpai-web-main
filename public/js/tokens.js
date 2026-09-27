@@ -41,27 +41,36 @@ const TokenConfig = {
   tokenResetDays: 30
 };
 
-// Coûts des analyses par type - TOUS LES PLANS ONT LES MÊMES COÛTS
-// Depuis: tous les utilisateurs sont en mode gratuit
-// Les analyses avancées (due diligence, valorisation, etc.) coûtent plus de tokens
-// Pour plus de tokens: envoyer un email à duprey.conseil@gmail.com
+// Coûts des analyses par type - TOUS GRATUITS (0 tokens)
+// PLUS D'ABONNEMENTS, PLUS DE PACKS DE TOKENS
+// Pour les services de PHASE 3 et 4 (Négociation, Intégration) : CONTACT PAR MAIL
+// Email: duprey.conseil@gmail.com
 const AnalysisCosts = {
-  swot: { free: 5, pro: 5, enterprise: 5 },
-  porter: { free: 20, pro: 20, enterprise: 20 },
-  pestel: { free: 15, pro: 15, enterprise: 15 },
-  competitive: { free: 20, pro: 20, enterprise: 20 },
-  basic: { free: 5, pro: 5, enterprise: 5 },
-  advanced: { free: 15, pro: 15, enterprise: 15 },
-  detailed_report: { free: 25, pro: 25, enterprise: 25 },
-  synergy: { free: 30, pro: 30, enterprise: 30 },
-  modeling: { free: 40, pro: 40, enterprise: 40 },
-  benchmark: { free: 25, pro: 25, enterprise: 25 },
-  // Analyses avancées - coût plus élevé
-  due_diligence: { free: 100, pro: 100, enterprise: 100 },
-  valuation: { free: 100, pro: 100, enterprise: 100 },
-  mergers_acquisitions: { free: 150, pro: 150, enterprise: 150 },
-  strategic_audit: { free: 80, pro: 80, enterprise: 80 },
-  risk_assessment: { free: 60, pro: 60, enterprise: 60 }
+  // PHASE 1 & 2 : Toutes les analyses de base sont GRATUITES
+  swot: { free: 0, pro: 0, enterprise: 0 },
+  porter: { free: 0, pro: 0, enterprise: 0 },
+  pestel: { free: 0, pro: 0, enterprise: 0 },
+  competitive: { free: 0, pro: 0, enterprise: 0 },
+  basic: { free: 0, pro: 0, enterprise: 0 },
+  advanced: { free: 0, pro: 0, enterprise: 0 },
+  detailed_report: { free: 0, pro: 0, enterprise: 0 },
+  synergy: { free: 0, pro: 0, enterprise: 0 },
+  modeling: { free: 0, pro: 0, enterprise: 0 },
+  benchmark: { free: 0, pro: 0, enterprise: 0 },
+  due_diligence: { free: 0, pro: 0, enterprise: 0 },
+  valuation: { free: 0, pro: 0, enterprise: 0 },
+  mergers_acquisitions: { free: 0, pro: 0, enterprise: 0 },
+  strategic_audit: { free: 0, pro: 0, enterprise: 0 },
+  risk_assessment: { free: 0, pro: 0, enterprise: 0 },
+  
+  // PHASE 3 : NÉGOCIATION & SIGNATURE - BLOQUÉ (Contact par mail)
+  // Coût mis à 999999 pour bloquer l'accès via tokens
+  loi_generation: { free: 999999, pro: 999999, enterprise: 999999 },
+  negotiation_simulator: { free: 999999, pro: 999999, enterprise: 999999 },
+  
+  // PHASE 4 : INTÉGRATION & SUIVI - BLOQUÉ (Contact par mail)
+  action_plan_100: { free: 999999, pro: 999999, enterprise: 999999 },
+  post_acquisition_dashboard: { free: 999999, pro: 999999, enterprise: 999999 }
 };
 
 // Packs de tokens disponibles - Définis globalement pour éviter les erreurs de chargement
@@ -236,6 +245,11 @@ class TokenManager {
   }
 
   static async useTokens(amount, analysisType = 'basic') {
+    // Vérifier si c'est un service qui nécessite un contact mail (bloqué à 999999 tokens)
+    if (amount === 999999) {
+      throw new Error('CONTACT_PAR_MAIL');
+    }
+    
     if (this.availableTokens < amount) {
       throw new Error('Pas assez de tokens');
     }
