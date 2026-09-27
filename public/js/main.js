@@ -995,83 +995,22 @@ function initModals() {
     }
 }
 
-// Ouvrir le modal d'abonnement
+// Tous les services sont gratuits - Redirection vers pricing.html pour les fonctionnalités premium
 function openSubscriptionModal(plan) {
-    const modal = document.getElementById('subscriptionModal');
-    const modalTitle = document.getElementById('modalTitle');
-    const modalBody = document.getElementById('modalBody');
-    const modalConfirm = document.getElementById('modalConfirm');
-    
-    const planNames = {
-        pro: 'Pro',
-        enterprise: 'Entreprise'
-    };
-    const planPrices = {
-        pro: '50€/mois',
-        enterprise: '300€/mois'
-    };
-    const planTokens = {
-        pro: '500 tokens/mois + 1/jour',
-        enterprise: '5000 tokens/mois + 1/jour'
-    };
-    
-    if (modal && modalTitle && modalBody) {
-        modalTitle.textContent = `Souscrire à ${planNames[plan] || plan}`;
-        
-        modalBody.innerHTML = `
-            <div class="plan-details">
-                <div class="detail-item">
-                    <span class="detail-label">Formule</span>
-                    <span class="detail-value">${planNames[plan] || plan}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Prix</span>
-                    <span class="detail-value">${planPrices[plan] || 'N/A'}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Tokens</span>
-                    <span class="detail-value">${planTokens[plan] || 'N/A'}</span>
-                </div>
-            </div>
-            <p style="margin-top: var(--spacing-lg);">
-                Vous allez être redirigé vers Stripe pour finaliser votre paiement.
-            </p>
-        `;
-        
-        if (modalConfirm) {
-            modalConfirm.setAttribute('data-plan', plan);
-        }
-        
-        modal.classList.add('visible');
-    }
+    showAlert('info', 'Fonctionnalités Premium', 
+        'Pour accéder aux fonctionnalités premium, contactez-nous par email à duprey.conseil@gmail.com');
+    setTimeout(() => {
+        window.location.href = '/pricing.html';
+    }, 2000);
 }
 
-// Acheter un abonnement
+// Acheter un abonnement - Désactivé
 async function purchaseSubscription(plan) {
-    const user = authService.currentUser;
-    
-    if (!user) {
-        showAlert('error', 'Erreur', 'Vous devez être connecté pour souscrire.');
-        return;
-    }
-    
-    try {
-        const result = await stripeService.purchaseSubscription(plan, user.uid);
-        
-        if (result.success) {
-            if (result.isFree) {
-                showAlert('success', 'Succès', 'Votre abonnement a été mis à jour avec succès !');
-                setTimeout(() => window.location.reload(), 1500);
-            } else {
-                // Redirection vers Stripe
-                window.location.href = result.return_url || './dashboard.html';
-            }
-        } else {
-            showAlert('error', 'Erreur', result.error || 'Une erreur est survenue.');
-        }
-    } catch (error) {
-        showAlert('error', 'Erreur', error.message || 'Une erreur est survenue.');
-    }
+    showAlert('info', 'Fonctionnalités Premium', 
+        'Pour accéder aux fonctionnalités premium, contactez-nous par email à duprey.conseil@gmail.com');
+    setTimeout(() => {
+        window.location.href = '/pricing.html';
+    }, 2000);
 }
 
 // Ouvrir le modal d'achat de pack de tokens
