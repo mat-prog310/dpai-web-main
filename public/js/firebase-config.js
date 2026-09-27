@@ -28,12 +28,25 @@ if (window.location.protocol === 'file:') {
     'ERREUR: Firebase Auth ne fonctionne pas avec le protocole file://. ' +
     'Utilisez un serveur web local (http://localhost) pour tester.'
   );
-  // Définir une variable globale pour indiquer le mode file://
   window.FIREBASE_FILE_PROTOCOL = true;
 }
 
-// Vérifier et initialiser Firebase
-if (typeof firebase !== 'undefined') {
+// Attendre que Firebase soit chargé (pour éviter les erreurs de timing)
+function waitForFirebase() {
+  return new Promise((resolve) => {
+    const checkFirebase = () => {
+      if (typeof firebase !== 'undefined') {
+        resolve();
+      } else {
+        setTimeout(checkFirebase, 100);
+      }
+    };
+    checkFirebase();
+  });
+}
+
+// Initialiser Firebase quand il est prêt
+waitForFirebase().then(() => {
   // Initialiser l'application si ce n'est pas déjà fait
   if (!firebase.apps.length) {
     firebase.initializeApp(firebaseConfig);
@@ -45,6 +58,6 @@ if (typeof firebase !== 'undefined') {
   window.db = firebase.firestore();
   window.firebaseDB = firebase.firestore();
   window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
-} else {
-  console.error('Firebase SDK non chargé. Vérifiez que les scripts Firebase sont bien chargés AVANT firebase-config.js dans index.html');
-}
+}).catch(() => {
+  console.error('Firebase non disponible après attente');
+});
