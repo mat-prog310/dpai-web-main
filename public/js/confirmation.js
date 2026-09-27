@@ -4,29 +4,34 @@
 // NOUVELLE VERSION: Vérification réelle via polling Firestore
 // =============================================================================
 
-// Attendre que Firebase et authService soient prêts
+// Attendre que Firebase, authService et db soient prêts
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🔍 [confirmation.js] DOM chargé, attente de Firebase...');
     
-    // Initialiser authService si pas déjà fait
-    if (typeof authService !== 'undefined' && typeof authService.init === 'function') {
-        console.log('🔐 [confirmation.js] Initialisation de authService...');
-        authService.init();
-    }
-    
-    // Attendre que authService ET currentUser soient prêts
+    // Attendre que Firebase, Firestore et authService soient prêts
     const initInterval = setInterval(() => {
-        if (typeof window.authService !== 'undefined' && 
-            typeof window.firebase !== 'undefined' &&
-            window.authService) {
+        const hasFirebase = typeof firebase !== 'undefined' && firebase;
+        const hasFirestore = hasFirebase && typeof db !== 'undefined' && db && typeof db.collection === 'function';
+        const hasAuthService = typeof window.authService !== 'undefined' && window.authService;
+        
+        if (hasFirebase && hasFirestore && hasAuthService) {
+            // Initialiser authService si pas déjà fait
+            if (typeof authService.init === 'function' && !authService.currentUser) {
+                console.log('🔐 [confirmation.js] Initialisation de authService...');
+                authService.init();
+            }
             
             // Si on a un currentUser, on lance la confirmation
             if (window.authService.currentUser) {
                 clearInterval(initInterval);
-                console.log('✅ [confirmation.js] Firebase et authService prêts, utilisateur connecté');
+                console.log('✅ [confirmation.js] Firebase, Firestore et authService prêts, utilisateur connecté');
                 handleConfirmation();
             }
-            // Sinon, on continue d'attendre (ne pas clearInterval)
+            // Sinon, on continue d'attendre
+        } else if (hasFirebase && !hasFirestore) {
+            console.log('⚠️ [confirmation.js] Firebase chargé mais Firestore non disponible');
+        } else if (!hasFirebase) {
+            console.log('⚠️ [confirmation.js] Firebase non chargé');
         }
     }, 200);
     
@@ -35,7 +40,10 @@ document.addEventListener('DOMContentLoaded', function() {
         clearInterval(initInterval);
         if (!window.confirmationHandled) {
             console.log('⚠️ [confirmation.js] Timeout atteint, vérification manuelle...');
-            handleConfirmation();
+            // Essayer quand même
+            if (typeof handleConfirmation === 'function') {
+                handleConfirmation();
+            }
         }
     }, 10000);
 });

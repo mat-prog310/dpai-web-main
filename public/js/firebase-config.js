@@ -31,33 +31,37 @@ if (window.location.protocol === 'file:') {
   window.FIREBASE_FILE_PROTOCOL = true;
 }
 
-// Attendre que Firebase soit chargé (pour éviter les erreurs de timing)
-function waitForFirebase() {
-  return new Promise((resolve) => {
-    const checkFirebase = () => {
-      if (typeof firebase !== 'undefined') {
-        resolve();
-      } else {
-        setTimeout(checkFirebase, 100);
+// Attendre que Firebase SDK soit complètement chargé
+function initializeFirebaseWhenReady() {
+  const checkInterval = setInterval(() => {
+    // Vérifier que firebase est défini ET a une méthode initializeApp
+    if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+      clearInterval(checkInterval);
+      
+      // Initialiser l'application si ce n'est pas déjà fait
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
       }
-    };
-    checkFirebase();
-  });
+      
+      // Définir les instances globalement
+      window.firebase = firebase;
+      window.firebaseAuth = firebase.auth();
+      window.db = firebase.firestore();
+      window.firebaseDB = firebase.firestore();
+      window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
+      
+      console.log('%c✅ [Firebase] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
+    }
+  }, 100);
+  
+  // Timeout de sécurité
+  setTimeout(() => {
+    clearInterval(checkInterval);
+    if (typeof firebase === 'undefined') {
+      console.error('%c❌ [Firebase] SDK non chargé après 10 secondes', 'color: #dc3545; font-weight: bold;');
+    }
+  }, 10000);
 }
 
-// Initialiser Firebase quand il est prêt
-waitForFirebase().then(() => {
-  // Initialiser l'application si ce n'est pas déjà fait
-  if (!firebase.apps.length) {
-    firebase.initializeApp(firebaseConfig);
-  }
-  
-  // Définir les instances globalement
-  window.firebase = firebase;
-  window.firebaseAuth = firebase.auth();
-  window.db = firebase.firestore();
-  window.firebaseDB = firebase.firestore();
-  window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
-}).catch(() => {
-  console.error('Firebase non disponible après attente');
-});
+// Lancer l'initialisation
+initializeFirebaseWhenReady();
