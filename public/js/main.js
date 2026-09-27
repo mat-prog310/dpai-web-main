@@ -928,158 +928,29 @@ function initModals() {
         });
     });
     
-    // Specific modal handlers
+    // Tous les services sont gratuits - Pas de modales d'abonnement ou d'achat
+    // Les boutons d'abonnement/achat devraient être supprimés du HTML
+    // Si des éléments existent encore, les désactiver
     const subscriptionModal = document.getElementById('subscriptionModal');
     const tokenPackModal = document.getElementById('tokenPackModal');
     
-    if (subscriptionModal) {
-        const subscribeProBtn = document.getElementById('subscribeProBtn');
-        const subscribeEnterpriseBtn = document.getElementById('subscribeEnterpriseBtn');
-        const modalClose = document.getElementById('modalClose');
-        const modalCancel = document.getElementById('modalCancel');
-        const modalConfirm = document.getElementById('modalConfirm');
-        
-        // Open modal on button click
-        if (subscribeProBtn) {
-            subscribeProBtn.onclick = function() {
-                const plan = this.getAttribute('data-plan');
-                openSubscriptionModal(plan);
-            };
-        }
-        
-        if (subscribeEnterpriseBtn) {
-            subscribeEnterpriseBtn.onclick = function() {
-                const plan = this.getAttribute('data-plan');
-                openSubscriptionModal(plan);
-            };
-        }
-        
-        // Close modal
-        if (modalClose) modalClose.onclick = function() { subscriptionModal.classList.remove('visible'); };
-        if (modalCancel) modalCancel.onclick = function() { subscriptionModal.classList.remove('visible'); };
-        
-        // Confirm subscription
-        if (modalConfirm) {
-            modalConfirm.onclick = function() {
-                const plan = modalConfirm.getAttribute('data-plan');
-                purchaseSubscription(plan);
-            };
-        }
-    }
-    
-    if (tokenPackModal) {
-        const buyPackBtns = document.querySelectorAll('#buyPackBtn');
-        const tokenModalClose = document.getElementById('tokenModalClose');
-        const tokenModalCancel = document.getElementById('tokenModalCancel');
-        const tokenModalConfirm = document.getElementById('tokenModalConfirm');
-        
-        // Open modal on button click
-        buyPackBtns.forEach(btn => {
-            btn.onclick = function() {
-                const packId = this.getAttribute('data-pack');
-                openTokenPackModal(packId);
-            };
-        });
-        
-        // Close modal
-        if (tokenModalClose) tokenModalClose.onclick = function() { tokenPackModal.classList.remove('visible'); };
-        if (tokenModalCancel) tokenModalCancel.onclick = function() { tokenPackModal.classList.remove('visible'); };
-        
-        // Confirm purchase
-        if (tokenModalConfirm) {
-            tokenModalConfirm.onclick = function() {
-                const packId = tokenModalConfirm.getAttribute('data-pack');
-                purchaseTokenPack(packId);
-            };
-        }
-    }
+    if (subscriptionModal) subscriptionModal.remove();
+    if (tokenPackModal) tokenPackModal.remove();
 }
 
-// Tous les services sont gratuits - Redirection vers pricing.html pour les fonctionnalités premium
+// Fonctions désactivées - Tous les services sont gratuits
+// Redirection vers pricing.html pour les services premium (Phases 3 & 4)
 function openSubscriptionModal(plan) {
-    showAlert('info', 'Fonctionnalités Premium', 
-        'Pour accéder aux fonctionnalités premium, contactez-nous par email à duprey.conseil@gmail.com');
-    setTimeout(() => {
-        window.location.href = '/pricing.html';
-    }, 2000);
+    window.location.href = '/pricing.html';
 }
-
-// Acheter un abonnement - Désactivé
-async function purchaseSubscription(plan) {
-    showAlert('info', 'Fonctionnalités Premium', 
-        'Pour accéder aux fonctionnalités premium, contactez-nous par email à duprey.conseil@gmail.com');
-    setTimeout(() => {
-        window.location.href = '/pricing.html';
-    }, 2000);
+function purchaseSubscription(plan) {
+    window.location.href = '/pricing.html';
 }
-
-// Ouvrir le modal d'achat de pack de tokens
 function openTokenPackModal(packId) {
-    const modal = document.getElementById('tokenPackModal');
-    const modalTitle = document.getElementById('tokenModalTitle');
-    const modalBody = document.getElementById('tokenModalBody');
-    const modalConfirm = document.getElementById('tokenModalConfirm');
-    
-    const pack = TokenPacks.find(p => p.id === packId);
-    
-    if (modal && modalTitle && modalBody && pack) {
-        modalTitle.textContent = `Acheter le pack ${pack.name}`;
-        
-        modalBody.innerHTML = `
-            <div class="pack-details">
-                <div class="detail-item">
-                    <span class="detail-label">Nom du pack</span>
-                    <span class="detail-value">${pack.name}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Nombre de tokens</span>
-                    <span class="detail-value">${pack.tokenAmount}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Prix</span>
-                    <span class="detail-value">${TokenUtils.formatPrice(pack.priceEuros)}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-label">Prix par token</span>
-                    <span class="detail-value">${TokenUtils.formatPrice(pack.pricePerToken)}</span>
-                </div>
-            </div>
-            <p style="margin-top: var(--spacing-lg);">
-                Vous allez être redirigé vers Stripe pour finaliser votre paiement.
-            </p>
-        `;
-        
-        if (modalConfirm) {
-            modalConfirm.setAttribute('data-pack', packId);
-        }
-        
-        modal.classList.add('visible');
-    }
+    window.location.href = '/pricing.html';
 }
-
-// Acheter un pack de tokens
-async function purchaseTokenPack(packId) {
-    const user = authService.currentUser;
-    
-    if (!user) {
-        showAlert('error', 'Erreur', 'Vous devez être connecté pour acheter des tokens.');
-        return;
-    }
-    
-    try {
-        const result = await stripeService.purchaseTokenPack(packId, user.uid);
-        
-        if (result.success) {
-            showAlert('success', 'Succès', `Vos tokens ont été ajoutés à votre compte !`);
-            setTimeout(() => {
-                window.location.reload();
-            }, 1500);
-        } else {
-            showAlert('error', 'Erreur', result.error || 'Une erreur est survenue.');
-        }
-    } catch (error) {
-        showAlert('error', 'Erreur', error.message || 'Une erreur est survenue.');
-    }
+function purchaseTokenPack(packId) {
+    window.location.href = '/pricing.html';
 }
 
 // =============================================================================
@@ -1165,13 +1036,7 @@ function decrement(id) {
     }
 }
 
-// Scroll vers les abonnements
-function scrollToSubscriptions() {
-    const section = document.getElementById('subscriptions');
-    if (section) {
-        section.scrollIntoView({ behavior: 'smooth' });
-    }
-}
+// Tous les services sont gratuits - Pas d'abonnements
 
 // =============================================================================
 // INITIALISATION FORMS

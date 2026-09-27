@@ -564,8 +564,6 @@ async function loadTokenHistory() {
             const isPositive = amount > 0;
             
             const descriptions = {
-                purchase: 'Achat de tokens',
-                subscription: 'Abonnement',
                 analysis: 'Utilisation pour analyse',
                 bonus: 'Bonus quotidien',
                 referral: 'Parrainage',

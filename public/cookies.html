@@ -1,404 +1,808 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="fr">
 <html lang="fr">
 <head>
+<head>
+    <meta charset="UTF-8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politique des cookies - DPAI</title>
     <title>Politique des cookies - DPAI</title>
     <meta name="description" content="Politique des cookies de DPAI. Découvrez quels cookies nous utilisons et comment nous respectons votre vie privée.">
+    <meta name="description" content="Politique des cookies de DPAI. Découvrez quels cookies nous utilisons et comment nous respectons votre vie privée.">
+    
     
     <!-- Fonts -->
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    
+    <!-- Icons -->
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     
     <!-- Styles -->
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/responsive.css">
     <link rel="stylesheet" href="/css/responsive.css">
     <!-- Firebase SDK -->
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script src="/js/firebase-config.js"></script>
     <script src="/js/firebase-config.js"></script>
     </head>
+    </head>
+<body>
 <body>
     <!-- Navigation -->
+    <!-- Navigation -->
+    <nav class="navbar">
     <nav class="navbar">
         <div class="container">
+        <div class="container">
+            <a href="/" class="logo">
             <a href="/" class="logo">
                 <i class="fas fa-chart-line"></i>
+                <i class="fas fa-chart-line"></i>
+                <span>DPAI</span>
                 <span>DPAI</span>
             </a>
+            </a>
+            
             
             <ul class="nav-links" id="navLinks">
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
                 <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
                 <li><a href="services.html" class="nav-link">Services</a></li>
+                <li><a href="services.html" class="nav-link">Services</a></li>
+                <li><a href="pricing.html" class="nav-link">Tarifs</a></li>
                 <li><a href="pricing.html" class="nav-link">Tarifs</a></li>
                 <li><a href="/#how-it-works" class="nav-link">Comment ça marche</a></li>
+                <li><a href="/#how-it-works" class="nav-link">Comment ça marche</a></li>
+            </ul>
             </ul>
             
+            
+            <div class="nav-actions">
             <div class="nav-actions">
                 <a href="login.html" class="btn btn-ghost" id="loginBtn">
+                <a href="login.html" class="btn btn-ghost" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
                     <i class="fas fa-sign-in-alt"></i> Connexion
                 </a>
+                </a>
+                <a href="register.html" class="btn btn-primary" id="registerBtn">
                 <a href="register.html" class="btn btn-primary" id="registerBtn">
                     <i class="fas fa-user-plus"></i> S'inscrire
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </a>
                 </a>
                 <div class="user-menu" id="userMenu" style="display: none;">
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-btn" id="userBtn">
                     <button class="user-btn" id="userBtn">
                         <i class="fas fa-user"></i>
+                        <i class="fas fa-user"></i>
+                        <span id="userName">Compte</span>
                         <span id="userName">Compte</span>
                     </button>
+                    </button>
+                    <div class="user-dropdown">
                     <div class="user-dropdown">
                         <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
                         <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
                         <a href="token-shop.html"><i class="fas fa-coins"></i> Acheter des tokens</a>
+                        <a href="token-shop.html"><i class="fas fa-coins"></i> Acheter des tokens</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                         <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                     </div>
+                    </div>
+                </div>
                 </div>
             </div>
+            </div>
+            
             
             <button class="mobile-toggle" id="mobileToggle">
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
                 <i class="fas fa-bars"></i>
             </button>
+            </button>
+        </div>
         </div>
     </nav>
+    </nav>
+
 
     <!-- Page Header -->
+    <!-- Page Header -->
+    <section class="page-header legal-header">
     <section class="page-header legal-header">
         <div class="container">
+        <div class="container">
+            <div class="breadcrumb">
             <div class="breadcrumb">
                 <a href="/">Accueil</a>
+                <a href="/">Accueil</a>
+                <i class="fas fa-chevron-right"></i>
                 <i class="fas fa-chevron-right"></i>
                 <span>Politique des cookies</span>
+                <span>Politique des cookies</span>
+            </div>
             </div>
             <div class="header-content">
+            <div class="header-content">
+                <div class="header-badge">
                 <div class="header-badge">
                     <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-check-circle"></i>
+                    <span>Validé par les utilisateurs</span>
                     <span>Validé par les utilisateurs</span>
                 </div>
+                </div>
+                <h1>Politique des cookies</h1>
                 <h1>Politique des cookies</h1>
                 <p class="header-subtitle">Comment DPAI utilise les cookies et technologies similaires pour améliorer votre expérience.</p>
+                <p class="header-subtitle">Comment DPAI utilise les cookies et technologies similaires pour améliorer votre expérience.</p>
+                <div class="legal-meta">
                 <div class="legal-meta">
                     <span><i class="fas fa-cookie-bite"></i> RGPD compliant</span>
+                    <span><i class="fas fa-cookie-bite"></i> RGPD compliant</span>
+                    <span><i class="fas fa-calendar-alt"></i> Mise à jour : Septembre 2026</span>
                     <span><i class="fas fa-calendar-alt"></i> Mise à jour : Septembre 2026</span>
                     <span><i class="fas fa-clock"></i> Lecture : ~6 min</span>
+                    <span><i class="fas fa-clock"></i> Lecture : ~6 min</span>
+                </div>
                 </div>
             </div>
+            </div>
+        </div>
         </div>
     </section>
+    </section>
+
 
     <!-- Main Content -->
+    <!-- Main Content -->
+    <main class="legal-content">
     <main class="legal-content">
         <div class="container">
+        <div class="container">
+            <!-- Notice -->
             <!-- Notice -->
             <div class="legal-notice cookies">
+            <div class="legal-notice cookies">
+                <div class="notice-icon">
                 <div class="notice-icon">
                     <i class="fas fa-cookie-bite"></i>
+                    <i class="fas fa-cookie-bite"></i>
+                </div>
                 </div>
                 <div class="notice-content">
+                <div class="notice-content">
+                    <strong>Transparence</strong>
                     <strong>Transparence</strong>
                     <p>Nous utilisons les cookies de manière responsable et transparente. Aucun cookie ne contient d'informations personnellement identifiables.</p>
+                    <p>Nous utilisons les cookies de manière responsable et transparente. Aucun cookie ne contient d'informations personnellement identifiables.</p>
+                </div>
                 </div>
             </div>
+            </div>
+
 
             <!-- Table of Contents -->
+            <!-- Table of Contents -->
+            <div class="legal-toc">
             <div class="legal-toc">
                 <h3><i class="fas fa-list-ul"></i> Sommaire</h3>
+                <h3><i class="fas fa-list-ul"></i> Sommaire</h3>
+                <ul class="toc-list">
                 <ul class="toc-list">
                     <li><a href="#qu-est-ce-qu-un-cookie">1. Qu'est-ce qu'un cookie ?</a></li>
+                    <li><a href="#qu-est-ce-qu-un-cookie">1. Qu'est-ce qu'un cookie ?</a></li>
+                    <li><a href="#types">2. Types de cookies</a></li>
                     <li><a href="#types">2. Types de cookies</a></li>
                     <li><a href="#duree">3. Durée de vie</a></li>
+                    <li><a href="#duree">3. Durée de vie</a></li>
+                    <li><a href="#tiers">4. Cookies tiers</a></li>
                     <li><a href="#tiers">4. Cookies tiers</a></li>
                     <li><a href="#gestion">5. Gestion de vos préférences</a></li>
+                    <li><a href="#gestion">5. Gestion de vos préférences</a></li>
+                    <li><a href="#infos">6. Informations supplémentaires</a></li>
                     <li><a href="#infos">6. Informations supplémentaires</a></li>
                     <li><a href="#contact">7. Contact</a></li>
+                    <li><a href="#contact">7. Contact</a></li>
+                </ul>
                 </ul>
             </div>
+            </div>
+
 
             <!-- Legal Sections -->
+            <!-- Legal Sections -->
+            <div class="legal-sections">
             <div class="legal-sections">
                 <article class="legal-card" id="qu-est-ce-qu-un-cookie">
+                <article class="legal-card" id="qu-est-ce-qu-un-cookie">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">1</span>
+                        <span class="section-number">1</span>
+                        <h2><i class="fas fa-cookie-bite"></i> Qu'est-ce qu'un cookie ?</h2>
                         <h2><i class="fas fa-cookie-bite"></i> Qu'est-ce qu'un cookie ?</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Un cookie est un petit fichier texte que les sites web que vous visitez peuvent stocker sur votre ordinateur ou votre appareil mobile. Les cookies sont largement utilisés pour faire fonctionner les sites web de manière efficace, ainsi que pour fournir des informations aux propriétaires des sites.</p>
+                        <p>Un cookie est un petit fichier texte que les sites web que vous visitez peuvent stocker sur votre ordinateur ou votre appareil mobile. Les cookies sont largement utilisés pour faire fonctionner les sites web de manière efficace, ainsi que pour fournir des informations aux propriétaires des sites.</p>
+                        <p>Les cookies que nous utilisons <strong>ne contiennent pas d'informations personnellement identifiables</strong>. Ils permettent simplement d'améliorer votre expérience d'utilisation de notre plateforme.</p>
                         <p>Les cookies que nous utilisons <strong>ne contiennent pas d'informations personnellement identifiables</strong>. Ils permettent simplement d'améliorer votre expérience d'utilisation de notre plateforme.</p>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="types">
+                <article class="legal-card" id="types">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">2</span>
+                        <span class="section-number">2</span>
+                        <h2><i class="fas fa-list"></i> Types de cookies que nous utilisons</h2>
                         <h2><i class="fas fa-list"></i> Types de cookies que nous utilisons</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <h3>1. Cookies nécessaires (Essentiels)</h3>
+                        <h3>1. Cookies nécessaires (Essentiels)</h3>
+                        <p>Ces cookies sont <strong>strictement nécessaires</strong> au bon fonctionnement de notre plateforme. Ils permettent :</p>
                         <p>Ces cookies sont <strong>strictement nécessaires</strong> au bon fonctionnement de notre plateforme. Ils permettent :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> De maintenir votre session active ;</li>
                             <li><i class="fas fa-check"></i> De maintenir votre session active ;</li>
                             <li><i class="fas fa-check"></i> De se souvenir de vos préférences de connexion ;</li>
+                            <li><i class="fas fa-check"></i> De se souvenir de vos préférences de connexion ;</li>
+                            <li><i class="fas fa-check"></i> D'assurer la sécurité de votre compte ;</li>
                             <li><i class="fas fa-check"></i> D'assurer la sécurité de votre compte ;</li>
                             <li><i class="fas fa-check"></i> D'équilibrer la charge sur nos serveurs.</li>
+                            <li><i class="fas fa-check"></i> D'équilibrer la charge sur nos serveurs.</li>
+                        </ul>
                         </ul>
                         <p class="important-note">
+                        <p class="important-note">
+                            <i class="fas fa-info-circle"></i> 
                             <i class="fas fa-info-circle"></i> 
                             <strong>Ces cookies ne peuvent pas être désactivés</strong> car ils sont essentiels au fonctionnement de la plateforme.
+                            <strong>Ces cookies ne peuvent pas être désactivés</strong> car ils sont essentiels au fonctionnement de la plateforme.
                         </p>
+                        </p>
+
 
                         <h3>2. Cookies de performance et analytiques</h3>
+                        <h3>2. Cookies de performance et analytiques</h3>
+                        <p>Ces cookies nous aident à comprendre comment vous interagissez avec notre plateforme en collectant et en rapportant des informations <strong>de manière anonyme</strong>. Ils nous permettent :</p>
                         <p>Ces cookies nous aident à comprendre comment vous interagissez avec notre plateforme en collectant et en rapportant des informations <strong>de manière anonyme</strong>. Ils nous permettent :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> De mesurer le nombre de visiteurs et leur comportement ;</li>
                             <li><i class="fas fa-check"></i> De mesurer le nombre de visiteurs et leur comportement ;</li>
                             <li><i class="fas fa-check"></i> D'identifier les pages les plus consultées ;</li>
+                            <li><i class="fas fa-check"></i> D'identifier les pages les plus consultées ;</li>
+                            <li><i class="fas fa-check"></i> D'optimiser les performances et l'expérience utilisateur ;</li>
                             <li><i class="fas fa-check"></i> D'optimiser les performances et l'expérience utilisateur ;</li>
                             <li><i class="fas fa-check"></i> De détecter et résoudre les problèmes techniques.</li>
+                            <li><i class="fas fa-check"></i> De détecter et résoudre les problèmes techniques.</li>
                         </ul>
+                        </ul>
+
 
                         <h3>3. Cookies fonctionnels</h3>
+                        <h3>3. Cookies fonctionnels</h3>
+                        <p>Ces cookies permettent à notre plateforme de se souvenir de vos choix et préférences, offrant ainsi une expérience plus personnalisée :</p>
                         <p>Ces cookies permettent à notre plateforme de se souvenir de vos choix et préférences, offrant ainsi une expérience plus personnalisée :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> Mémoriser vos préférences linguistiques ;</li>
                             <li><i class="fas fa-check"></i> Mémoriser vos préférences linguistiques ;</li>
                             <li><i class="fas fa-check"></i> Personnaliser l'affichage en fonction de votre appareil ;</li>
+                            <li><i class="fas fa-check"></i> Personnaliser l'affichage en fonction de votre appareil ;</li>
+                            <li><i class="fas fa-check"></i> Conserver vos paramètres d'affichage ;</li>
                             <li><i class="fas fa-check"></i> Conserver vos paramètres d'affichage ;</li>
                             <li><i class="fas fa-check"></i> Faciliter la navigation sur la plateforme.</li>
+                            <li><i class="fas fa-check"></i> Faciliter la navigation sur la plateforme.</li>
                         </ul>
+                        </ul>
+
 
                         <h3>4. Cookies marketing</h3>
+                        <h3>4. Cookies marketing</h3>
+                        <p>Avec votre <strong>consentement</strong>, nous pouvons utiliser des cookies marketing pour :</p>
                         <p>Avec votre <strong>consentement</strong>, nous pouvons utiliser des cookies marketing pour :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> Suivre les performances de nos campagnes marketing ;</li>
                             <li><i class="fas fa-check"></i> Suivre les performances de nos campagnes marketing ;</li>
                             <li><i class="fas fa-check"></i> Afficher des publicités pertinentes sur d'autres sites ;</li>
+                            <li><i class="fas fa-check"></i> Afficher des publicités pertinentes sur d'autres sites ;</li>
+                            <li><i class="fas fa-check"></i> Limiter le nombre de fois où vous voyez une publicité ;</li>
                             <li><i class="fas fa-check"></i> Limiter le nombre de fois où vous voyez une publicité ;</li>
                             <li><i class="fas fa-check"></i> Mesurer l'efficacité de nos publicités.</li>
+                            <li><i class="fas fa-check"></i> Mesurer l'efficacité de nos publicités.</li>
+                        </ul>
                         </ul>
                         <p class="important-note">
+                        <p class="important-note">
+                            <i class="fas fa-info-circle"></i> 
                             <i class="fas fa-info-circle"></i> 
                             <strong>Ces cookies ne sont activés que avec votre consentement explicite.</strong>
+                            <strong>Ces cookies ne sont activés que avec votre consentement explicite.</strong>
+                        </p>
                         </p>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="duree">
+                <article class="legal-card" id="duree">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">3</span>
+                        <span class="section-number">3</span>
+                        <h2><i class="fas fa-chart-pie"></i> Durée de vie des cookies</h2>
                         <h2><i class="fas fa-chart-pie"></i> Durée de vie des cookies</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>La durée de conservation des cookies varie en fonction de leur finalité :</p>
+                        <p>La durée de conservation des cookies varie en fonction de leur finalité :</p>
+                        <div class="conservation-table">
                         <div class="conservation-table">
                             <div class="token-row header">
+                            <div class="token-row header">
+                                <span>Type de cookie</span>
                                 <span>Type de cookie</span>
                                 <span>Durée de conservation</span>
+                                <span>Durée de conservation</span>
                             </div>
+                            </div>
+                            <div class="token-row">
                             <div class="token-row">
                                 <span>Cookies de session</span>
+                                <span>Cookies de session</span>
+                                <span>Supprimés lorsque vous fermez votre navigateur</span>
                                 <span>Supprimés lorsque vous fermez votre navigateur</span>
                             </div>
+                            </div>
+                            <div class="token-row">
                             <div class="token-row">
                                 <span>Cookies persistants</span>
+                                <span>Cookies persistants</span>
+                                <span>De quelques jours à plusieurs mois</span>
                                 <span>De quelques jours à plusieurs mois</span>
                             </div>
+                            </div>
+                            <div class="token-row">
                             <div class="token-row">
                                 <span>Cookies tiers</span>
+                                <span>Cookies tiers</span>
+                                <span>Dépend des politiques de nos partenaires</span>
                                 <span>Dépend des politiques de nos partenaires</span>
                             </div>
+                            </div>
+                        </div>
                         </div>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="tiers">
+                <article class="legal-card" id="tiers">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">4</span>
+                        <span class="section-number">4</span>
+                        <h2><i class="fas fa-globe"></i> Cookies tiers</h2>
                         <h2><i class="fas fa-globe"></i> Cookies tiers</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Notre plateforme peut intégrer des services tiers qui utilisent leurs propres cookies. Voici les principaux prestataires :</p>
+                        <p>Notre plateforme peut intégrer des services tiers qui utilisent leurs propres cookies. Voici les principaux prestataires :</p>
+                        
                         
                         <div class="third-party-grid">
+                        <div class="third-party-grid">
                             <div class="third-party-card">
+                            <div class="third-party-card">
+                                <div class="third-party-logo">
                                 <div class="third-party-logo">
                                     <i class="fab fa-google"></i>
+                                    <i class="fab fa-google"></i>
+                                </div>
                                 </div>
                                 <h4>Google Analytics</h4>
+                                <h4>Google Analytics</h4>
+                                <p>Utilisé pour analyser l'utilisation de notre plateforme. Ces cookies collectent des informations de manière anonyme.</p>
                                 <p>Utilisé pour analyser l'utilisation de notre plateforme. Ces cookies collectent des informations de manière anonyme.</p>
                                 <p><a href="https://policies.google.com/technologies/cookies" target="_blank" rel="noopener noreferrer">Politique des cookies de Google <i class="fas fa-external-link-alt"></i></a></p>
+                                <p><a href="https://policies.google.com/technologies/cookies" target="_blank" rel="noopener noreferrer">Politique des cookies de Google <i class="fas fa-external-link-alt"></i></a></p>
+                            </div>
                             </div>
                             
+                            
                             <div class="third-party-card">
+                            <div class="third-party-card">
+                                <div class="third-party-logo">
                                 <div class="third-party-logo">
                                     <i class="fas fa-fire"></i>
+                                    <i class="fas fa-fire"></i>
+                                </div>
                                 </div>
                                 <h4>Firebase (Google)</h4>
+                                <h4>Firebase (Google)</h4>
+                                <p>Utilisé pour l'authentification, la base de données et l'hébergement. Firebase peut installer des cookies pour le fonctionnement de ces services.</p>
                                 <p>Utilisé pour l'authentification, la base de données et l'hébergement. Firebase peut installer des cookies pour le fonctionnement de ces services.</p>
                                 <p><a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer">Politique de confidentialité de Firebase <i class="fas fa-external-link-alt"></i></a></p>
+                                <p><a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener noreferrer">Politique de confidentialité de Firebase <i class="fas fa-external-link-alt"></i></a></p>
+                            </div>
                             </div>
                             
+                            
+                            <div class="third-party-card">
                             <div class="third-party-card">
                                 <div class="third-party-logo">
-                                    <i class="fab fa-stripe"></i>
+                                <div class="third-party-logo">
+                                    <i class="fab fa-plateforme"></i>
+                                    <i class="fab fa-plateforme"></i>
                                 </div>
-                                <h4>Stripe</h4>
-                                <p>Notre prestataire de paiement sécurisé. Stripe utilise des cookies pour faciliter les transactions et prévenir la fraude.</p>
-                                <p><a href="https://stripe.com/fr/privacy" target="_blank" rel="noopener noreferrer">Politique de confidentialité de Stripe <i class="fas fa-external-link-alt"></i></a></p>
+                                </div>
+                                <h4>notre plateforme</h4>
+                                <h4>notre plateforme</h4>
+                                <p>Notre prestataire de paiement sécurisé. notre plateforme utilise des cookies pour faciliter les transactions et prévenir la fraude.</p>
+                                <p>Notre prestataire de paiement sécurisé. notre plateforme utilise des cookies pour faciliter les transactions et prévenir la fraude.</p>
+                                <p><a href="https://plateforme.com/fr/privacy" target="_blank" rel="noopener noreferrer">Politique de confidentialité de notre plateforme <i class="fas fa-external-link-alt"></i></a></p>
+                                <p><a href="https://plateforme.com/fr/privacy" target="_blank" rel="noopener noreferrer">Politique de confidentialité de notre plateforme <i class="fas fa-external-link-alt"></i></a></p>
+                            </div>
                             </div>
                             
+                            
                             <div class="third-party-card">
+                            <div class="third-party-card">
+                                <div class="third-party-logo">
                                 <div class="third-party-logo">
                                     <i class="fas fa-font"></i>
+                                    <i class="fas fa-font"></i>
+                                </div>
                                 </div>
                                 <h4>Font Awesome</h4>
+                                <h4>Font Awesome</h4>
+                                <p>Utilisé pour les icônes de notre plateforme. Font Awesome peut installer des cookies pour le suivi analytique.</p>
                                 <p>Utilisé pour les icônes de notre plateforme. Font Awesome peut installer des cookies pour le suivi analytique.</p>
                                 <p><a href="https://fontawesome.com/privacy" target="_blank" rel="noopener noreferrer">Politique de confidentialité de Font Awesome <i class="fas fa-external-link-alt"></i></a></p>
+                                <p><a href="https://fontawesome.com/privacy" target="_blank" rel="noopener noreferrer">Politique de confidentialité de Font Awesome <i class="fas fa-external-link-alt"></i></a></p>
+                            </div>
                             </div>
                         </div>
+                        </div>
+                    </div>
                     </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="gestion">
+                <article class="legal-card" id="gestion">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">5</span>
+                        <span class="section-number">5</span>
+                        <h2><i class="fas fa-user-cog"></i> Gestion de vos préférences cookies</h2>
                         <h2><i class="fas fa-user-cog"></i> Gestion de vos préférences cookies</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Vous pouvez contrôler et gérer vos préférences en matière de cookies de plusieurs manières :</p>
+                        <p>Vous pouvez contrôler et gérer vos préférences en matière de cookies de plusieurs manières :</p>
+                        
                         
                         <h3>1. Paramètres du navigateur</h3>
+                        <h3>1. Paramètres du navigateur</h3>
+                        <p>Tous les navigateurs modernes vous permettent de contrôler les cookies. Vous pouvez :</p>
                         <p>Tous les navigateurs modernes vous permettent de contrôler les cookies. Vous pouvez :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> Accepter ou refuser tous les cookies ;</li>
                             <li><i class="fas fa-check"></i> Accepter ou refuser tous les cookies ;</li>
                             <li><i class="fas fa-check"></i> Accepter ou refuser des cookies spécifiques ;</li>
+                            <li><i class="fas fa-check"></i> Accepter ou refuser des cookies spécifiques ;</li>
+                            <li><i class="fas fa-check"></i> Supprimer les cookies déjà stockés ;</li>
                             <li><i class="fas fa-check"></i> Supprimer les cookies déjà stockés ;</li>
                             <li><i class="fas fa-check"></i> Être notifié lorsque des cookies sont installés.</li>
+                            <li><i class="fas fa-check"></i> Être notifié lorsque des cookies sont installés.</li>
+                        </ul>
                         </ul>
                         <p class="important-note warning">
+                        <p class="important-note warning">
+                            <i class="fas fa-exclamation-triangle"></i> 
                             <i class="fas fa-exclamation-triangle"></i> 
                             <strong>Attention :</strong> Le blocage des cookies nécessaires peut rendre certaines parties de notre plateforme inutilisables.
+                            <strong>Attention :</strong> Le blocage des cookies nécessaires peut rendre certaines parties de notre plateforme inutilisables.
+                        </p>
                         </p>
 
+
+                        <h3>2. Plateformes de gestion du consentement</h3>
                         <h3>2. Plateformes de gestion du consentement</h3>
                         <p>Nous respectons les initiatives de l'industrie pour une meilleure gestion du consentement :</p>
+                        <p>Nous respectons les initiatives de l'industrie pour une meilleure gestion du consentement :</p>
+                        <ul class="legal-list">
                         <ul class="legal-list">
                             <li><i class="fas fa-check"></i> <strong>YourAdChoices :</strong> <a href="https://youradchoices.com/" target="_blank" rel="noopener noreferrer">youradchoices.com <i class="fas fa-external-link-alt"></i></a></li>
+                            <li><i class="fas fa-check"></i> <strong>YourAdChoices :</strong> <a href="https://youradchoices.com/" target="_blank" rel="noopener noreferrer">youradchoices.com <i class="fas fa-external-link-alt"></i></a></li>
+                            <li><i class="fas fa-check"></i> <strong>Your Online Choices :</strong> <a href="https://www.youronlinechoices.com/" target="_blank" rel="noopener noreferrer">youronlinechoices.com <i class="fas fa-external-link-alt"></i></a></li>
                             <li><i class="fas fa-check"></i> <strong>Your Online Choices :</strong> <a href="https://www.youronlinechoices.com/" target="_blank" rel="noopener noreferrer">youronlinechoices.com <i class="fas fa-external-link-alt"></i></a></li>
                         </ul>
+                        </ul>
+
 
                         <h3>3. Désactivation spécifique</h3>
+                        <h3>3. Désactivation spécifique</h3>
+                        <p>Pour désactiver spécifiquement certains cookies :</p>
                         <p>Pour désactiver spécifiquement certains cookies :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> <strong>Google Analytics :</strong> <a href="https://tools.google.com/dlpage/gaoptout/" target="_blank" rel="noopener noreferrer">Module de désactivation Google Analytics <i class="fas fa-external-link-alt"></i></a></li>
                             <li><i class="fas fa-check"></i> <strong>Google Analytics :</strong> <a href="https://tools.google.com/dlpage/gaoptout/" target="_blank" rel="noopener noreferrer">Module de désactivation Google Analytics <i class="fas fa-external-link-alt"></i></a></li>
                         </ul>
+                        </ul>
+                    </div>
                     </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="infos">
+                <article class="legal-card" id="infos">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">6</span>
+                        <span class="section-number">6</span>
+                        <h2><i class="fas fa-info-circle"></i> Informations supplémentaires</h2>
                         <h2><i class="fas fa-info-circle"></i> Informations supplémentaires</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <h3>1. Modifications de cette politique</h3>
+                        <h3>1. Modifications de cette politique</h3>
+                        <p>Nous pouvons mettre à jour cette Politique des Cookies de temps à autre. Les modifications seront publiées sur cette page avec la date de la dernière mise à jour.</p>
                         <p>Nous pouvons mettre à jour cette Politique des Cookies de temps à autre. Les modifications seront publiées sur cette page avec la date de la dernière mise à jour.</p>
                         <p>Nous vous encourageons à consulter régulièrement cette politique pour rester informé de nos pratiques en matière de cookies.</p>
+                        <p>Nous vous encourageons à consulter régulièrement cette politique pour rester informé de nos pratiques en matière de cookies.</p>
+
 
                         <h3>2. Plus d'informations sur les cookies</h3>
+                        <h3>2. Plus d'informations sur les cookies</h3>
+                        <p>Pour en savoir plus sur les cookies en général, vous pouvez consulter :</p>
                         <p>Pour en savoir plus sur les cookies en général, vous pouvez consulter :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> <strong>All About Cookies :</strong> <a href="https://www.allaboutcookies.org/" target="_blank" rel="noopener noreferrer">www.allaboutcookies.org <i class="fas fa-external-link-alt"></i></a></li>
                             <li><i class="fas fa-check"></i> <strong>All About Cookies :</strong> <a href="https://www.allaboutcookies.org/" target="_blank" rel="noopener noreferrer">www.allaboutcookies.org <i class="fas fa-external-link-alt"></i></a></li>
                             <li><i class="fas fa-check"></i> <strong>CNIL (France) :</strong> <a href="https://www.cnil.fr/vos-droits/vos-traces/les-cookies/" target="_blank" rel="noopener noreferrer">Guide des cookies de la CNIL <i class="fas fa-external-link-alt"></i></a></li>
+                            <li><i class="fas fa-check"></i> <strong>CNIL (France) :</strong> <a href="https://www.cnil.fr/vos-droits/vos-traces/les-cookies/" target="_blank" rel="noopener noreferrer">Guide des cookies de la CNIL <i class="fas fa-external-link-alt"></i></a></li>
+                        </ul>
                         </ul>
 
+
+                        <h3>3. Consentement</h3>
                         <h3>3. Consentement</h3>
                         <p>En continuant à utiliser notre plateforme, vous acceptez notre utilisation des cookies conformément à cette politique. Si vous ne souhaitez pas accepter nos cookies, nous vous invitons à ajuster les paramètres de votre navigateur ou à cesser d'utiliser la plateforme.</p>
+                        <p>En continuant à utiliser notre plateforme, vous acceptez notre utilisation des cookies conformément à cette politique. Si vous ne souhaitez pas accepter nos cookies, nous vous invitons à ajuster les paramètres de votre navigateur ou à cesser d'utiliser la plateforme.</p>
+                    </div>
                     </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="contact">
+                <article class="legal-card" id="contact">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">7</span>
+                        <span class="section-number">7</span>
+                        <h2><i class="fas fa-envelope"></i> Contact</h2>
                         <h2><i class="fas fa-envelope"></i> Contact</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Si vous avez des questions concernant cette Politique des Cookies ou notre utilisation des cookies, veuillez nous contacter :</p>
+                        <p>Si vous avez des questions concernant cette Politique des Cookies ou notre utilisation des cookies, veuillez nous contacter :</p>
+                        <div class="contact-info">
                         <div class="contact-info">
                             <p><i class="fas fa-building"></i> <strong>Duprey Conseil</strong></p>
+                            <p><i class="fas fa-building"></i> <strong>Duprey Conseil</strong></p>
+                            <p><i class="fas fa-map-marker-alt"></i> 37 Route de Lyon, 67400 Illkirch, France</p>
                             <p><i class="fas fa-map-marker-alt"></i> 37 Route de Lyon, 67400 Illkirch, France</p>
                             <p><i class="fas fa-envelope"></i> <a href="mailto:duprey.conseil@gmail.com">duprey.conseil@gmail.com</a></p>
+                            <p><i class="fas fa-envelope"></i> <a href="mailto:duprey.conseil@gmail.com">duprey.conseil@gmail.com</a></p>
+                            <p><i class="fas fa-phone"></i> Tél. sur demande uniquement</p>
                             <p><i class="fas fa-phone"></i> Tél. sur demande uniquement</p>
                         </div>
+                        </div>
+                        <p class="mt-2"><strong>Dernière mise à jour :</strong> Septembre 2026</p>
                         <p class="mt-2"><strong>Dernière mise à jour :</strong> Septembre 2026</p>
                     </div>
+                    </div>
+                </article>
                 </article>
             </div>
+            </div>
+        </div>
         </div>
     </main>
+    </main>
+
 
     <!-- Footer -->
+    <!-- Footer -->
+    <footer class="footer">
     <footer class="footer">
         <div class="container">
+        <div class="container">
+            <div class="footer-grid">
             <div class="footer-grid">
                 <div class="footer-brand">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
                     <a href="/" class="logo">
                         <i class="fas fa-chart-line"></i>
+                        <i class="fas fa-chart-line"></i>
+                        <span>DPAI</span>
                         <span>DPAI</span>
                     </a>
+                    </a>
+                    <p>Conseil en croissance externe et analyse stratégique avancée.</p>
                     <p>Conseil en croissance externe et analyse stratégique avancée.</p>
                     <div class="social-links">
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
                         <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
                         <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
                         <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
                     </div>
+                    </div>
+                </div>
                 </div>
                 
+                
+                <div class="footer-links">
                 <div class="footer-links">
                     <h4>Produit</h4>
+                    <h4>Produit</h4>
+                    <ul>
                     <ul>
                         <li><a href="/#features">Fonctionnalités</a></li>
+                        <li><a href="/#features">Fonctionnalités</a></li>
+                        <li><a href="services.html">Services</a></li>
                         <li><a href="services.html">Services</a></li>
                         <li><a href="pricing.html">Tarifs</a></li>
+                        <li><a href="pricing.html">Tarifs</a></li>
+                        <li><a href="/#how-it-works">Comment ça marche</a></li>
                         <li><a href="/#how-it-works">Comment ça marche</a></li>
                     </ul>
+                    </ul>
+                </div>
                 </div>
                 
+                
+                <div class="footer-links">
                 <div class="footer-links">
                     <h4>Compte</h4>
+                    <h4>Compte</h4>
+                    <ul>
                     <ul>
                         <li><a href="login.html">Connexion</a></li>
+                        <li><a href="login.html">Connexion</a></li>
+                        <li><a href="register.html">Inscription</a></li>
                         <li><a href="register.html">Inscription</a></li>
                         <li><a href="dashboard.html">Tableau de bord</a></li>
+                        <li><a href="dashboard.html">Tableau de bord</a></li>
+                        <li><a href="token-shop.html">Acheter des tokens</a></li>
                         <li><a href="token-shop.html">Acheter des tokens</a></li>
                     </ul>
-                </div>
-                
-                <div class="footer-links">
-                    <h4>Légal</h4>
-                    <ul>
-                        <li><a href="terms.html">Conditions générales</a></li>
-                        <li><a href="privacy.html">Politique de confidentialité</a></li>
-                        <li><a href="cookies.html" class="active">Politique des cookies</a></li>
                     </ul>
                 </div>
+                </div>
+                
+                
+                <div class="footer-links">
+                <div class="footer-links">
+                    <h4>Légal</h4>
+                    <h4>Légal</h4>
+                    <ul>
+                    <ul>
+                        <li><a href="terms.html">Conditions générales</a></li>
+                        <li><a href="terms.html">Conditions générales</a></li>
+                        <li><a href="privacy.html">Politique de confidentialité</a></li>
+                        <li><a href="privacy.html">Politique de confidentialité</a></li>
+                        <li><a href="cookies.html" class="active">Politique des cookies</a></li>
+                        <li><a href="cookies.html" class="active">Politique des cookies</a></li>
+                    </ul>
+                    </ul>
+                </div>
+                </div>
+            </div>
             </div>
             
+            
+            <div class="footer-bottom">
             <div class="footer-bottom">
                 <p>&copy; 2026 DPAI by Duprey Conseil. Tous droits réservés.</p>
+                <p>&copy; 2026 DPAI by Duprey Conseil. Tous droits réservés.</p>
+                <p>Validé par les utilisateurs</p>
                 <p>Validé par les utilisateurs</p>
             </div>
+            </div>
+        </div>
         </div>
     </footer>
+    </footer>
+
 
     <!-- Back to Top -->
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" id="backToTop">
     <a href="#" class="back-to-top" id="backToTop">
         <i class="fas fa-arrow-up"></i>
+        <i class="fas fa-arrow-up"></i>
+    </a>
     </a>
 
+
+    <!-- Scripts -->
     <!-- Scripts -->
     <script src="/js/main.js"></script>
+    <script src="/js/main.js"></script>
 </body>
+</body>
+</html>
 </html>

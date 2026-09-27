@@ -1,426 +1,852 @@
 <!DOCTYPE html>
+<!DOCTYPE html>
+<html lang="fr">
 <html lang="fr">
 <head>
+<head>
+    <meta charset="UTF-8">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Politique de confidentialité - DPAI</title>
     <title>Politique de confidentialité - DPAI</title>
     <meta name="description" content="Politique de confidentialité de DPAI. Découvrez comment nous protégeons vos données personnelles et professionnelles.">
+    <meta name="description" content="Politique de confidentialité de DPAI. Découvrez comment nous protégeons vos données personnelles et professionnelles.">
+    
     
     <!-- Fonts -->
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     
+    
+    <!-- Icons -->
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     
     <!-- Styles -->
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/responsive.css">
     <link rel="stylesheet" href="/css/responsive.css">
     <!-- Firebase SDK -->
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script src="/js/firebase-config.js"></script>
     <script src="/js/firebase-config.js"></script>
     </head>
+    </head>
+<body>
 <body>
     <!-- Navigation -->
+    <!-- Navigation -->
+    <nav class="navbar">
     <nav class="navbar">
         <div class="container">
+        <div class="container">
+            <a href="/" class="logo">
             <a href="/" class="logo">
                 <i class="fas fa-chart-line"></i>
+                <i class="fas fa-chart-line"></i>
+                <span>DPAI</span>
                 <span>DPAI</span>
             </a>
+            </a>
+            
             
             <ul class="nav-links" id="navLinks">
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
                 <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
                 <li><a href="services.html" class="nav-link">Services</a></li>
+                <li><a href="services.html" class="nav-link">Services</a></li>
+                <li><a href="pricing.html" class="nav-link">Tarifs</a></li>
                 <li><a href="pricing.html" class="nav-link">Tarifs</a></li>
                 <li><a href="/#how-it-works" class="nav-link">Comment ça marche</a></li>
+                <li><a href="/#how-it-works" class="nav-link">Comment ça marche</a></li>
+            </ul>
             </ul>
             
+            
+            <div class="nav-actions">
             <div class="nav-actions">
                 <a href="login.html" class="btn btn-ghost" id="loginBtn">
+                <a href="login.html" class="btn btn-ghost" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
                     <i class="fas fa-sign-in-alt"></i> Connexion
                 </a>
+                </a>
+                <a href="register.html" class="btn btn-primary" id="registerBtn">
                 <a href="register.html" class="btn btn-primary" id="registerBtn">
                     <i class="fas fa-user-plus"></i> S'inscrire
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </a>
                 </a>
                 <div class="user-menu" id="userMenu" style="display: none;">
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-btn" id="userBtn">
                     <button class="user-btn" id="userBtn">
                         <i class="fas fa-user"></i>
+                        <i class="fas fa-user"></i>
+                        <span id="userName">Compte</span>
                         <span id="userName">Compte</span>
                     </button>
+                    </button>
+                    <div class="user-dropdown">
                     <div class="user-dropdown">
                         <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
                         <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
                         <a href="token-shop.html"><i class="fas fa-coins"></i> Acheter des tokens</a>
+                        <a href="token-shop.html"><i class="fas fa-coins"></i> Acheter des tokens</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                         <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                     </div>
+                    </div>
+                </div>
                 </div>
             </div>
+            </div>
+            
             
             <button class="mobile-toggle" id="mobileToggle">
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
                 <i class="fas fa-bars"></i>
             </button>
+            </button>
+        </div>
         </div>
     </nav>
+    </nav>
+
 
     <!-- Page Header -->
+    <!-- Page Header -->
+    <section class="page-header legal-header">
     <section class="page-header legal-header">
         <div class="container">
+        <div class="container">
+            <div class="breadcrumb">
             <div class="breadcrumb">
                 <a href="/">Accueil</a>
+                <a href="/">Accueil</a>
+                <i class="fas fa-chevron-right"></i>
                 <i class="fas fa-chevron-right"></i>
                 <span>Politique de confidentialité</span>
+                <span>Politique de confidentialité</span>
+            </div>
             </div>
             <div class="header-content">
+            <div class="header-content">
+                <div class="header-badge">
                 <div class="header-badge">
                     <i class="fas fa-check-circle"></i>
+                    <i class="fas fa-check-circle"></i>
+                    <span>Validé par les utilisateurs</span>
                     <span>Validé par les utilisateurs</span>
                 </div>
+                </div>
+                <h1>Politique de confidentialité</h1>
                 <h1>Politique de confidentialité</h1>
                 <p class="header-subtitle">Comment DPAI protège et traite vos données personnelles et professionnelles.</p>
+                <p class="header-subtitle">Comment DPAI protège et traite vos données personnelles et professionnelles.</p>
+                <div class="legal-meta">
                 <div class="legal-meta">
                     <span><i class="fas fa-shield-alt"></i> RGPD compliant</span>
+                    <span><i class="fas fa-shield-alt"></i> RGPD compliant</span>
+                    <span><i class="fas fa-calendar-alt"></i> Mise à jour : Septembre 2026</span>
                     <span><i class="fas fa-calendar-alt"></i> Mise à jour : Septembre 2026</span>
                     <span><i class="fas fa-clock"></i> Lecture : ~10 min</span>
+                    <span><i class="fas fa-clock"></i> Lecture : ~10 min</span>
+                </div>
                 </div>
             </div>
+            </div>
+        </div>
         </div>
     </section>
+    </section>
+
 
     <!-- Main Content -->
+    <!-- Main Content -->
+    <main class="legal-content">
     <main class="legal-content">
         <div class="container">
+        <div class="container">
+            <!-- Notice -->
             <!-- Notice -->
             <div class="legal-notice privacy">
+            <div class="legal-notice privacy">
+                <div class="notice-icon">
                 <div class="notice-icon">
                     <i class="fas fa-shield-alt"></i>
+                    <i class="fas fa-shield-alt"></i>
+                </div>
                 </div>
                 <div class="notice-content">
+                <div class="notice-content">
+                    <strong>Engagement</strong>
                     <strong>Engagement</strong>
                     <p>La protection de vos données est au cœur de notre mission. Nous respectons strictement le RGPD et les meilleures pratiques de sécurité.</p>
+                    <p>La protection de vos données est au cœur de notre mission. Nous respectons strictement le RGPD et les meilleures pratiques de sécurité.</p>
+                </div>
                 </div>
             </div>
+            </div>
+
 
             <!-- Table of Contents -->
+            <!-- Table of Contents -->
+            <div class="legal-toc">
             <div class="legal-toc">
                 <h3><i class="fas fa-list-ul"></i> Sommaire</h3>
+                <h3><i class="fas fa-list-ul"></i> Sommaire</h3>
+                <ul class="toc-list">
                 <ul class="toc-list">
                     <li><a href="#introduction">1. Introduction</a></li>
+                    <li><a href="#introduction">1. Introduction</a></li>
+                    <li><a href="#collecte">2. Données que nous collectons</a></li>
                     <li><a href="#collecte">2. Données que nous collectons</a></li>
                     <li><a href="#utilisation">3. Utilisation des données</a></li>
+                    <li><a href="#utilisation">3. Utilisation des données</a></li>
+                    <li><a href="#partage">4. Partage des données</a></li>
                     <li><a href="#partage">4. Partage des données</a></li>
                     <li><a href="#securite">5. Sécurité des données</a></li>
+                    <li><a href="#securite">5. Sécurité des données</a></li>
+                    <li><a href="#conservation">6. Conservation des données</a></li>
                     <li><a href="#conservation">6. Conservation des données</a></li>
                     <li><a href="#droits">7. Vos droits</a></li>
+                    <li><a href="#droits">7. Vos droits</a></li>
+                    <li><a href="#cookies">8. Cookies</a></li>
                     <li><a href="#cookies">8. Cookies</a></li>
                     <li><a href="#mineurs">9. Données des mineurs</a></li>
+                    <li><a href="#mineurs">9. Données des mineurs</a></li>
+                    <li><a href="#liens">10. Liens vers des sites tiers</a></li>
                     <li><a href="#liens">10. Liens vers des sites tiers</a></li>
                     <li><a href="#misesajour">11. Mises à jour</a></li>
+                    <li><a href="#misesajour">11. Mises à jour</a></li>
+                    <li><a href="#contact">12. Contact</a></li>
                     <li><a href="#contact">12. Contact</a></li>
                 </ul>
+                </ul>
             </div>
+            </div>
+
 
             <!-- Legal Sections -->
+            <!-- Legal Sections -->
+            <div class="legal-sections">
             <div class="legal-sections">
                 <article class="legal-card" id="introduction">
+                <article class="legal-card" id="introduction">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">1</span>
+                        <span class="section-number">1</span>
+                        <h2><i class="fas fa-info-circle"></i> Introduction</h2>
                         <h2><i class="fas fa-info-circle"></i> Introduction</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Chez <strong>DPAI by Duprey Conseil</strong> (ci-après "<strong>DPAI</strong>", "nous", "notre" ou "nos"), nous accordons une grande importance à la protection de vos données personnelles et professionnelles.</p>
+                        <p>Chez <strong>DPAI by Duprey Conseil</strong> (ci-après "<strong>DPAI</strong>", "nous", "notre" ou "nos"), nous accordons une grande importance à la protection de vos données personnelles et professionnelles.</p>
+                        <p>Cette Politique de Confidentialité décrit comment nous <strong>collectons</strong>, <strong>utilisons</strong>, <strong>partageons</strong> et <strong>protégeons</strong> les informations que vous nous fournissez lorsque vous utilisez notre plateforme d'analyse stratégique.</p>
                         <p>Cette Politique de Confidentialité décrit comment nous <strong>collectons</strong>, <strong>utilisons</strong>, <strong>partageons</strong> et <strong>protégeons</strong> les informations que vous nous fournissez lorsque vous utilisez notre plateforme d'analyse stratégique.</p>
                         <p>En utilisant nos services, vous acceptez les pratiques décrites dans cette politique. Si vous n'êtes pas d'accord avec ces pratiques, nous vous invitons à ne pas utiliser notre plateforme.</p>
+                        <p>En utilisant nos services, vous acceptez les pratiques décrites dans cette politique. Si vous n'êtes pas d'accord avec ces pratiques, nous vous invitons à ne pas utiliser notre plateforme.</p>
+                    </div>
                     </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="collecte">
+                <article class="legal-card" id="collecte">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">2</span>
+                        <span class="section-number">2</span>
+                        <h2><i class="fas fa-user-shield"></i> Données que nous collectons</h2>
                         <h2><i class="fas fa-user-shield"></i> Données que nous collectons</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <h3>1. Informations personnelles</h3>
+                        <h3>1. Informations personnelles</h3>
+                        <p>Nous collectons les informations personnelles suivantes lorsque vous créez un compte ou utilisez nos services :</p>
                         <p>Nous collectons les informations personnelles suivantes lorsque vous créez un compte ou utilisez nos services :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> Nom et prénom ;</li>
                             <li><i class="fas fa-check"></i> Nom et prénom ;</li>
                             <li><i class="fas fa-check"></i> Adresse e-mail professionnelle ;</li>
+                            <li><i class="fas fa-check"></i> Adresse e-mail professionnelle ;</li>
+                            <li><i class="fas fa-check"></i> Numéro de téléphone (facultatif) ;</li>
                             <li><i class="fas fa-check"></i> Numéro de téléphone (facultatif) ;</li>
                             <li><i class="fas fa-check"></i> Nom de l'entreprise et secteur d'activité ;</li>
+                            <li><i class="fas fa-check"></i> Nom de l'entreprise et secteur d'activité ;</li>
+                            <li><i class="fas fa-check"></i> Poste occupé dans l'entreprise.</li>
                             <li><i class="fas fa-check"></i> Poste occupé dans l'entreprise.</li>
                         </ul>
+                        </ul>
+
 
                         <h3>2. Informations professionnelles et données d'analyse</h3>
+                        <h3>2. Informations professionnelles et données d'analyse</h3>
+                        <p>Lorsque vous utilisez nos services d'analyse stratégique, nous collectons et traitons :</p>
                         <p>Lorsque vous utilisez nos services d'analyse stratégique, nous collectons et traitons :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> Les données que vous saisissez pour vos analyses (SWOT, Porter 5 Forces, PESTEL, etc.) ;</li>
                             <li><i class="fas fa-check"></i> Les données que vous saisissez pour vos analyses (SWOT, Porter 5 Forces, PESTEL, etc.) ;</li>
                             <li><i class="fas fa-check"></i> Les résultats des analyses générées par notre plateforme ;</li>
+                            <li><i class="fas fa-check"></i> Les résultats des analyses générées par notre plateforme ;</li>
+                            <li><i class="fas fa-check"></i> L'historique de vos recherches et analyses ;</li>
                             <li><i class="fas fa-check"></i> L'historique de vos recherches et analyses ;</li>
                             <li><i class="fas fa-check"></i> Les rapports et documents que vous générez ou téléchargez.</li>
+                            <li><i class="fas fa-check"></i> Les rapports et documents que vous générez ou téléchargez.</li>
                         </ul>
+                        </ul>
+
 
                         <h3>3. Données techniques et d'utilisation</h3>
+                        <h3>3. Données techniques et d'utilisation</h3>
+                        <p>Nous collectons automatiquement certaines informations lors de votre utilisation de la plateforme :</p>
                         <p>Nous collectons automatiquement certaines informations lors de votre utilisation de la plateforme :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> Adresse IP et type de navigateur ;</li>
                             <li><i class="fas fa-check"></i> Adresse IP et type de navigateur ;</li>
                             <li><i class="fas fa-check"></i> Pages visitées et durée des visites ;</li>
+                            <li><i class="fas fa-check"></i> Pages visitées et durée des visites ;</li>
+                            <li><i class="fas fa-check"></i> Type de terminal (ordinateur, tablette, mobile) ;</li>
                             <li><i class="fas fa-check"></i> Type de terminal (ordinateur, tablette, mobile) ;</li>
                             <li><i class="fas fa-check"></i> Système d'exploitation ;</li>
+                            <li><i class="fas fa-check"></i> Système d'exploitation ;</li>
+                            <li><i class="fas fa-check"></i> Référent (site d'où vous venez).</li>
                             <li><i class="fas fa-check"></i> Référent (site d'où vous venez).</li>
                         </ul>
+                        </ul>
+
 
                         <h3>4. Informations de paiement</h3>
+                        <h3>4. Informations de paiement</h3>
+                        <p>Pour les transactions effectuées via notre plateforme, nous collectons :</p>
                         <p>Pour les transactions effectuées via notre plateforme, nous collectons :</p>
                         <ul class="legal-list">
+                        <ul class="legal-list">
                             <li><i class="fas fa-check"></i> Informations de facturation (nom de l'entreprise, adresse de facturation) ;</li>
-                            <li><i class="fas fa-check"></i> Historique des achats de tokens et abonnements ;</li>
+                            <li><i class="fas fa-check"></i> Informations de facturation (nom de l'entreprise, adresse de facturation) ;</li>
+                            <li><i class="fas fa-check"></i> Historique des achats de tokens et services ;</li>
+                            <li><i class="fas fa-check"></i> Historique des achats de tokens et services ;</li>
+                            <li><i class="fas fa-check"></i> Derniers chiffres de votre carte de paiement (non stockés en entier).</li>
                             <li><i class="fas fa-check"></i> Derniers chiffres de votre carte de paiement (non stockés en entier).</li>
                         </ul>
+                        </ul>
+                        <p class="important-note">
                         <p class="important-note">
                             <i class="fas fa-lock"></i> 
-                            <strong>Note :</strong> Les informations complètes de carte de paiement sont traitées directement par notre prestataire de paiement sécurisé <strong>Stripe</strong> et ne sont <strong>jamais</strong> stockées sur nos serveurs.
+                            <i class="fas fa-lock"></i> 
+                            <strong>Note :</strong> Les informations complètes de carte de paiement sont traitées directement par notre prestataire de paiement sécurisé <strong>notre plateforme</strong> et ne sont <strong>jamais</strong> stockées sur nos serveurs.
+                            <strong>Note :</strong> Les informations complètes de carte de paiement sont traitées directement par notre prestataire de paiement sécurisé <strong>notre plateforme</strong> et ne sont <strong>jamais</strong> stockées sur nos serveurs.
+                        </p>
                         </p>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="utilisation">
+                <article class="legal-card" id="utilisation">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">3</span>
+                        <span class="section-number">3</span>
+                        <h2><i class="fas fa-cog"></i> Utilisation des données</h2>
                         <h2><i class="fas fa-cog"></i> Utilisation des données</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Nous utilisons les données collectées aux fins suivantes :</p>
+                        <p>Nous utilisons les données collectées aux fins suivantes :</p>
+                        <ul class="legal-list">
                         <ul class="legal-list">
                             <li><i class="fas fa-check"></i> <strong>Fourniture des services :</strong> Pour vous permettre d'accéder à la plateforme et à toutes ses fonctionnalités d'analyse stratégique ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Fourniture des services :</strong> Pour vous permettre d'accéder à la plateforme et à toutes ses fonctionnalités d'analyse stratégique ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Amélioration des services :</strong> Pour analyser l'utilisation de notre plateforme et l'améliorer en permanence ;</li>
                             <li><i class="fas fa-check"></i> <strong>Amélioration des services :</strong> Pour analyser l'utilisation de notre plateforme et l'améliorer en permanence ;</li>
                             <li><i class="fas fa-check"></i> <strong>Support client :</strong> Pour répondre à vos questions et résoudre les problèmes techniques ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Support client :</strong> Pour répondre à vos questions et résoudre les problèmes techniques ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Facturation :</strong> Pour traiter vos paiements et émettre vos factures ;</li>
                             <li><i class="fas fa-check"></i> <strong>Facturation :</strong> Pour traiter vos paiements et émettre vos factures ;</li>
                             <li><i class="fas fa-check"></i> <strong>Communication :</strong> Pour vous envoyer des informations importantes concernant votre compte, vos analyses ou nos services ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Communication :</strong> Pour vous envoyer des informations importantes concernant votre compte, vos analyses ou nos services ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Sécurité :</strong> Pour détecter et prévenir les activités frauduleuses ou les abus de notre plateforme ;</li>
                             <li><i class="fas fa-check"></i> <strong>Sécurité :</strong> Pour détecter et prévenir les activités frauduleuses ou les abus de notre plateforme ;</li>
                             <li><i class="fas fa-check"></i> <strong>Marketing :</strong> Avec votre consentement, pour vous envoyer des communications marketing sur nos nouveaux services.</li>
+                            <li><i class="fas fa-check"></i> <strong>Marketing :</strong> Avec votre consentement, pour vous envoyer des communications marketing sur nos nouveaux services.</li>
+                        </ul>
                         </ul>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="partage">
+                <article class="legal-card" id="partage">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">4</span>
+                        <span class="section-number">4</span>
+                        <h2><i class="fas fa-share-alt"></i> Partage des données</h2>
                         <h2><i class="fas fa-share-alt"></i> Partage des données</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Nous ne vendons, ne louons et ne partageons pas vos données personnelles avec des tiers à des fins commerciales, sauf dans les cas suivants :</p>
+                        <p>Nous ne vendons, ne louons et ne partageons pas vos données personnelles avec des tiers à des fins commerciales, sauf dans les cas suivants :</p>
                         <ul class="legal-list">
-                            <li><i class="fas fa-check"></i> <strong>Prestataires de services :</strong> Nous pouvons partager vos informations avec des prestataires tiers qui nous aident à exploiter notre plateforme, à traiter les paiements (Stripe), à envoyer des e-mails, ou à fournir un support technique. Ces prestataires sont tenus par contrat de protéger vos données ;</li>
+                        <ul class="legal-list">
+                            <li><i class="fas fa-check"></i> <strong>Prestataires de services :</strong> Nous pouvons partager vos informations avec des prestataires tiers qui nous aident à exploiter notre plateforme, à traiter les paiements (notre plateforme), à envoyer des e-mails, ou à fournir un support technique. Ces prestataires sont tenus par contrat de protéger vos données ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Prestataires de services :</strong> Nous pouvons partager vos informations avec des prestataires tiers qui nous aident à exploiter notre plateforme, à traiter les paiements (notre plateforme), à envoyer des e-mails, ou à fournir un support technique. Ces prestataires sont tenus par contrat de protéger vos données ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Obligations légales :</strong> Nous pouvons être contraints de divulguer vos informations si la loi l'exige ou si nous estimons de bonne foi que cette divulgation est nécessaire pour nous conformer à une procédure judiciaire ;</li>
                             <li><i class="fas fa-check"></i> <strong>Obligations légales :</strong> Nous pouvons être contraints de divulguer vos informations si la loi l'exige ou si nous estimons de bonne foi que cette divulgation est nécessaire pour nous conformer à une procédure judiciaire ;</li>
                             <li><i class="fas fa-check"></i> <strong>Protection des droits :</strong> Pour protéger nos droits, notre propriété ou notre sécurité, ou ceux de nos utilisateurs ou du public ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Protection des droits :</strong> Pour protéger nos droits, notre propriété ou notre sécurité, ou ceux de nos utilisateurs ou du public ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Changement de contrôle :</strong> En cas de fusion, d'acquisition ou de vente de tout ou partie de nos actifs, vos informations pourraient être transférées à l'entité acquérante.</li>
                             <li><i class="fas fa-check"></i> <strong>Changement de contrôle :</strong> En cas de fusion, d'acquisition ou de vente de tout ou partie de nos actifs, vos informations pourraient être transférées à l'entité acquérante.</li>
                         </ul>
+                        </ul>
+                        <div class="privacy-highlight">
                         <div class="privacy-highlight">
                             <i class="fas fa-shield-alt"></i>
+                            <i class="fas fa-shield-alt"></i>
+                            <p><strong>Vos données d'analyse (SWOT, Porter, etc.) ne sont jamais partagées avec des tiers, sauf si vous nous en donnez explicitement l'autorisation.</strong></p>
                             <p><strong>Vos données d'analyse (SWOT, Porter, etc.) ne sont jamais partagées avec des tiers, sauf si vous nous en donnez explicitement l'autorisation.</strong></p>
                         </div>
+                        </div>
+                    </div>
                     </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="securite">
+                <article class="legal-card" id="securite">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">5</span>
+                        <span class="section-number">5</span>
+                        <h2><i class="fas fa-lock"></i> Sécurité des données</h2>
                         <h2><i class="fas fa-lock"></i> Sécurité des données</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>La sécurité de vos données est une <strong>priorité absolue</strong> pour DPAI. Nous mettons en place les mesures de sécurité techniques et organisationnelles suivantes pour protéger vos informations :</p>
+                        <p>La sécurité de vos données est une <strong>priorité absolue</strong> pour DPAI. Nous mettons en place les mesures de sécurité techniques et organisationnelles suivantes pour protéger vos informations :</p>
+                        <ul class="legal-list">
                         <ul class="legal-list">
                             <li><i class="fas fa-check"></i> Chiffrement des données en transit (HTTPS/TLS) ;</li>
+                            <li><i class="fas fa-check"></i> Chiffrement des données en transit (HTTPS/TLS) ;</li>
+                            <li><i class="fas fa-check"></i> Chiffrement des données au repos ;</li>
                             <li><i class="fas fa-check"></i> Chiffrement des données au repos ;</li>
                             <li><i class="fas fa-check"></i> Contrôle d'accès strict basé sur les rôles ;</li>
+                            <li><i class="fas fa-check"></i> Contrôle d'accès strict basé sur les rôles ;</li>
+                            <li><i class="fas fa-check"></i> Audits de sécurité réguliers ;</li>
                             <li><i class="fas fa-check"></i> Audits de sécurité réguliers ;</li>
                             <li><i class="fas fa-check"></i> Sauvegardes automatiques et sécurisées ;</li>
+                            <li><i class="fas fa-check"></i> Sauvegardes automatiques et sécurisées ;</li>
+                            <li><i class="fas fa-check"></i> Authentification forte (Firebase Authentication).</li>
                             <li><i class="fas fa-check"></i> Authentification forte (Firebase Authentication).</li>
                         </ul>
+                        </ul>
+                        <p>Vos analyses stratégiques sont stockées dans des bases de données sécurisées et accessibles <strong>uniquement par vous</strong> et, le cas échéant, par les membres de votre équipe autorisés.</p>
                         <p>Vos analyses stratégiques sont stockées dans des bases de données sécurisées et accessibles <strong>uniquement par vous</strong> et, le cas échéant, par les membres de votre équipe autorisés.</p>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="conservation">
+                <article class="legal-card" id="conservation">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">6</span>
+                        <span class="section-number">6</span>
+                        <h2><i class="fas fa-globe"></i> Conservation des données</h2>
                         <h2><i class="fas fa-globe"></i> Conservation des données</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Nous conservons vos données personnelles aussi longtemps que nécessaire pour les finalités pour lesquelles elles ont été collectées, ou pendant la période requise par la loi.</p>
+                        <p>Nous conservons vos données personnelles aussi longtemps que nécessaire pour les finalités pour lesquelles elles ont été collectées, ou pendant la période requise par la loi.</p>
+                        <div class="conservation-table">
                         <div class="conservation-table">
                             <div class="token-row header">
+                            <div class="token-row header">
+                                <span>Type de données</span>
                                 <span>Type de données</span>
                                 <span>Durée de conservation</span>
+                                <span>Durée de conservation</span>
                             </div>
+                            </div>
+                            <div class="token-row">
                             <div class="token-row">
                                 <span>Données de compte</span>
+                                <span>Données de compte</span>
+                                <span>Tant que le compte est actif + 2 ans après suppression</span>
                                 <span>Tant que le compte est actif + 2 ans après suppression</span>
                             </div>
+                            </div>
+                            <div class="token-row">
                             <div class="token-row">
                                 <span>Données d'analyse</span>
+                                <span>Données d'analyse</span>
+                                <span>Tant que le compte est actif (sauf suppression manuelle)</span>
                                 <span>Tant que le compte est actif (sauf suppression manuelle)</span>
                             </div>
+                            </div>
+                            <div class="token-row">
                             <div class="token-row">
                                 <span>Données de paiement</span>
+                                <span>Données de paiement</span>
+                                <span>10 ans (obligation légale)</span>
                                 <span>10 ans (obligation légale)</span>
                             </div>
+                            </div>
+                            <div class="token-row">
                             <div class="token-row">
                                 <span>Données techniques (logs)</span>
+                                <span>Données techniques (logs)</span>
+                                <span>12 mois maximum</span>
                                 <span>12 mois maximum</span>
                             </div>
+                            </div>
+                        </div>
                         </div>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="droits">
+                <article class="legal-card" id="droits">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">7</span>
+                        <span class="section-number">7</span>
+                        <h2><i class="fas fa-user-cog"></i> Vos droits</h2>
                         <h2><i class="fas fa-user-cog"></i> Vos droits</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Conformément au <strong>Règlement Général sur la Protection des Données (RGPD)</strong>, vous disposez des droits suivants :</p>
+                        <p>Conformément au <strong>Règlement Général sur la Protection des Données (RGPD)</strong>, vous disposez des droits suivants :</p>
+                        <ul class="legal-list">
                         <ul class="legal-list">
                             <li><i class="fas fa-check"></i> <strong>Droit d'accès :</strong> Vous pouvez demander à accéder à toutes les données personnelles que nous détenons à votre sujet ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Droit d'accès :</strong> Vous pouvez demander à accéder à toutes les données personnelles que nous détenons à votre sujet ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Droit de rectification :</strong> Vous pouvez demander la correction des informations personnelles inexactes ou incomplètes ;</li>
                             <li><i class="fas fa-check"></i> <strong>Droit de rectification :</strong> Vous pouvez demander la correction des informations personnelles inexactes ou incomplètes ;</li>
                             <li><i class="fas fa-check"></i> <strong>Droit à l'effacement :</strong> Vous pouvez demander la suppression de vos données personnelles, sous réserve des obligations légales de conservation ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Droit à l'effacement :</strong> Vous pouvez demander la suppression de vos données personnelles, sous réserve des obligations légales de conservation ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Droit à la limitation :</strong> Vous pouvez demander la limitation du traitement de vos données dans certains cas ;</li>
                             <li><i class="fas fa-check"></i> <strong>Droit à la limitation :</strong> Vous pouvez demander la limitation du traitement de vos données dans certains cas ;</li>
                             <li><i class="fas fa-check"></i> <strong>Droit à la portabilité :</strong> Vous pouvez demander à recevoir vos données dans un format structuré, couramment utilisé et lisible par machine ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Droit à la portabilité :</strong> Vous pouvez demander à recevoir vos données dans un format structuré, couramment utilisé et lisible par machine ;</li>
+                            <li><i class="fas fa-check"></i> <strong>Droit d'opposition :</strong> Vous pouvez vous opposer au traitement de vos données pour le marketing direct ou pour des raisons liées à votre situation particulière.</li>
                             <li><i class="fas fa-check"></i> <strong>Droit d'opposition :</strong> Vous pouvez vous opposer au traitement de vos données pour le marketing direct ou pour des raisons liées à votre situation particulière.</li>
                         </ul>
+                        </ul>
+                        <p>Pour exercer l'un de ces droits, veuillez nous contacter à l'adresse indiquée à la fin de cette politique.</p>
                         <p>Pour exercer l'un de ces droits, veuillez nous contacter à l'adresse indiquée à la fin de cette politique.</p>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="cookies">
+                <article class="legal-card" id="cookies">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">8</span>
+                        <span class="section-number">8</span>
+                        <h2><i class="fas fa-cookie-bite"></i> Cookies et technologies similaires</h2>
                         <h2><i class="fas fa-cookie-bite"></i> Cookies et technologies similaires</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Notre plateforme utilise des cookies et technologies similaires pour améliorer votre expérience utilisateur, analyser l'utilisation de notre site et soutenir nos efforts marketing.</p>
+                        <p>Notre plateforme utilise des cookies et technologies similaires pour améliorer votre expérience utilisateur, analyser l'utilisation de notre site et soutenir nos efforts marketing.</p>
+                        <p>Pour plus d'informations détaillées, veuillez consulter notre <a href="cookies.html">Politique des Cookies</a> dédiée.</p>
                         <p>Pour plus d'informations détaillées, veuillez consulter notre <a href="cookies.html">Politique des Cookies</a> dédiée.</p>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="mineurs">
+                <article class="legal-card" id="mineurs">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">9</span>
+                        <span class="section-number">9</span>
+                        <h2><i class="fas fa-exclamation-triangle"></i> Données des mineurs</h2>
                         <h2><i class="fas fa-exclamation-triangle"></i> Données des mineurs</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Nos services sont destinés <strong>uniquement aux professionnels et aux entreprises</strong>. Nous ne collectons sciemment aucune information personnelle auprès de mineurs de moins de 18 ans.</p>
+                        <p>Nos services sont destinés <strong>uniquement aux professionnels et aux entreprises</strong>. Nous ne collectons sciemment aucune information personnelle auprès de mineurs de moins de 18 ans.</p>
+                        <p>Si vous êtes parent ou tuteur et que vous savez que votre enfant nous a fourni des données personnelles, veuillez nous contacter immédiatement à <a href="mailto:duprey.conseil@gmail.com">duprey.conseil@gmail.com</a>.</p>
                         <p>Si vous êtes parent ou tuteur et que vous savez que votre enfant nous a fourni des données personnelles, veuillez nous contacter immédiatement à <a href="mailto:duprey.conseil@gmail.com">duprey.conseil@gmail.com</a>.</p>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="liens">
+                <article class="legal-card" id="liens">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">10</span>
+                        <span class="section-number">10</span>
+                        <h2><i class="fas fa-link"></i> Liens vers des sites tiers</h2>
                         <h2><i class="fas fa-link"></i> Liens vers des sites tiers</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Notre plateforme peut contenir des liens vers des sites web tiers qui ne sont pas exploités par nous. Nous n'avons aucun contrôle sur ces sites tiers et nous ne sommes pas responsables de leur contenu, de leurs politiques de confidentialité ou de leurs pratiques en matière de données.</p>
+                        <p>Notre plateforme peut contenir des liens vers des sites web tiers qui ne sont pas exploités par nous. Nous n'avons aucun contrôle sur ces sites tiers et nous ne sommes pas responsables de leur contenu, de leurs politiques de confidentialité ou de leurs pratiques en matière de données.</p>
+                        <p>Nous vous encourageons à consulter les politiques de confidentialité de chaque site que vous visitez.</p>
                         <p>Nous vous encourageons à consulter les politiques de confidentialité de chaque site que vous visitez.</p>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="misesajour">
+                <article class="legal-card" id="misesajour">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">11</span>
+                        <span class="section-number">11</span>
+                        <h2><i class="fas fa-sync-alt"></i> Mises à jour de cette politique</h2>
                         <h2><i class="fas fa-sync-alt"></i> Mises à jour de cette politique</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Nous pouvons mettre à jour cette Politique de Confidentialité de temps à autre. Nous vous informerons de tout changement en publiant la nouvelle politique sur cette page et, lorsque cela est raisonnablement possible, en vous envoyant une notification par e-mail.</p>
+                        <p>Nous pouvons mettre à jour cette Politique de Confidentialité de temps à autre. Nous vous informerons de tout changement en publiant la nouvelle politique sur cette page et, lorsque cela est raisonnablement possible, en vous envoyant une notification par e-mail.</p>
+                        <p>Nous vous encourageons à consulter régulièrement cette page pour prendre connaissance des éventuelles mises à jour.</p>
                         <p>Nous vous encourageons à consulter régulièrement cette page pour prendre connaissance des éventuelles mises à jour.</p>
                     </div>
+                    </div>
                 </article>
+                </article>
+
 
                 <article class="legal-card" id="contact">
+                <article class="legal-card" id="contact">
+                    <div class="legal-card-header">
                     <div class="legal-card-header">
                         <span class="section-number">12</span>
+                        <span class="section-number">12</span>
+                        <h2><i class="fas fa-envelope"></i> Contact</h2>
                         <h2><i class="fas fa-envelope"></i> Contact</h2>
                     </div>
+                    </div>
+                    <div class="legal-card-body">
                     <div class="legal-card-body">
                         <p>Si vous avez des questions concernant cette Politique de Confidentialité ou si vous souhaitez exercer vos droits, veuillez nous contacter :</p>
+                        <p>Si vous avez des questions concernant cette Politique de Confidentialité ou si vous souhaitez exercer vos droits, veuillez nous contacter :</p>
+                        <div class="contact-info">
                         <div class="contact-info">
                             <p><i class="fas fa-building"></i> <strong>Duprey Conseil</strong></p>
+                            <p><i class="fas fa-building"></i> <strong>Duprey Conseil</strong></p>
+                            <p><i class="fas fa-map-marker-alt"></i> 37 Route de Lyon, 67400 Illkirch, France</p>
                             <p><i class="fas fa-map-marker-alt"></i> 37 Route de Lyon, 67400 Illkirch, France</p>
                             <p><i class="fas fa-envelope"></i> <a href="mailto:duprey.conseil@gmail.com">duprey.conseil@gmail.com</a></p>
+                            <p><i class="fas fa-envelope"></i> <a href="mailto:duprey.conseil@gmail.com">duprey.conseil@gmail.com</a></p>
+                            <p><i class="fas fa-phone"></i> Tél. sur demande uniquement</p>
                             <p><i class="fas fa-phone"></i> Tél. sur demande uniquement</p>
                         </div>
+                        </div>
+                        <p class="mt-2"><strong>Responsable du traitement des données :</strong> M. Duprey - <a href="mailto:duprey.conseil@gmail.com">duprey.conseil@gmail.com</a></p>
                         <p class="mt-2"><strong>Responsable du traitement des données :</strong> M. Duprey - <a href="mailto:duprey.conseil@gmail.com">duprey.conseil@gmail.com</a></p>
                     </div>
+                    </div>
+                </article>
                 </article>
             </div>
+            </div>
+        </div>
         </div>
     </main>
+    </main>
+
 
     <!-- Footer -->
+    <!-- Footer -->
+    <footer class="footer">
     <footer class="footer">
         <div class="container">
+        <div class="container">
+            <div class="footer-grid">
             <div class="footer-grid">
                 <div class="footer-brand">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
                     <a href="/" class="logo">
                         <i class="fas fa-chart-line"></i>
+                        <i class="fas fa-chart-line"></i>
+                        <span>DPAI</span>
                         <span>DPAI</span>
                     </a>
+                    </a>
+                    <p>Conseil en croissance externe et analyse stratégique avancée.</p>
                     <p>Conseil en croissance externe et analyse stratégique avancée.</p>
                     <div class="social-links">
+                    <div class="social-links">
+                        <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
                         <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
                         <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                        <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
                         <a href="#" class="social-link"><i class="fab fa-facebook"></i></a>
                     </div>
+                    </div>
+                </div>
                 </div>
                 
+                
+                <div class="footer-links">
                 <div class="footer-links">
                     <h4>Produit</h4>
+                    <h4>Produit</h4>
+                    <ul>
                     <ul>
                         <li><a href="/#features">Fonctionnalités</a></li>
+                        <li><a href="/#features">Fonctionnalités</a></li>
+                        <li><a href="services.html">Services</a></li>
                         <li><a href="services.html">Services</a></li>
                         <li><a href="pricing.html">Tarifs</a></li>
+                        <li><a href="pricing.html">Tarifs</a></li>
+                        <li><a href="/#how-it-works">Comment ça marche</a></li>
                         <li><a href="/#how-it-works">Comment ça marche</a></li>
                     </ul>
+                    </ul>
+                </div>
                 </div>
                 
+                
+                <div class="footer-links">
                 <div class="footer-links">
                     <h4>Compte</h4>
+                    <h4>Compte</h4>
+                    <ul>
                     <ul>
                         <li><a href="login.html">Connexion</a></li>
+                        <li><a href="login.html">Connexion</a></li>
+                        <li><a href="register.html">Inscription</a></li>
                         <li><a href="register.html">Inscription</a></li>
                         <li><a href="dashboard.html">Tableau de bord</a></li>
+                        <li><a href="dashboard.html">Tableau de bord</a></li>
+                        <li><a href="token-shop.html">Acheter des tokens</a></li>
                         <li><a href="token-shop.html">Acheter des tokens</a></li>
                     </ul>
-                </div>
-                
-                <div class="footer-links">
-                    <h4>Légal</h4>
-                    <ul>
-                        <li><a href="terms.html">Conditions générales</a></li>
-                        <li><a href="privacy.html" class="active">Politique de confidentialité</a></li>
-                        <li><a href="cookies.html">Politique des cookies</a></li>
                     </ul>
                 </div>
+                </div>
+                
+                
+                <div class="footer-links">
+                <div class="footer-links">
+                    <h4>Légal</h4>
+                    <h4>Légal</h4>
+                    <ul>
+                    <ul>
+                        <li><a href="terms.html">Conditions générales</a></li>
+                        <li><a href="terms.html">Conditions générales</a></li>
+                        <li><a href="privacy.html" class="active">Politique de confidentialité</a></li>
+                        <li><a href="privacy.html" class="active">Politique de confidentialité</a></li>
+                        <li><a href="cookies.html">Politique des cookies</a></li>
+                        <li><a href="cookies.html">Politique des cookies</a></li>
+                    </ul>
+                    </ul>
+                </div>
+                </div>
+            </div>
             </div>
             
+            
+            <div class="footer-bottom">
             <div class="footer-bottom">
                 <p>&copy; 2026 DPAI by Duprey Conseil. Tous droits réservés.</p>
+                <p>&copy; 2026 DPAI by Duprey Conseil. Tous droits réservés.</p>
+                <p>Validé par les utilisateurs</p>
                 <p>Validé par les utilisateurs</p>
             </div>
+            </div>
+        </div>
         </div>
     </footer>
+    </footer>
+
 
     <!-- Back to Top -->
+    <!-- Back to Top -->
+    <a href="#" class="back-to-top" id="backToTop">
     <a href="#" class="back-to-top" id="backToTop">
         <i class="fas fa-arrow-up"></i>
+        <i class="fas fa-arrow-up"></i>
+    </a>
     </a>
 
+
+    <!-- Scripts -->
     <!-- Scripts -->
     <script src="/js/main.js"></script>
+    <script src="/js/main.js"></script>
 </body>
+</body>
+</html>
 </html>

@@ -72,53 +72,8 @@ const AnalysisCosts = {
   post_acquisition_dashboard: { free: 999999, pro: 999999, enterprise: 999999 }
 };
 
-// Packs de tokens disponibles - Définis globalement pour éviter les erreurs de chargement
-var TokenPacks = window.TokenPacks = [
-  {
-    id: 'discovery',
-    name: 'Découverte',
-    tokenAmount: 100,
-    priceEuros: 12.00,
-    pricePerToken: 0.12,
-    targetAudience: 'Utilisateur gratuit qui a épuisé son quota mensuel',
-    description: 'Parfait pour commencer avec des analyses supplémentaires',
-    stripePriceId: 'price_discovery_100',
-    isBestValue: false
-  },
-  {
-    id: 'boost',
-    name: 'Boost',
-    tokenAmount: 300,
-    priceEuros: 30.00,
-    pricePerToken: 0.10,
-    targetAudience: 'Utilisateur Pro qui veut faire une analyse lourde (Porter, Concurrentiel)',
-    description: 'Idéal pour les analyses avancées comme Porter 5 Forces',
-    stripePriceId: 'price_boost_300',
-    isBestValue: false
-  },
-  {
-    id: 'expert',
-    name: 'Expert',
-    tokenAmount: 600,
-    priceEuros: 55.00,
-    pricePerToken: 0.092,
-    targetAudience: 'Utilisateur Pro qui hésite à s\'abonner',
-    description: 'Alternative sans engagement pour les utilisateurs Pro',
-    stripePriceId: 'price_expert_600',
-    isBestValue: true
-  },
-  {
-    id: 'unique_report',
-    name: 'Rapport unique',
-    tokenAmount: 250,
-    priceEuros: 25.00,
-    pricePerToken: 0.10,
-    targetAudience: 'Utilisateur Pro qui veut débloquer le Rapport détaillé',
-    description: 'Pour débloquer un rapport détaillé avec recommandations',
-    stripePriceId: 'price_report_250',
-    isBestValue: false
-  }
-];
+// Tous les services sont gratuits - Plus de packs de tokens
+// Pour plus de tokens: contacter duprey.conseil@gmail.com
 
 // Système de fidélité
 class LoyaltySystem {
