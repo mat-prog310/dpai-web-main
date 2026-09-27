@@ -389,6 +389,160 @@ exports.claimFreeSubscription = functions.https.onCall(async (data, context) => 
     }
 });
 
+/**
+ * Confirme un achat via API - fonction générique pour le fallback
+ * Utilisé par confirmation.js quand le polling Firestore échoue
+ */
+exports.confirmPurchaseViaAPI = functions.https.onCall(async (data, context) => {
+    const { userId, purchaseId, sessionId, type, planId, packId, tokenAmount, isAnnual } = data;
+
+    try {
+        validateUser(context, userId);
+        
+        if (!purchaseId && !sessionId) {
+            throw new Error('purchaseId ou sessionId est requis');
+        }
+
+        console.log('🔍 [confirmPurchaseViaAPI] Données reçues:', { userId, purchaseId, sessionId, type, planId, packId, tokenAmount, isAnnual });
+
+        // Essayer de vérifier le paiement via Stripe
+        let stripeSession = null;
+        try {
+            if (sessionId) {
+                stripeSession = await stripe.checkout.sessions.retrieve(sessionId);
+                console.log('✅ [confirmPurchaseViaAPI] Session Stripe retrouvée:', stripeSession.id, 'Statut:', stripeSession.payment_status);
+            } else if (purchaseId) {
+                // Essayer de trouver le sessionId depuis purchaseId
+                const purchaseDoc = await db.collection('purchases').doc(purchaseId).get();
+                if (purchaseDoc.exists) {
+                    const purchaseData = purchaseDoc.data();
+                    const foundSessionId = purchaseData.stripeSessionId || purchaseData.sessionId;
+                    if (foundSessionId) {
+                        stripeSession = await stripe.checkout.sessions.retrieve(foundSessionId);
+                        console.log('✅ [confirmPurchaseViaAPI] Session Stripe trouvée via purchaseId:', foundSessionId);
+                    }
+                }
+            }
+            
+            // Vérifier que le paiement est payé
+            if (stripeSession && stripeSession.payment_status !== 'paid') {
+                throw new Error(`Paiement non confirmé - statut: ${stripeSession.payment_status || 'inconnu'}`);
+            }
+        } catch (stripeError) {
+            console.error('⚠️ [confirmPurchaseViaAPI] Erreur vérification Stripe:', stripeError.message);
+            // Continuer même si on ne peut pas vérifier via Stripe
+            // On va essayer de traiter quand même
+        }
+
+        // Trouver ou créer les données d'achat
+        let purchaseDocRef = null;
+        let purchaseData = {};
+        
+        if (purchaseId) {
+            purchaseDocRef = db.collection('purchases').doc(purchaseId);
+            const doc = await purchaseDocRef.get();
+            if (doc.exists) {
+                purchaseData = doc.data();
+            } else {
+                // Créer un document purchases si inexistant
+                await purchaseDocRef.set({
+                    userId: userId,
+                    type: type || 'unknown',
+                    planId: planId,
+                    packId: packId,
+                    tokenAmount: tokenAmount || 0,
+                    isAnnual: isAnnual || false,
+                    status: 'pending',
+                    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+                });
+                purchaseData = {
+                    type: type || 'unknown',
+                    planId: planId,
+                    packId: packId,
+                    tokenAmount: tokenAmount || 0,
+                    isAnnual: isAnnual || false
+                };
+            }
+        } else {
+            // Créer un document purchases
+            purchaseDocRef = await db.collection('purchases').add({
+                userId: userId,
+                type: type || 'unknown',
+                planId: planId,
+                packId: packId,
+                tokenAmount: tokenAmount || 0,
+                isAnnual: isAnnual || false,
+                stripeSessionId: sessionId,
+                status: 'pending',
+                createdAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+            purchaseData = {
+                type: type || 'unknown',
+                planId: planId,
+                packId: packId,
+                tokenAmount: tokenAmount || 0,
+                isAnnual: isAnnual || false
+            };
+        }
+
+        // Traiter selon le type
+        let result = { success: false, updated: false };
+        
+        if (purchaseData.type === 'subscription' || type === 'subscription') {
+            const finalPlanId = purchaseData.planId || planId || 'pro';
+            const finalIsAnnual = purchaseData.isAnnual !== undefined 
+                ? purchaseData.isAnnual 
+                : (isAnnual || false);
+            
+            await updateUserForSubscription(userId, finalPlanId, finalIsAnnual);
+            result = { success: true, type: 'subscription', planId: finalPlanId, isAnnual: finalIsAnnual };
+            
+        } else if (purchaseData.type === 'token_pack' || type === 'token_pack') {
+            const finalTokenAmount = purchaseData.tokenAmount || tokenAmount || 0;
+            const finalPackId = purchaseData.packId || packId;
+            
+            if (finalTokenAmount > 0) {
+                await addTokensToUser(userId, finalTokenAmount);
+                result = { success: true, type: 'token_pack', tokenAmount: finalTokenAmount, packId: finalPackId };
+            }
+            
+        } else {
+            // Type inconnu - essayer de deviner
+            if (planId) {
+                await updateUserForSubscription(userId, planId, isAnnual || false);
+                result = { success: true, type: 'subscription', planId: planId };
+            } else if (tokenAmount && tokenAmount > 0) {
+                await addTokensToUser(userId, tokenAmount);
+                result = { success: true, type: 'token_pack', tokenAmount: tokenAmount };
+            }
+        }
+
+        // Mettre à jour le document purchase
+        if (purchaseDocRef) {
+            await purchaseDocRef.update({
+                status: 'completed',
+                stripeSessionId: sessionId || purchaseData.stripeSessionId,
+                webhookProcessed: true,
+                webhookTimestamp: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.firestore.FieldValue.serverTimestamp()
+            });
+            result.purchaseId = purchaseId || purchaseDocRef.id;
+        }
+
+        console.log('✅ [confirmPurchaseViaAPI] Achat confirmé avec succès:', result);
+        return { success: true, ...result };
+
+    } catch (error) {
+        console.error('❌ [confirmPurchaseViaAPI] Erreur:', error);
+        throw new functions.https.HttpsError(
+            'internal',
+            error.message || 'Erreur lors de la confirmation de l\'achat'
+        );
+    }
+});
+
 // =============================================================================
 // FONCTIONS PRINCIPALES
 // =============================================================================

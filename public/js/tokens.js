@@ -2,28 +2,29 @@
 // TOKENS.JS - Système de gestion des tokens
 // =============================================================================
 
-// Configuration des plans (reprenant les données de l'appli Flutter)
+// Configuration des plans (TOUS LES UTILISATEURS ONT UN PLAN GRATUIT AVEC 500 TOKENS)
+// Pour plus de tokens: envoyer un email à duprey.conseil@gmail.com
 const TokenConfig = {
   baseTokenLimits: {
-    free: 50,
-    pro: 500,
-    enterprise: 5000
+    free: 490,    // 490 + 10 (bonus) + 0 (welcome) = 500 tokens
+    pro: 490,     // Plus utilisé - tous en free
+    enterprise: 490
   },
   
   tokenBonuses: {
-    free: 0.0,
-    pro: 0.20,
-    enterprise: 0.30
+    free: 0.0204,  // 490 * 0.0204 = ~10 tokens de bonus
+    pro: 0.0204,
+    enterprise: 0.0204
   },
   
   planPrices: {
     free: 0.0,
-    pro: 50.0,
-    enterprise: 300.0
+    pro: 0.0,     // Plus utilisé
+    enterprise: 0.0
   },
   
-  welcomeBonus: 10,
-  firstAnalysisBonus: 5,
+  welcomeBonus: 0,    // Désactivé pour avoir exactement 500
+  firstAnalysisBonus: 0,
   
   referralBonusSponsor: 20,
   referralBonusReferral: 10,
@@ -40,18 +41,27 @@ const TokenConfig = {
   tokenResetDays: 30
 };
 
-// Coûts des analyses par type et par plan (même structure que AnalysisManager.analysisCosts)
+// Coûts des analyses par type - TOUS LES PLANS ONT LES MÊMES COÛTS
+// Depuis: tous les utilisateurs sont en mode gratuit
+// Les analyses avancées (due diligence, valorisation, etc.) coûtent plus de tokens
+// Pour plus de tokens: envoyer un email à duprey.conseil@gmail.com
 const AnalysisCosts = {
   swot: { free: 5, pro: 5, enterprise: 5 },
   porter: { free: 20, pro: 20, enterprise: 20 },
   pestel: { free: 15, pro: 15, enterprise: 15 },
   competitive: { free: 20, pro: 20, enterprise: 20 },
-  basic: { free: 5, pro: 2, enterprise: 1 },
-  advanced: { free: 10, pro: 4, enterprise: 1 },
-  detailed_report: { free: 10, pro: 5, enterprise: 2 },
-  synergy: { free: 20, pro: 10, enterprise: 5 },
-  modeling: { free: 20, pro: 10, enterprise: 5 },
-  benchmark: { free: 20, pro: 10, enterprise: 5 }
+  basic: { free: 5, pro: 5, enterprise: 5 },
+  advanced: { free: 15, pro: 15, enterprise: 15 },
+  detailed_report: { free: 25, pro: 25, enterprise: 25 },
+  synergy: { free: 30, pro: 30, enterprise: 30 },
+  modeling: { free: 40, pro: 40, enterprise: 40 },
+  benchmark: { free: 25, pro: 25, enterprise: 25 },
+  // Analyses avancées - coût plus élevé
+  due_diligence: { free: 100, pro: 100, enterprise: 100 },
+  valuation: { free: 100, pro: 100, enterprise: 100 },
+  mergers_acquisitions: { free: 150, pro: 150, enterprise: 150 },
+  strategic_audit: { free: 80, pro: 80, enterprise: 80 },
+  risk_assessment: { free: 60, pro: 60, enterprise: 60 }
 };
 
 // Packs de tokens disponibles - Définis globalement pour éviter les erreurs de chargement

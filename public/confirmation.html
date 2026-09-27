@@ -3,11 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Paiement confirmé - DPAI</title>
+    <title>Bienvenue - DPAI</title>
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/components.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script src="/js/firebase-config.js"></script>
     <style>
         body {
             font-family: 'Inter', sans-serif;
@@ -24,7 +30,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 500px;
+            max-width: 600px;
             width: 100%;
             padding: 40px;
             text-align: center;
@@ -58,16 +64,6 @@
             color: #155724;
         }
         
-        .confirmation-icon.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .confirmation-icon.warning {
-            background: #fff3cd;
-            color: #856404;
-        }
-        
         .confirmation-title {
             font-size: 28px;
             font-weight: 700;
@@ -81,65 +77,19 @@
             margin-bottom: 24px;
         }
         
-        .confirmation-details {
+        .token-info {
             background: #f8f9fa;
             border-radius: 12px;
             padding: 20px;
-            margin-bottom: 24px;
-            text-align: left;
+            margin: 24px 0;
+            text-align: center;
         }
         
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        
-        .detail-label {
-            color: #6c757d;
-            font-weight: 500;
-        }
-        
-        .detail-value {
-            color: #2c3e50;
-            font-weight: 600;
-        }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 40px;
-            height: 40px;
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #6772e5;
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        .progress-bar {
-            width: 100%;
-            height: 6px;
-            background: #e9ecef;
-            border-radius: 3px;
-            margin: 20px 0;
-            overflow: hidden;
-        }
-        
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            border-radius: 3px;
-            width: 0%;
-            transition: width 0.3s ease;
+        .token-amount {
+            font-size: 36px;
+            font-weight: 700;
+            color: #667eea;
+            margin: 10px 0;
         }
         
         .btn-primary {
@@ -184,110 +134,77 @@
             margin-top: 24px;
         }
         
-        .hidden {
-            display: none !important;
-        }
-        
-        .status-message {
-            margin-top: 16px;
-            padding: 12px;
-            border-radius: 8px;
-            font-size: 14px;
-        }
-        
-        .status-message.success {
-            background: #d4edda;
-            color: #155724;
-        }
-        
-        .status-message.error {
-            background: #f8d7da;
-            color: #721c24;
-        }
-        
-        .status-message.warning {
+        .info-message {
             background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 16px;
+            border-radius: 8px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        
+        .info-message p {
+            margin: 0;
             color: #856404;
         }
+        
+        .info-message strong {
+            color: #ffc107;
+        }
     </style>
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
-    <script src="js/firebase-config.js"></script>
-    </head>
+</head>
 <body>
     <div class="confirmation-container">
-        <!-- État : Chargement -->
-        <div id="loadingState">
-            <div class="confirmation-icon" style="background: #e9ecef; color: #6c757d;">
-                <i class="fas fa-spinner fa-spin"></i>
-            </div>
-            <h1 class="confirmation-title">Vérification en cours</h1>
-            <p class="confirmation-subtitle">Nous confirmons votre paiement Stripe...</p>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 30%;"></div>
-            </div>
+        <div class="confirmation-icon success">
+            <i class="fas fa-check"></i>
+        </div>
+        <h1 class="confirmation-title">Bienvenue sur DPAI !</h1>
+        <p class="confirmation-subtitle">Votre compte est prêt à être utilisé.</p>
+        
+        <div class="token-info">
+            <p style="margin: 0; color: #6c757d; font-size: 14px;">Vos tokens disponibles</p>
+            <div class="token-amount" id="tokenAmount">500</div>
+            <p style="margin: 0; color: #6c757d; font-size: 14px;">tokens</p>
         </div>
         
-        <!-- État : Succès -->
-        <div id="successState" class="hidden">
-            <div class="confirmation-icon success">
-                <i class="fas fa-check"></i>
-            </div>
-            <h1 class="confirmation-title">Paiement confirmé !</h1>
-            <p class="confirmation-subtitle" id="successMessage">Votre achat a été traité avec succès.</p>
-            <div class="confirmation-details" id="successDetails">
-            </div>
-            <div class="status-message success" id="successStatus"></div>
-            <div class="buttons-group">
-                <a href="/dashboard.html" class="btn-primary">
-                    <i class="fas fa-home"></i> Aller au Dashboard
-                </a>
-            </div>
+        <div class="info-message">
+            <p><strong>Besoin de plus de tokens ?</strong></p>
+            <p>Envoyez un email à <strong>duprey.conseil@gmail.com</strong> pour obtenir plus de tokens et accéder à des fonctionnalités avancées comme la due diligence ou la valorisation d'entreprise.</p>
         </div>
         
-        <!-- État : Erreur -->
-        <div id="errorState" class="hidden">
-            <div class="confirmation-icon error">
-                <i class="fas fa-exclamation-triangle"></i>
-            </div>
-            <h1 class="confirmation-title">Problème de confirmation</h1>
-            <p class="confirmation-subtitle" id="errorMessage">Un problème est survenu lors de la confirmation.</p>
-            <div class="status-message error" id="errorDetails"></div>
-            <div class="buttons-group">
-                <a href="/dashboard.html" class="btn-primary">
-                    <i class="fas fa-home"></i> Retour au Dashboard
-                </a>
-                <a href="/pricing.html" class="btn-secondary">
-                    Réessayer
-                </a>
-            </div>
-        </div>
-        
-        <!-- État : Paiement annulé -->
-        <div id="canceledState" class="hidden">
-            <div class="confirmation-icon warning">
-                <i class="fas fa-times"></i>
-            </div>
-            <h1 class="confirmation-title">Paiement annulé</h1>
-            <p class="confirmation-subtitle">Vous avez annulé le processus de paiement.</p>
-            <div class="buttons-group">
-                <a href="/pricing.html" class="btn-primary">
-                    <i class="fas fa-shopping-cart"></i> Revenir aux offres
-                </a>
-                <a href="/dashboard.html" class="btn-secondary">
-                    <i class="fas fa-home"></i> Retour au Dashboard
-                </a>
-            </div>
+        <div class="buttons-group">
+            <a href="/dashboard.html" class="btn-primary">
+                <i class="fas fa-rocket"></i> Aller au Dashboard
+            </a>
+            <a href="/services.html" class="btn-secondary">
+                <i class="fas fa-info-circle"></i> Voir les services
+            </a>
         </div>
     </div>
     
     <!-- Scripts -->
-    <!-- Firebase SDK doit être chargé AVANT firebase-config.js -->
-    <script src="js/auth.js"></script>
-    <script src="js/tokens.js"></script>
-    <script src="js/confirmation.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/tokens.js"></script>
+    <script>
+        // Simple script to show actual token count when user is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            const tokenAmountEl = document.getElementById('tokenAmount');
+            
+            // Check for tokens in TokenManager after a delay
+            const checkTokens = setInterval(() => {
+                if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
+                    const available = TokenManager.tokenState.availableTokens;
+                    const total = TokenManager.tokenState.totalTokens;
+                    tokenAmountEl.textContent = available;
+                    tokenAmountEl.parentElement.querySelector('p:last-child').textContent = 
+                        `tokens (total: ${total})`;
+                    clearInterval(checkTokens);
+                }
+            }, 500);
+            
+            // Timeout after 10 seconds
+            setTimeout(() => clearInterval(checkTokens), 10000);
+        });
+    </script>
 </body>
 </html>

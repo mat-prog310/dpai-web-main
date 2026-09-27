@@ -67,9 +67,9 @@ class AuthService {
       companyName: null,
       companyDomain: null,
       hasCompanyDiscount: false,
-      hasAccessToPremiumSuggestions: false,
-      hasAccessToAdvancedAnalytics: false,
-      hasAccessToAPI: false,
+      hasAccessToPremiumSuggestions: true,    // TOUS ACCES GRATUIT
+      hasAccessToAdvancedAnalytics: true,     // TOUS ACCES GRATUIT
+      hasAccessToAPI: true,                   // TOUS ACCES GRATUIT
       isEmailVerified: this.auth.currentUser.emailVerified || false,
       isActive: true,
       createdAt: new Date().toISOString(),
