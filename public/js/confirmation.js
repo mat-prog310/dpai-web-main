@@ -185,8 +185,66 @@ async function waitForPurchaseConfirmation(purchaseId, expectedUserId = null) {
     }
     
     // Si on arrive ici, toutes les tentatives ont échoué
+    // FALLBACK : Essayer confirmPurchaseViaAPI
+    console.log('🔄 [confirmation.js] Tentative de confirmation via API Stripe...');
+    try {
+      const user = window.authService?.currentUser;
+      if (user) {
+        const result = await confirmPurchaseViaAPICall({
+          purchaseId: purchaseId,
+          userId: user.uid,
+          sessionId: sessionId,
+          type: purchaseType,
+          planId: planId,
+          packId: packId,
+          tokenAmount: tokenAmount ? parseInt(tokenAmount) : 0,
+          isAnnual: isAnnual === 'true' || isAnnual === true
+        });
+        if (result && result.success) {
+          return purchaseData; // Retourne les données pour continuer normalement
+        }
+      }
+    } catch (fallbackError) {
+      console.error('❌ [confirmation.js] Fallback échoué:', fallbackError);
+    }
+    
     throw new Error(`Le paiement n'a pas pu être confirmé après ${POLLING_CONFIG.maxAttempts} tentatives`);
 }
+
+/**
+ * Confirme un achat via API Stripe directe (fallback si polling échoue)
+ */
+async function confirmPurchaseViaAPICall(params) {
+    try {
+        console.log('🎯 [confirmPurchaseViaAPICall] Confirmation via API Stripe:', params);
+        
+        if (!window.firebase || typeof window.firebase.functions !== 'function') {
+            throw new Error('Firebase Functions non disponible');
+        }
+        
+        const confirmPurchaseViaAPI = window.firebase.functions().httpsCallable('confirmPurchaseViaAPI');
+        const result = await confirmPurchaseViaAPI(params);
+        
+        if (result.data.success) {
+            console.log('✅ [confirmPurchaseViaAPICall] Paiement confirmé et mis à jour');
+            // Recharger les données utilisateur
+            if (typeof window.loadUserTokenData === 'function') {
+                await window.loadUserTokenData(params.userId);
+            }
+            return result.data;
+        } else {
+            console.error('❌ [confirmPurchaseViaAPICall] Échec:', result.data.error);
+            return null;
+        }
+        
+    } catch (error) {
+        console.error('❌ [confirmPurchaseViaAPICall] Erreur:', error);
+        return null;
+    }
+}
+
+// Exposer globalement pour utilisation depuis la console
+window.confirmPurchaseViaAPICall = confirmPurchaseViaAPICall;
 
 /**
  * Trouve le purchaseId associé à un sessionId Stripe
