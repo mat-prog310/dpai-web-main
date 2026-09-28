@@ -266,13 +266,20 @@ class AuthService {
   }
 }
 
-// Instance singleton - Attendre que Firebase soit initialisé
+// Instance singleton - Créer immédiatement si Firebase est prêt
 function initializeAuthService() {
+    // Essayer de créer immédiatement si Firebase est déjà chargé
+    if (typeof firebase !== 'undefined' && firebase && firebase.auth && firebase.firestore) {
+        window.authService = new AuthService();
+        console.log('%c✅ [AuthService] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
+        return;
+    }
+    
+    // Sinon, attendre que Firebase soit chargé
     const checkInterval = setInterval(() => {
-        if (typeof firebase !== 'undefined' && firebase && firebase.auth) {
+        if (typeof firebase !== 'undefined' && firebase && firebase.auth && firebase.firestore) {
             clearInterval(checkInterval);
-            const authService = new AuthService();
-            window.authService = authService;
+            window.authService = new AuthService();
             console.log('%c✅ [AuthService] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
         }
     }, 100);

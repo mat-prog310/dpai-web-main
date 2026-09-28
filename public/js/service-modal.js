@@ -414,7 +414,14 @@ function getPlanLabel(plan) {
 
 // Mettre à jour l'affichage des services selon le plan
 function updateServicesByPlan() {
-    const userPlan = authService?.userData?.plan;
+    // Attendre que authService soit disponible
+    if (typeof window.authService === 'undefined' || !window.authService) {
+        // Réessayer plus tard
+        setTimeout(updateServicesByPlan, 200);
+        return;
+    }
+    
+    const userPlan = window.authService?.userData?.plan;
     
     if (!userPlan) {
         // Pas d'utilisateur connecté, on montre tout
@@ -479,6 +486,9 @@ function initServiceModal() {
     
     // Mettre à jour l'affichage selon le plan
     updateServicesByPlan();
+    
+    // Configurer l'écouteur d'authentification
+    setupAuthListener();
 }
 
 // Créer la modal de service
@@ -650,28 +660,26 @@ function closeServiceModal() {
 // Initialiser au chargement de la page
 document.addEventListener('DOMContentLoaded', initServiceModal);
 
-// Écouter les changements d'authentification
-if (typeof authService !== 'undefined') {
-    // Si authService est déjà initialisé
-    if (authService.authStateListener) {
-        // On peut ajouter notre propre écouteur
-        authService.auth.onAuthStateChanged((user) => {
-            updateServicesByPlan();
-        });
-    }
-}
-
-// Mettre à jour quand on charge auth.js
+// Écouter les changements d'authentification - sera appelée automatiquement
 function setupAuthListener() {
-    if (typeof authService !== 'undefined' && authService.auth) {
-        authService.auth.onAuthStateChanged((user) => {
+    // Vérifier que authService est disponible
+    if (typeof window.authService !== 'undefined' && window.authService && window.authService.auth) {
+        window.authService.auth.onAuthStateChanged((user) => {
             setTimeout(updateServicesByPlan, 500); // Petit délai pour laisser le temps à userData de se charger
         });
+    } else {
+        // Réessayer plus tard
+        setTimeout(setupAuthListener, 200);
     }
 }
 
 // Appeler après un court délai pour s'assurer que authService est chargé
 setTimeout(setupAuthListener, 1000);
+
+// Appeler aussi immediately au cas où le DOM est déjà chargé
+if (document.readyState !== 'loading') {
+    setupAuthListener();
+}
 
 // Rendre les données des services disponibles globalement
 window.servicesData = servicesData;

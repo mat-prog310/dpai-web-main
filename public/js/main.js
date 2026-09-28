@@ -611,14 +611,26 @@ function initFirebase() {
 // =============================================================================
 
 function initAuth() {
-    // Initialiser le service d'authentification
-    authService.init();
+    // Attendre que authService soit disponible
+    const authCheck = setInterval(() => {
+        if (typeof window.authService !== 'undefined' && window.authService) {
+            clearInterval(authCheck);
+            // Initialiser le service d'authentification
+            window.authService.init();
+            
+            // Écouter les changements d'état d'authentification
+            window.addEventListener('authStateChanged', function(event) {
+                const { user, userData } = event.detail;
+                updateAuthUI(user, userData);
+            });
+        }
+    }, 100);
     
-    // Écouter les changements d'état d'authentification
-    window.addEventListener('authStateChanged', function(event) {
-        const { user, userData } = event.detail;
-        updateAuthUI(user, userData);
-    });
+    // Timeout de sécurité
+    setTimeout(() => {
+        clearInterval(authCheck);
+        console.warn('[Main] authService non disponible après 5 secondes');
+    }, 5000);
 }
 
 // Mettre à jour l'UI selon l'état d'authentification

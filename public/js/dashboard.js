@@ -71,13 +71,39 @@ if (typeof window.TokenConfig === 'undefined') {
 // Si le DOM est déjà chargé (script chargé à la fin du body), exécuter immédiatement
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function() {
-        initDashboard();
-        loadUserData();
+        // Attendre que authService soit disponible
+        const authCheck = setInterval(() => {
+            if (typeof window.authService !== 'undefined' && window.authService) {
+                clearInterval(authCheck);
+                initDashboard();
+                loadUserData();
+            }
+        }, 100);
+        
+        // Timeout de sécurité
+        setTimeout(() => {
+            clearInterval(authCheck);
+            initDashboard();
+            console.warn('[Dashboard] authService non disponible, réessayez plus tard');
+        }, 5000);
     });
 } else {
     // DOM déjà chargé, exécuter immédiatement
-    initDashboard();
-    loadUserData();
+    // Attendre que authService soit disponible
+    const authCheck = setInterval(() => {
+        if (typeof window.authService !== 'undefined' && window.authService) {
+            clearInterval(authCheck);
+            initDashboard();
+            loadUserData();
+        }
+    }, 100);
+    
+    // Timeout de sécurité
+    setTimeout(() => {
+        clearInterval(authCheck);
+        initDashboard();
+        console.warn('[Dashboard] authService non disponible, réessayez plus tard');
+    }, 5000);
 }
 
 // Initialiser le dashboard
