@@ -5,6 +5,9 @@
 
 console.log('%c[Register.js] Chargement du module d\'inscription...', 'color: #FF5722; font-weight: bold;');
 
+// Variable pour suivre si on est en train de s'inscrire
+let isRegistering = false;
+
 // Attendre que le DOM et authService soient prêts
 document.addEventListener('DOMContentLoaded', function() {
     // Attendre que authService soit disponible
@@ -12,6 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.authService && typeof window.authService.signUp === 'function') {
             clearInterval(checkAuthReady);
             console.log('%c✅ [Register] authService est disponible', 'color: #4CAF50; font-weight: bold;');
+            
+            // Écouter les changements d'auth pour la redirection automatique
+            setupAuthRedirect();
+            
             initRegisterForm();
         }
     }, 100);
@@ -24,6 +31,19 @@ document.addEventListener('DOMContentLoaded', function() {
         initRegisterForm();
     }, 10000);
 });
+
+// Configurer la redirection automatique après inscription
+function setupAuthRedirect() {
+    // Écouter l'événement authStateChanged pour la redirection
+    window.addEventListener('authStateChanged', function(event) {
+        const { user } = event.detail;
+        // Si un utilisateur se connecte sur la page d'inscription, rediriger
+        if (user && isRegistering) {
+            isRegistering = false;
+            window.location.href = '/dashboard.html';
+        }
+    });
+}
 
 // =============================================================================
 // FONCTIONS D'INITIALISATION
@@ -99,21 +119,21 @@ function initRegisterForm() {
             return;
         }
         
+        // Marquer qu'on est en train de s'inscrire
+        isRegistering = true;
+        
         // Inscription Firebase
         window.authService.signUp(email, password, name, referralCode).then(result => {
             if (result.success) {
-                // Afficher le succès
-                if (registerSuccess) registerSuccess.style.display = 'flex';
-                
-                // Rediriger après 1 seconde
-                setTimeout(() => {
-                    window.location.href = './dashboard.html';
-                }, 1000);
+                // La redirection sera gérée par l'écouteur authStateChanged
+                // Ne rien faire ici
             } else {
+                isRegistering = false;
                 showError(registerError, registerErrorTitle, registerErrorMessage, result.error || 'Erreur d\'inscription');
                 resetRegisterButton(registerBtn);
             }
         }).catch(error => {
+            isRegistering = false;
             showError(registerError, registerErrorTitle, registerErrorMessage, error.message || 'Erreur d\'inscription');
             resetRegisterButton(registerBtn);
         });
@@ -134,6 +154,9 @@ function initRegisterForm() {
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription...';
             
+            // Marquer qu'on est en train de s'inscrire
+            isRegistering = true;
+            
             // Vérifier qu'authService et Firebase sont prêts
             const checkReady = setInterval(() => {
                 if (typeof firebase !== 'undefined' && firebase && firebase.auth && 
@@ -149,14 +172,15 @@ function initRegisterForm() {
                                 if (result.additionalUserInfo.isNewUser) {
                                     await createNewUserFromGoogle(result.user);
                                 }
-                                // Rediriger
-                                window.location.href = './dashboard.html';
+                                // La redirection sera gérée par l'écouteur authStateChanged
                             })
                             .catch(error => {
+                                isRegistering = false;
                                 showError(registerError, registerErrorTitle, registerErrorMessage, error.message || 'Erreur d\'inscription Google');
                                 resetGoogleButton(btn);
                             });
                     } catch (e) {
+                        isRegistering = false;
                         showError(registerError, registerErrorTitle, registerErrorMessage, 'Firebase non initialisé. Veuillez rafraîchir la page.');
                         resetGoogleButton(btn);
                     }
@@ -166,6 +190,7 @@ function initRegisterForm() {
             // Timeout de sécurité
             setTimeout(() => {
                 clearInterval(checkReady);
+                isRegistering = false;
                 showError(registerError, registerErrorTitle, registerErrorMessage, 'Firebase met trop de temps à se charger. Veuillez rafraîchir la page.');
                 resetGoogleButton(btn);
             }, 10000);

@@ -5,6 +5,9 @@
 
 console.log('%c[Login.js] Chargement du module de connexion...', 'color: #9C27B0; font-weight: bold;');
 
+// Variable pour suivre si on est en train de se connecter
+let isLoggingIn = false;
+
 // Attendre que le DOM et authService soient prêts
 document.addEventListener('DOMContentLoaded', function() {
     // Attendre que authService soit disponible
@@ -12,6 +15,10 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.authService && typeof window.authService.signIn === 'function') {
             clearInterval(checkAuthReady);
             console.log('%c✅ [Login] authService est disponible', 'color: #4CAF50; font-weight: bold;');
+            
+            // Écouter les changements d'auth pour la redirection automatique
+            setupAuthRedirect();
+            
             initLoginForm();
             initForgotPasswordModal();
         }
@@ -26,6 +33,19 @@ document.addEventListener('DOMContentLoaded', function() {
         initForgotPasswordModal();
     }, 10000);
 });
+
+// Configurer la redirection automatique après connexion
+function setupAuthRedirect() {
+    // Écouter l'événement authStateChanged pour la redirection
+    window.addEventListener('authStateChanged', function(event) {
+        const { user } = event.detail;
+        // Si un utilisateur se connecte sur la page de login, rediriger
+        if (user && isLoggingIn) {
+            isLoggingIn = false;
+            window.location.href = '/dashboard.html';
+        }
+    });
+}
 
 // =============================================================================
 // FONCTIONS D'INITIALISATION
@@ -84,21 +104,21 @@ function initLoginForm() {
             return;
         }
         
+        // Marquer qu'on est en train de se connecter
+        isLoggingIn = true;
+        
         // Connexion Firebase
         window.authService.signIn(email, password).then(result => {
             if (result.success) {
-                // Afficher le succès
-                if (loginSuccess) loginSuccess.style.display = 'flex';
-                
-                // Rediriger après 1 seconde
-                setTimeout(() => {
-                    window.location.href = './dashboard.html';
-                }, 1000);
+                // La redirection sera gérée par l'écouteur authStateChanged
+                // Ne rien faire ici
             } else {
+                isLoggingIn = false;
                 showError(loginError, loginErrorTitle, loginErrorMessage, result.error || 'Erreur de connexion');
                 resetLoginButton(loginBtn);
             }
         }).catch(error => {
+            isLoggingIn = false;
             showError(loginError, loginErrorTitle, loginErrorMessage, error.message || 'Erreur de connexion');
             resetLoginButton(loginBtn);
         });
@@ -119,6 +139,9 @@ function initLoginForm() {
             btn.disabled = true;
             btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
             
+            // Marquer qu'on est en train de se connecter
+            isLoggingIn = true;
+            
             // Vérifier qu'authService et Firebase sont prêts
             const checkReady = setInterval(() => {
                 if (typeof firebase !== 'undefined' && firebase && firebase.auth && 
@@ -134,14 +157,15 @@ function initLoginForm() {
                                 if (result.additionalUserInfo.isNewUser) {
                                     await createNewUserFromGoogle(result.user);
                                 }
-                                // Rediriger
-                                window.location.href = './dashboard.html';
+                                // La redirection sera gérée par l'écouteur authStateChanged
                             })
                             .catch(error => {
+                                isLoggingIn = false;
                                 showError(loginError, loginErrorTitle, loginErrorMessage, error.message || 'Erreur de connexion Google');
                                 resetGoogleButton(btn);
                             });
                     } catch (e) {
+                        isLoggingIn = false;
                         showError(loginError, loginErrorTitle, loginErrorMessage, 'Firebase non initialisé. Veuillez rafraîchir la page.');
                         resetGoogleButton(btn);
                     }
@@ -151,6 +175,7 @@ function initLoginForm() {
             // Timeout de sécurité
             setTimeout(() => {
                 clearInterval(checkReady);
+                isLoggingIn = false;
                 showError(loginError, loginErrorTitle, loginErrorMessage, 'Firebase met trop de temps à se charger. Veuillez rafraîchir la page.');
                 resetGoogleButton(btn);
             }, 10000);
