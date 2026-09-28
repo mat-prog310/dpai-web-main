@@ -6,18 +6,18 @@
 // Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à contact@dpai-strategy.com
 const TokenConfig = {
   baseTokenLimits: {
-    free: 490    // 490 + 10 (bonus) = 500 tokens
+    free: 500    // 500 tokens gratuits pour tous les utilisateurs
   },
   
   tokenBonuses: {
-    free: 0.0204  // 490 * 0.0204 = ~10 tokens de bonus
+    free: 0.0  // Pas de bonus supplémentaire
   },
   
   planPrices: {
     free: 0.0
   },
   
-  welcomeBonus: 0,    // Désactivé pour avoir exactement 500
+  welcomeBonus: 0,
   firstAnalysisBonus: 0,
   
   referralBonusSponsor: 20,
@@ -35,23 +35,24 @@ const TokenConfig = {
 
 // Coûts des analyses par type - TOUS LES UTILISATEURS ONT ACCÈS AUX PHASES 1 & 2
 // Email: contact@dpai-strategy.com pour Phases 3 & 4
+// Les coûts ont été multipliés par 4 pour équilibrer avec les 500 tokens gratuits
 const AnalysisCosts = {
-  // PHASE 1 & 2 : Toutes les analyses sont GRATUITES (coût en tokens déduit du solde)
-  swot: 10,
-  porter: 30,
-  pestel: 20,
-  competitive: 30,
-  basic: 10,
-  advanced: 20,
-  detailed_report: 40,
-  synergy: 50,
-  modeling: 60,
-  benchmark: 40,
-  due_diligence: 70,
-  valuation: 80,
-  mergers_acquisitions: 100,
-  strategic_audit: 60,
-  risk_assessment: 50,
+  // PHASE 1 & 2 : Coûts en tokens (x4 par rapport à la version précédente)
+  swot: 40,
+  porter: 120,
+  pestel: 80,
+  competitive: 120,
+  basic: 40,
+  advanced: 80,
+  detailed_report: 160,
+  synergy: 200,
+  modeling: 240,
+  benchmark: 160,
+  due_diligence: 280,
+  valuation: 320,
+  mergers_acquisitions: 400,
+  strategic_audit: 240,
+  risk_assessment: 200,
   
   // PHASE 3 : NÉGOCIATION & SIGNATURE - BLOQUÉ (Contact par mail)
   loi_generation: 999999,
@@ -151,10 +152,7 @@ class TokenManager {
   }
 
   static createTokenState(userId, plan = 'free', existingTokenState = null) {
-    const baseTokens = TokenConfig.baseTokenLimits.free;
-    const bonusTokens = Math.floor(baseTokens * TokenConfig.tokenBonuses.free);
-    
-    const totalTokens = baseTokens + bonusTokens + TokenConfig.welcomeBonus;
+    const totalTokens = TokenConfig.baseTokenLimits.free; // 500 tokens
     const usedTokens = existingTokenState?.usedTokens || 0;
     const monthlyTokensUsed = existingTokenState?.monthlyTokensUsed || 0;
     const firstAnalysisDone = existingTokenState?.firstAnalysisDone || false;
@@ -162,8 +160,8 @@ class TokenManager {
     return {
       userId: userId,
       plan: 'free',
-      baseTokens: baseTokens,
-      bonusTokens: bonusTokens,
+      baseTokens: totalTokens,
+      bonusTokens: 0,
       totalTokens: totalTokens,
       usedTokens: Math.min(usedTokens, totalTokens), // Ne pas dépasser le total
       availableTokens: totalTokens - usedTokens,
@@ -237,12 +235,11 @@ class TokenManager {
   }
 
   static async resetMonthlyTokens() {
-    const baseTokens = TokenConfig.baseTokenLimits.free;
-    const bonusTokens = Math.floor(baseTokens * TokenConfig.tokenBonuses.free);
+    const totalTokens = TokenConfig.baseTokenLimits.free; // 500 tokens
     
     const newState = {
       ...this.tokenState,
-      availableTokens: baseTokens + bonusTokens + (this.userData.isPremium ? TokenConfig.welcomeBonus : 0),
+      availableTokens: totalTokens,
       usedTokens: 0,
       monthlyTokensUsed: 0,
       lastMonthlyReset: new Date().toISOString(),
