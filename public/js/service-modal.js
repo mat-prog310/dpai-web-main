@@ -414,14 +414,14 @@ function getPlanLabel(plan) {
 
 // Mettre à jour l'affichage des services selon le plan
 function updateServicesByPlan() {
-    // Attendre que authService soit disponible
-    if (typeof window.authService === 'undefined' || !window.authService) {
+    // Attendre que authService soit disponible et ait userData
+    if (typeof window.authService === 'undefined' || !window.authService || !window.authService.userData) {
         // Réessayer plus tard
         setTimeout(updateServicesByPlan, 200);
         return;
     }
     
-    const userPlan = window.authService?.userData?.plan;
+    const userPlan = window.authService.userData.plan;
     
     if (!userPlan) {
         // Pas d'utilisateur connecté, on montre tout

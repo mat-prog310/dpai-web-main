@@ -611,9 +611,9 @@ function initFirebase() {
 // =============================================================================
 
 function initAuth() {
-    // Attendre que authService soit disponible
+    // Attendre que authService soit disponible et ait la méthode init
     const authCheck = setInterval(() => {
-        if (typeof window.authService !== 'undefined' && window.authService) {
+        if (typeof window.authService !== 'undefined' && window.authService && typeof window.authService.init === 'function') {
             clearInterval(authCheck);
             // Initialiser le service d'authentification
             window.authService.init();

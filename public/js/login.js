@@ -77,16 +77,16 @@ function initLoginForm() {
                     // Afficher le succès
                     if (loginSuccess) loginSuccess.style.display = 'flex';
                     
-                    // Rediriger après 2 secondes
+                    // Rediriger après 1 seconde
                     setTimeout(() => {
-                        // Vérifier si l'utilisateur a vérifié son email
-                        const user = authService.currentUser;
+                        // Utiliser le user retourné par la promesse
+                        const user = result.user;
                         if (user && !user.emailVerified) {
                             window.location.href = './dashboard.html';
                         } else {
                             window.location.href = './dashboard.html';
                         }
-                    }, 2000);
+                    }, 1000);
                 } else {
                     showError(loginError, loginErrorTitle, loginErrorMessage, result.error || 'Erreur de connexion');
                     if (loginBtn) loginBtn.disabled = false;
