@@ -612,8 +612,9 @@ function initFirebase() {
 
 function initAuth() {
     // Attendre que authService soit disponible et ait la méthode init
+    // Ne PAS vérifier window.authService car il peut être null initialement
     const authCheck = setInterval(() => {
-        if (typeof window.authService !== 'undefined' && window.authService && typeof window.authService.init === 'function') {
+        if (typeof window.authService !== 'undefined' && typeof window.authService.init === 'function') {
             clearInterval(authCheck);
             // Initialiser le service d'authentification
             window.authService.init();
@@ -629,7 +630,7 @@ function initAuth() {
     // Timeout de sécurité
     setTimeout(() => {
         clearInterval(authCheck);
-        console.warn('[Main] authService non disponible après 5 secondes');
+        console.warn('[Main] authService.init non disponible après 5 secondes');
     }, 5000);
 }
 

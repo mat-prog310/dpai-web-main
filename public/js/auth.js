@@ -294,16 +294,25 @@ class AuthService {
 
 // Instance singleton - Créer immédiatement si Firebase est prêt
 function initializeAuthService() {
-    // Essayer de créer immédiatement si Firebase est déjà chargé
-    if (typeof firebase !== 'undefined' && firebase && firebase.auth && firebase.firestore) {
+    // Vérifier si window.firebaseAuth et window.firebaseDB sont disponibles (définis par firebase-config.js)
+    // C'est plus fiable que de vérifier firebase directement
+    const checkAuthReady = () => {
+        return typeof window.firebaseAuth !== 'undefined' && 
+               typeof window.firebaseDB !== 'undefined' &&
+               window.firebaseAuth && 
+               window.firebaseDB;
+    };
+    
+    // Essayer de créer immédiatement
+    if (checkAuthReady()) {
         window.authService = new AuthService();
         console.log('%c✅ [AuthService] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
         return;
     }
     
-    // Sinon, attendre que Firebase soit chargé
+    // Sinon, attendre que window.firebaseAuth et window.firebaseDB soient disponibles
     const checkInterval = setInterval(() => {
-        if (typeof firebase !== 'undefined' && firebase && firebase.auth && firebase.firestore) {
+        if (checkAuthReady()) {
             clearInterval(checkInterval);
             window.authService = new AuthService();
             console.log('%c✅ [AuthService] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
@@ -313,7 +322,7 @@ function initializeAuthService() {
     // Timeout de sécurité
     setTimeout(() => {
         clearInterval(checkInterval);
-        if (typeof window.authService === 'undefined') {
+        if (typeof window.authService === 'undefined' || !window.authService) {
             console.error('%c❌ [AuthService] Firebase non chargé après 10 secondes', 'color: #dc3545; font-weight: bold;');
         }
     }, 10000);
