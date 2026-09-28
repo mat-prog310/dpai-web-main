@@ -78,7 +78,28 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                             tokensUsed: 0,
                             totalTokens: 500,
                             totalAnalyses: 0,
-                            monthlyAnalyses: 0
+                            monthlyAnalyses: 0,
+                            tokenState: {
+                                userId: user.uid,
+                                plan: 'free',
+                                baseTokens: 500,
+                                bonusTokens: 0,
+                                totalTokens: 500,
+                                usedTokens: 0,
+                                availableTokens: 500,
+                                lastTokenUpdate: firebase.firestore.FieldValue.serverTimestamp(),
+                                firstAnalysisDone: false,
+                                monthlyTokensUsed: 0,
+                                lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
+                            },
+                            loyaltyInfo: {
+                                userId: user.uid,
+                                totalAnalyses: 0,
+                                monthlyAnalyses: 0,
+                                monthlyLoyaltyTokens: 0,
+                                lastAnalysisDate: null,
+                                lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
+                            }
                         };
                         await db.collection('users').doc(user.uid).set(userData);
                         currentUserData = userData;
@@ -178,7 +199,28 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                         tokensUsed: 0,
                         totalTokens: 500,
                         totalAnalyses: 0,
-                        monthlyAnalyses: 0
+                        monthlyAnalyses: 0,
+                        tokenState: {
+                            userId: user.uid,
+                            plan: 'free',
+                            baseTokens: 500,
+                            bonusTokens: 0,
+                            totalTokens: 500,
+                            usedTokens: 0,
+                            availableTokens: 500,
+                            lastTokenUpdate: firebase.firestore.FieldValue.serverTimestamp(),
+                            firstAnalysisDone: false,
+                            monthlyTokensUsed: 0,
+                            lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
+                        },
+                        loyaltyInfo: {
+                            userId: user.uid,
+                            totalAnalyses: 0,
+                            monthlyAnalyses: 0,
+                            monthlyLoyaltyTokens: 0,
+                            lastAnalysisDate: null,
+                            lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
+                        }
                     };
 
                     await db.collection('users').doc(user.uid).set(userData);
@@ -252,7 +294,28 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                             tokensUsed: 0,
                             totalTokens: 500,
                             totalAnalyses: 0,
-                            monthlyAnalyses: 0
+                            monthlyAnalyses: 0,
+                            tokenState: {
+                                userId: user.uid,
+                                plan: 'free',
+                                baseTokens: 500,
+                                bonusTokens: 0,
+                                totalTokens: 500,
+                                usedTokens: 0,
+                                availableTokens: 500,
+                                lastTokenUpdate: firebase.firestore.FieldValue.serverTimestamp(),
+                                firstAnalysisDone: false,
+                                monthlyTokensUsed: 0,
+                                lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
+                            },
+                            loyaltyInfo: {
+                                userId: user.uid,
+                                totalAnalyses: 0,
+                                monthlyAnalyses: 0,
+                                monthlyLoyaltyTokens: 0,
+                                lastAnalysisDate: null,
+                                lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
+                            }
                         };
                         await db.collection('users').doc(user.uid).set(userData);
                         console.log('%c✅ [Auth.js] Nouvel utilisateur Google créé dans Firestore', 'color: #28a745;');
