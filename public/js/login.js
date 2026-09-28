@@ -27,10 +27,8 @@ function waitForAuthService(callback, maxAttempts = 100, interval = 100) {
 // Attendre que le DOM soit chargé
 document.addEventListener('DOMContentLoaded', function() {
     waitForAuthService(() => {
-        // S'assurer que authService est initialisé
-        if (typeof authService.init === 'function' && !authService.authStateListener) {
-            authService.init();
-        }
+        // authService.init() est déjà appelé dans auth.js, ne pas le rappeler ici
+        // On vérifie juste que authService est disponible
         initLoginForm();
         initForgotPasswordModal();
     });
