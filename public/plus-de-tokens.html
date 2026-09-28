@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plus de tokens - DPAI Strategy</title>
+    <meta name="description" content="Demandez plus de tokens et accédez aux fonctionnalités premium de DPAI">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script src="/js/firebase-config.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>DPAI</span>
+            </a>
+            
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
+                <li><a href="services.html" class="nav-link">Services</a></li>
+                <li><a href="pricing.html" class="nav-link">Tarifs</a></li>
+            </ul>
+            
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-ghost" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
+                </a>
+                <a href="register.html" class="btn btn-primary" id="registerBtn">
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </a>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                        <span id="userName">Compte</span>
+                    </button>
+                    <div class="user-dropdown">
+                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="dashboard.html">Tableau de bord</a>
+                <i class="fas fa-chevron-right"></i>
+                <span>Plus de tokens</span>
+            </div>
+            <h1><i class="fas fa-coins"></i> Besoin de plus de tokens ?</h1>
+            <p>Contactez-nous pour recharger votre compte et accéder aux fonctionnalités premium</p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="contact-tokens-section">
+        <div class="container">
+            <div class="contact-card">
+                <div class="contact-icon">
+                    <i class="fas fa-envelope-open-text"></i>
+                </div>
+                <h2>Envie de plus de tokens ou d'accéder aux Phases 3 & 4 ?</h2>
+                
+                <div class="contact-info-grid">
+                    <div class="contact-info-item">
+                        <h3><i class="fas fa-coins"></i> Plus de tokens</h3>
+                        <p>Vous avez épuisé vos 500 tokens gratuits ? Pas de problème !</p>
+                        <p>Envoyez-nous un email pour une recharge personnalisée.</p>
+                    </div>
+                    
+                    <div class="contact-info-item">
+                        <h3><i class="fas fa-lock-open"></i> Accès Premium</h3>
+                        <p>Pour débloquer les <strong>Phases 3 & 4</strong> :</p>
+                        <ul>
+                            <li>Générateur de LOI</li>
+                            <li>Simulateur de négociation</li>
+                            <li>Plan d'action 100 jours</li>
+                            <li>Dashboard Post-Acquisition</li>
+                        </ul>
+                        <p>Contactez-nous pour un devis personnalisé.</p>
+                    </div>
+                </div>
+                
+                <div class="contact-cta">
+                    <a href="mailto:duprey.conseil@gmail.com?subject=Demande de tokens supplémentaires et accès premium - DPAI" class="btn btn-primary btn-xl">
+                        <i class="fas fa-paper-plane"></i> 
+                        duprey.conseil@gmail.com
+                    </a>
+                    <p><i class="fas fa-clock"></i> Réponse sous 24 heures</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
+                        <i class="fas fa-chart-line"></i>
+                        <span>DPAI</span>
+                    </a>
+                    <p>Conseil en croissance externe et analyse stratégique avancée.</p>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Produit</h4>
+                    <ul>
+                        <li><a href="/#features">Fonctionnalités</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="pricing.html">Tarifs</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Compte</h4>
+                    <ul>
+                        <li><a href="login.html">Connexion</a></li>
+                        <li><a href="register.html">Inscription</a></li>
+                        <li><a href="dashboard.html">Tableau de bord</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Légal</h4>
+                    <ul>
+                        <li><a href="terms.html">Conditions générales</a></li>
+                        <li><a href="privacy.html">Politique de confidentialité</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 DPAI. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/main.js"></script>
+</body>
+</html>
