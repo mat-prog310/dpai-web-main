@@ -2,6 +2,8 @@
 // LOGIN.JS - Gestion de la connexion
 // =============================================================================
 
+console.log('%c[Login.js] Chargement du module de connexion...', 'color: #9C27B0; font-weight: bold;');
+
 // Attendre que authService soit disponible
 function waitForAuthService(callback, maxAttempts = 100, interval = 100) {
     let attempts = 0;
@@ -10,11 +12,14 @@ function waitForAuthService(callback, maxAttempts = 100, interval = 100) {
         // Ne PAS vérifier window.authService (car il peut être null initialement)
         if (typeof window.authService !== 'undefined' && typeof window.authService.signIn === 'function') {
             clearInterval(checkInterval);
+            console.log('%c✅ [Login] authService.signIn est disponible après ' + attempts + ' tentatives', 'color: #4CAF50; font-weight: bold;');
             callback();
         } else if (attempts >= maxAttempts) {
             clearInterval(checkInterval);
-            console.error('%c❌ [Login] authService.signIn non disponible après 10 secondes', 'color: #dc3545; font-weight: bold;');
+            console.error('%c❌ [Login] authService.signIn NON disponible après 10 secondes !!!', 'color: #F44336; font-weight: bold; font-size: 16px;');
             callback(); // Appeler quand même pour éviter un blocage
+        } else if (attempts % 20 === 0) {
+            console.log('%c[Login] Attente de authService... tentative ' + attempts + '/100', 'color: #FF9800;');
         }
     }, interval);
 }

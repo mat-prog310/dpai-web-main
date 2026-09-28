@@ -2,30 +2,20 @@
 // AUTH.JS - Gestion de l'authentification Firebase
 // =============================================================================
 
+console.log('%c[Auth.js] Chargement du module d\'authentification...', 'color: #4CAF50; font-weight: bold;');
+
 // Définir authService comme null pour éviter que d'autres scripts ne créent de mocks
 window.authService = null;
 
 class AuthService {
   constructor() {
-    // Utiliser les instances exposées par firebase-config.js
-    this.auth = window.firebaseAuth || firebase.auth();
-    this.db = window.firebaseDB || firebase.firestore();
+    // Utiliser UNIQUEMENT les instances exposées par firebase-config.js
+    // NE PAS appeller firebase.auth() ou firebase.firestore() ici pour éviter les doublons
+    this.auth = window.firebaseAuth;
+    this.db = window.firebaseDB;
     this.currentUser = null;
     this.authStateListener = null;
-    this.functions = window.firebaseFunctions || (firebase.functions ? firebase.functions() : null);
-    
-    // Configurer la persistance de l'authentification pour rester connecté 2 semaines
-    // doit être appelé AVANT toute opération d'authentification
-    try {
-      if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth.Auth) {
-        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-            .catch((error) => {
-                console.warn('[AuthService] Erreur configuration persistance:', error);
-            });
-      }
-    } catch (e) {
-      console.warn('[AuthService] Impossible de configurer la persistance:', e);
-    }
+    this.functions = window.firebaseFunctions;
   }
 
   // Initialisation
@@ -34,6 +24,22 @@ class AuthService {
     if (!this.auth || !this.db) {
       console.error('%c❌ [AuthService] Firebase auth/firestore non disponible', 'color: #dc3545; font-weight: bold;');
       return;
+    }
+    
+    // Configurer la persistance AVANT d'écouter les changements d'auth
+    // C'est crucial pour que la persistance soit effective
+    try {
+      if (this.auth && this.auth.setPersistence) {
+        this.auth.setPersistence(this.auth.Persistence.LOCAL)
+            .then(() => {
+              console.log('%c✅ [AuthService] Persistance configurée avec succès', 'color: #28a745; font-weight: bold;');
+            })
+            .catch((error) => {
+              console.warn('[AuthService] Erreur configuration persistance:', error);
+            });
+      }
+    } catch (e) {
+      console.warn('[AuthService] Impossible de configurer la persistance:', e);
     }
     
     this.authStateListener = this.auth.onAuthStateChanged(async (user) => {
@@ -294,16 +300,23 @@ class AuthService {
 
 // Instance singleton - Créer immédiatement si Firebase est prêt
 function initializeAuthService() {
+    console.log('%c[AuthService] Démarrage de l\'initialisation...', 'color: #2196F3; font-weight: bold;');
+    
     // Vérifier si window.firebaseAuth et window.firebaseDB sont disponibles (définis par firebase-config.js)
     // C'est plus fiable que de vérifier firebase directement
     const checkAuthReady = () => {
-        return typeof window.firebaseAuth !== 'undefined' && 
-               typeof window.firebaseDB !== 'undefined' &&
-               window.firebaseAuth && 
-               window.firebaseDB;
+        const ready = typeof window.firebaseAuth !== 'undefined' && 
+                     typeof window.firebaseDB !== 'undefined' &&
+                     window.firebaseAuth && 
+                     window.firebaseDB;
+        if (!ready) {
+            console.log('%c[AuthService] Attente de Firebase... firebaseAuth:', typeof window.firebaseAuth, 'firebaseDB:', typeof window.firebaseDB, 'color: #FF9800;');
+        }
+        return ready;
     };
     
     const createAndInit = () => {
+        console.log('%c[AuthService] Firebase est prêt, création de AuthService...', 'color: #4CAF50; font-weight: bold;');
         window.authService = new AuthService();
         window.authService.init();
         console.log('%c✅ [AuthService] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
@@ -314,6 +327,8 @@ function initializeAuthService() {
         createAndInit();
         return;
     }
+    
+    console.log('%c[AuthService] Firebase pas encore prêt, attente...', 'color: #FF9800; font-weight: bold;');
     
     // Sinon, attendre que window.firebaseAuth et window.firebaseDB soient disponibles
     const checkInterval = setInterval(() => {
@@ -326,9 +341,7 @@ function initializeAuthService() {
     // Timeout de sécurité
     setTimeout(() => {
         clearInterval(checkInterval);
-        if (typeof window.authService === 'undefined' || !window.authService) {
-            console.error('%c❌ [AuthService] Firebase non chargé après 10 secondes', 'color: #dc3545; font-weight: bold;');
-        }
+        console.error('%c❌ [AuthService] Firebase non chargé après 10 secondes. Vérifiez que les scripts Firebase sont chargés.', 'color: #F44336; font-weight: bold; font-size: 16px;');
     }, 10000);
 }
 

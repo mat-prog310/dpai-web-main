@@ -1,6 +1,8 @@
 // Configuration Firebase pour DPAI Web
 // Initialisation immédiate - les scripts Firebase sont chargés AVANT ce fichier
 
+console.log('%c[Firebase-Config] Chargement du fichier de configuration...', 'color: #2196F3; font-weight: bold;');
+
 const firebaseConfig = {
   apiKey: "AIzaSyDowkBbuxpYbpkMqdXyrxXGgk7FHxy7m68",
   authDomain: "dpai-8be62.firebaseapp.com",
@@ -20,45 +22,39 @@ if (window.location.protocol === 'file:') {
   window.FIREBASE_FILE_PROTOCOL = true;
 }
 
-// Initialiser Firebase IMMEDIATEMENT
-try {
-  // Vérifier que firebase est déjà chargé
+// Fonction pour initialiser Firebase
+function initializeFirebaseInstances() {
   if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
     // Initialiser l'application si ce n'est pas déjà fait
     if (!firebase.apps.length) {
       firebase.initializeApp(firebaseConfig);
     }
     
-    // Définir les instances globalement
-    window.firebase = firebase;
-    window.firebaseAuth = firebase.auth();
-    window.db = firebase.firestore();
-    window.firebaseDB = firebase.firestore();
-    window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
-    
-    console.log('%c✅ [Firebase] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
-  } else {
+    // Définir les instances globalement - UNE SEULE FOIS
+    if (typeof window.firebaseAuth === 'undefined') {
+      window.firebase = firebase;
+      window.firebaseAuth = firebase.auth();
+      window.firebaseDB = firebase.firestore();
+      window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
+      
+      console.log('%c✅ [Firebase] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
+      return true;
+    }
+  }
+  return false;
+}
+
+// Initialiser Firebase IMMEDIATEMENT
+try {
+  // Essayer immédiatement
+  if (!initializeFirebaseInstances()) {
     // Firebase SDK pas encore chargé - essayer de le charger manuellement
     console.warn('⚠️ [Firebase] SDK non encore chargé, initialisation reportée');
     
-    // Fonction pour réessayer
-    window.initializeFirebase = function() {
-      if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function' && !firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-        window.firebase = firebase;
-        window.firebaseAuth = firebase.auth();
-        window.db = firebase.firestore();
-        window.firebaseDB = firebase.firestore();
-        window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
-        console.log('%c✅ [Firebase] Initialisé avec succès (reporté)', 'color: #28a745; font-weight: bold;');
-      }
-    };
-    
     // Vérifier périodiquement
     const initInterval = setInterval(() => {
-      if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+      if (initializeFirebaseInstances()) {
         clearInterval(initInterval);
-        window.initializeFirebase();
       }
     }, 100);
     

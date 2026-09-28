@@ -2,11 +2,14 @@
 // MAIN.JS - Script principal pour DPAI Web
 // =============================================================================
 
+console.log('%c[Main.js] Chargement du script principal...', 'color: #607D8B; font-weight: bold;');
+
 // Références Firebase (exposées par firebase-config.js)
 // db est défini globalement dans firebase-config.js
 
 // Attendre que le DOM soit chargé
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('%c[Main.js] DOM chargé, initialisation...', 'color: #607D8B; font-weight: bold;');
     initFirebase();
     initAuth();
     initNavigation();
