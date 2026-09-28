@@ -15,16 +15,26 @@ class AuthService {
     this.functions = window.firebaseFunctions || (firebase.functions ? firebase.functions() : null);
     
     // Configurer la persistance de l'authentification pour rester connecté 2 semaines
-    // Firebase Auth peut utiliser : IN_MEMORY, SESSION, ou LOCAL
-    // LOCAL permet de persister les données de connexion entre les sessions
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .catch((error) => {
-            console.warn('Erreur configuration persistance Firebase Auth:', error);
-        });
+    // doit être appelé AVANT toute opération d'authentification
+    try {
+      if (typeof firebase !== 'undefined' && firebase.auth && firebase.auth.Auth) {
+        firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+            .catch((error) => {
+                console.warn('[AuthService] Erreur configuration persistance:', error);
+            });
+      }
+    } catch (e) {
+      console.warn('[AuthService] Impossible de configurer la persistance:', e);
+    }
   }
 
   // Initialisation
   init() {
+    // S'assurer que auth et db sont disponibles
+    if (!this.auth || !this.db) {
+      console.error('%c❌ [AuthService] Firebase auth/firestore non disponible', 'color: #dc3545; font-weight: bold;');
+      return;
+    }
     
     this.authStateListener = this.auth.onAuthStateChanged(async (user) => {
       if (user) {
@@ -154,10 +164,15 @@ class AuthService {
       const userCredential = await this.auth.signInWithEmailAndPassword(email, password);
       const user = userCredential.user;
       
-      // Mettre à jour la date de dernière connexion
-      await this.db.collection('users').doc(user.uid).update({
-        lastLoginAt: new Date().toISOString()
-      });
+      // Mettre à jour la date de dernière connexion (merge: true crée le doc s'il n'existe pas)
+      try {
+        await this.db.collection('users').doc(user.uid).set({
+          lastLoginAt: new Date().toISOString()
+        }, { merge: true });
+      } catch (dbError) {
+        console.warn('Avertissement: Impossible de mettre à jour la date de connexion dans Firestore:', dbError);
+        // Ne pas bloquer la connexion à cause de ça
+      }
       
       return { success: true, user: user };
     } catch (error) {
