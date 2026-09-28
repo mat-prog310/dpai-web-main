@@ -44,26 +44,28 @@ function initFirebase() {
 // INITIALISATION AUTHENTIFICATION
 // =============================================================================
 function initAuth() {
-    // Attendre que authService soit disponible et ait la méthode init
-    // Ne PAS vérifier window.authService car il peut être null initialement
+    // Attendre que authService soit disponible
+    // authService.init() est déjà appelé dans auth.js, ne pas le rappeler ici
     const authCheck = setInterval(() => {
-        if (typeof window.authService !== 'undefined' && typeof window.authService.init === 'function') {
+        if (typeof window.authService !== 'undefined' && window.authService) {
             clearInterval(authCheck);
-            // Initialiser le service d'authentification
-            window.authService.init();
+            // authService.init() a déjà été appelé dans auth.js
+            // On ajoute juste l'écouteur d'événements ici
             
             // Écouter les changements d'état d'authentification
             window.addEventListener('authStateChanged', function(event) {
                 const { user, userData } = event.detail;
                 updateAuthUI(user, userData);
             });
+            
+            console.log('%c✅ [Main] authService est prêt', 'color: #4CAF50; font-weight: bold;');
         }
     }, 100);
     
     // Timeout de sécurité
     setTimeout(() => {
         clearInterval(authCheck);
-        console.warn('[Main] authService.init non disponible après 5 secondes');
+        console.warn('[Main] authService non disponible après 5 secondes');
     }, 5000);
 }
 
