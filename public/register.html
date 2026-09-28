@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Inscription - DPAI | Créez votre compte gratuit</title>
-    <meta name="description" content="Créez votre compte DPAI gratuitement et obtenez 50 tokens pour commencer vos analyses stratégiques.">
-    
-    <!-- Firebase -->
-    
+    <meta name="description" content="Créez votre compte DPAI gratuitement et obtenez 500 tokens pour commencer vos analyses stratégiques.">
     
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -21,14 +18,17 @@
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/responsive.css">
+    
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
     <script src="/js/firebase-config.js"></script>
-    </head>
     <script src="/js/protocol-check.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/register.js"></script>
+</head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -41,7 +41,7 @@
             <ul class="nav-links" id="navLinks">
                 <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
                 <li><a href="services.html" class="nav-link">Services</a></li>
-                
+                <li><a href="pricing.html" class="nav-link">Tarifs</a></li>
             </ul>
             
             <div class="nav-actions">
@@ -59,7 +59,7 @@
                     <div class="user-dropdown">
                         <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
                         <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
-                        
+                        <a href="plus-de-tokens.html"><i class="fas fa-coins"></i> Plus de tokens</a>
                         <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                     </div>
                 </div>
@@ -80,7 +80,7 @@
                 <span>Inscription</span>
             </div>
             <h1>Créez votre compte</h1>
-            <p>Inscription gratuite - 50 tokens offerts pour commencer vos analyses.</p>
+            <p class="section-subtitle">Inscription gratuite - 500 tokens offerts pour commencer vos analyses.</p>
         </div>
     </section>
 
@@ -99,7 +99,7 @@
                                 <i class="fas fa-coins"></i>
                             </div>
                             <div class="benefit-content">
-                                <h4>50 tokens offerts</h4>
+                                <h4>500 tokens offerts</h4>
                                 <p>Commencez immédiatement avec des analyses gratuites</p>
                             </div>
                         </div>
@@ -140,6 +140,7 @@
                         </div>
                         
                         <form id="registerForm" class="auth-form">
+                            <!-- Alert Error -->
                             <div class="alert alert-error" id="registerError" style="display: none;">
                                 <i class="fas fa-exclamation-circle"></i>
                                 <div class="alert-content">
@@ -149,51 +150,37 @@
                                 <button type="button" class="alert-close" id="registerErrorClose">&times;</button>
                             </div>
                             
-                            <div class="alert alert-success" id="registerSuccess" style="display: none;">
-                                <i class="fas fa-check-circle"></i>
-                                <div class="alert-content">
-                                    <span class="alert-title">Succès</span>
-                                    <span class="alert-message">Inscription réussie ! Un email de vérification vous a été envoyé.</span>
-                                </div>
-                            </div>
-                            
                             <div class="form-group">
-                                <label class="form-label" for="registerName">Nom complet</label>
+                                <label class="form-label" for="registerName">Nom complet *</label>
                                 <input type="text" class="form-input" id="registerName" 
-                                       placeholder="Votre nom complet" required minlength="2">
-                                <span class="form-error" id="nameError">Veuillez entrer votre nom</span>
+                                       placeholder="Votre nom complet" required minlength="2" autocomplete="name">
+                                <span class="form-error" id="nameError">Veuillez entrer votre nom (minimum 2 caractères)</span>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label" for="registerEmail">Adresse email</label>
+                                <label class="form-label" for="registerEmail">Adresse email *</label>
                                 <input type="email" class="form-input" id="registerEmail" 
-                                       placeholder="Votre adresse email" required>
+                                       placeholder="Votre adresse email" required autocomplete="email">
                                 <span class="form-error" id="emailError">Veuillez entrer une adresse email valide</span>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label" for="registerPassword">Mot de passe</label>
+                                <label class="form-label" for="registerPassword">Mot de passe *</label>
                                 <div class="input-with-icon">
                                     <input type="password" class="form-input" id="registerPassword" 
-                                           placeholder="Créez un mot de passe" required minlength="6">
+                                           placeholder="Créez un mot de passe" required minlength="6" autocomplete="new-password">
                                     <button type="button" class="toggle-password" id="toggleRegisterPassword">
                                         <i class="fas fa-eye"></i>
                                     </button>
                                 </div>
                                 <span class="form-error" id="passwordError">Le mot de passe doit contenir au moins 6 caractères</span>
-                                <div class="password-strength">
-                                    <div class="strength-bar">
-                                        <div class="strength-fill" id="passwordStrength"></div>
-                                    </div>
-                                    <span class="strength-text" id="passwordStrengthText"></span>
-                                </div>
                             </div>
                             
                             <div class="form-group">
-                                <label class="form-label" for="registerConfirmPassword">Confirmer le mot de passe</label>
+                                <label class="form-label" for="registerConfirmPassword">Confirmer le mot de passe *</label>
                                 <div class="input-with-icon">
                                     <input type="password" class="form-input" id="registerConfirmPassword" 
-                                           placeholder="Confirmez votre mot de passe" required minlength="6">
+                                           placeholder="Confirmez votre mot de passe" required minlength="6" autocomplete="new-password">
                                     <button type="button" class="toggle-password" id="toggleConfirmPassword">
                                         <i class="fas fa-eye"></i>
                                     </button>
@@ -252,9 +239,7 @@
         <div class="container">
             <div class="section-header">
                 <span class="section-tag">Découvrez</span>
-                <h2 class="section-title">
-                    Ce que vous allez pouvoir faire
-                </h2>
+                <h2 class="section-title">Ce que vous allez pouvoir faire</h2>
             </div>
             
             <div class="features-grid-small">
@@ -295,7 +280,7 @@
                     <ul>
                         <li><a href="/#features">Fonctionnalités</a></li>
                         <li><a href="services.html">Services</a></li>
-                        
+                        <li><a href="pricing.html">Tarifs</a></li>
                     </ul>
                 </div>
                 
@@ -328,10 +313,5 @@
     <a href="#" class="back-to-top" id="backToTop">
         <i class="fas fa-arrow-up"></i>
     </a>
-
-    <!-- Scripts -->
-    <script src="/js/auth.js"></script>
-    <script src="/js/tokens.js"></script>
-    
 </body>
 </html>
