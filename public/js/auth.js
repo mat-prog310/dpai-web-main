@@ -86,7 +86,13 @@ class AuthService {
         }
       }
     } catch (error) {
-      console.error('Erreur chargement utilisateur:', error);
+      console.error('[AuthService] Erreur chargement utilisateur depuis Firestore:', error);
+      console.warn('[AuthService] Création d\'un userData par défaut...');
+      // Si Firestore échoue, créer un userData minimal pour éviter les erreurs
+      this.userData = this.createDefaultUser(uid);
+      if (typeof TokenManager !== 'undefined') {
+        TokenManager.init(this.userData);
+      }
     }
   }
 
