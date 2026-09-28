@@ -142,26 +142,68 @@ class TokenManager {
       this.tokenState = userData.tokenState;
     } else {
       // Re créer le tokenState avec le plan free
-      // Utiliser les valeurs de userData si disponibles (pour les utilisateurs existants)
       console.log('[TokenManager] Recalcul du tokenState');
       
-      // Si userData a des champs token au niveau racine, les utiliser
-      const usedFromRoot = userData.tokensUsed || userData.usedTokens || 0;
-      const availableFromRoot = userData.availableTokens || 500;
-      const totalFromRoot = userData.totalTokens || 500;
+      // Déterminer les valeurs correctes
+      // Si l'utilisateur a des tokens au niveau racine, les utiliser
+      // Sinon, donner 500 tokens par défaut
+      let usedTokens = 0;
+      let availableTokens = 500;
+      let totalTokens = 500;
       
-      // Créer un tokenState avec les bonnes valeurs
-      this.tokenState = this.createTokenState(
-        userData.id, 
-        'free', 
-        userData.tokenState || {}
-      );
+      // Essayer de récupérer les valeurs existantes
+      if (userData.tokenState) {
+        usedTokens = userData.tokenState.usedTokens || 0;
+        availableTokens = userData.tokenState.availableTokens || 500;
+        totalTokens = userData.tokenState.totalTokens || 500;
+      } else if (userData.availableTokens !== undefined && userData.tokensUsed !== undefined) {
+        // Utiliser les valeurs du root
+        usedTokens = userData.tokensUsed || 0;
+        availableTokens = userData.availableTokens || 500;
+        totalTokens = userData.totalTokens || 500;
+      }
       
-      // Mettre à jour avec les valeurs du root si le tokenState est nouveau ou invalide
-      if (!hasValidTokenState) {
-        this.tokenState.usedTokens = usedFromRoot;
-        this.tokenState.availableTokens = availableFromRoot;
-        this.tokenState.totalTokens = totalFromRoot;
+      // Si availableTokens + usedTokens !== totalTokens, corriger
+      const expectedAvailable = totalTokens - usedTokens;
+      if (availableTokens !== expectedAvailable) {
+        console.log('[TokenManager] Correction incohérence: availableTokens recalculé');
+        availableTokens = expectedAvailable;
+      }
+      
+      // Si l'utilisateur n'a pas du tout de tokens configurés, lui donner 500
+      if (totalTokens === 0 || (userData.availableTokens === undefined && userData.tokensUsed === undefined && !userData.tokenState)) {
+        console.log('[TokenManager] Nouvel utilisateur sans tokens: initialisation à 500');
+        usedTokens = 0;
+        availableTokens = 500;
+        totalTokens = 500;
+      }
+      
+      // Créer le tokenState
+      this.tokenState = {
+        userId: userData.id,
+        plan: 'free',
+        baseTokens: expectedBaseTokens,
+        bonusTokens: 0,
+        totalTokens: totalTokens,
+        usedTokens: usedTokens,
+        availableTokens: availableTokens,
+        lastTokenUpdate: userData.tokenState?.lastTokenUpdate || new Date().toISOString(),
+        firstAnalysisDone: userData.tokenState?.firstAnalysisDone || false,
+        monthlyTokensUsed: userData.tokenState?.monthlyTokensUsed || 0,
+        lastMonthlyReset: userData.tokenState?.lastMonthlyReset || new Date().toISOString()
+      };
+      
+      // Sauvegarder le tokenState corrigé dans Firestore
+      // Cela permet de corriger les utilisateurs existants
+      if (userData.id) {
+        db.collection('users').doc(userData.id).update({
+          tokenState: this.tokenState,
+          availableTokens: this.tokenState.availableTokens,
+          tokensUsed: this.tokenState.usedTokens,
+          totalTokens: this.tokenState.totalTokens
+        }).catch(err => {
+          console.warn('[TokenManager] Impossible de sauvegarder le tokenState corrigé:', err);
+        });
       }
     }
     
