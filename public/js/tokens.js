@@ -141,9 +141,28 @@ class TokenManager {
     if (hasValidTokenState) {
       this.tokenState = userData.tokenState;
     } else {
-      // Re créer le tokenState avec le plan free, en conservant l'historique d'utilisation
+      // Re créer le tokenState avec le plan free
+      // Utiliser les valeurs de userData si disponibles (pour les utilisateurs existants)
       console.log('[TokenManager] Recalcul du tokenState');
-      this.tokenState = this.createTokenState(userData.id, 'free', userData.tokenState);
+      
+      // Si userData a des champs token au niveau racine, les utiliser
+      const usedFromRoot = userData.tokensUsed || userData.usedTokens || 0;
+      const availableFromRoot = userData.availableTokens || 500;
+      const totalFromRoot = userData.totalTokens || 500;
+      
+      // Créer un tokenState avec les bonnes valeurs
+      this.tokenState = this.createTokenState(
+        userData.id, 
+        'free', 
+        userData.tokenState || {}
+      );
+      
+      // Mettre à jour avec les valeurs du root si le tokenState est nouveau ou invalide
+      if (!hasValidTokenState) {
+        this.tokenState.usedTokens = usedFromRoot;
+        this.tokenState.availableTokens = availableFromRoot;
+        this.tokenState.totalTokens = totalFromRoot;
+      }
     }
     
     this.loyaltyInfo = userData.loyaltyInfo || LoyaltySystem.create(userData.id);
@@ -210,11 +229,16 @@ class TokenManager {
     // Mettre à jour la fidélité
     this.loyaltyInfo = LoyaltySystem.addAnalysis(this.loyaltyInfo);
     
-    // Sauvegarder dans Firestore
-    await db.collection('users').doc(this.userData.id).update({
+    // Sauvegarder dans Firestore (tokenState + champs racine pour compatibilité)
+    const updateData = {
       tokenState: newState,
-      loyaltyInfo: this.loyaltyInfo
-    });
+      loyaltyInfo: this.loyaltyInfo,
+      availableTokens: newState.availableTokens,
+      tokensUsed: newState.usedTokens,
+      totalTokens: newState.totalTokens
+    };
+    
+    await db.collection('users').doc(this.userData.id).update(updateData);
 
     this.tokenState = newState;
     return true;
@@ -225,9 +249,11 @@ class TokenManager {
     newState.availableTokens += amount;
     newState.totalTokens += amount;
     
-    // Sauvegarder dans Firestore
+    // Sauvegarder dans Firestore (tokenState + champs racine)
     await db.collection('users').doc(this.userData.id).update({
-      tokenState: newState
+      tokenState: newState,
+      availableTokens: newState.availableTokens,
+      totalTokens: newState.totalTokens
     });
 
     this.tokenState = newState;
@@ -251,7 +277,10 @@ class TokenManager {
     
     await db.collection('users').doc(this.userData.id).update({
       tokenState: newState,
-      loyaltyInfo: this.loyaltyInfo
+      loyaltyInfo: this.loyaltyInfo,
+      availableTokens: newState.availableTokens,
+      tokensUsed: newState.usedTokens,
+      totalTokens: newState.totalTokens
     });
 
     this.tokenState = newState;
@@ -266,7 +295,10 @@ class TokenManager {
     
     await db.collection('users').doc(this.userData.id).update({
       tokenState: newState,
-      plan: newPlan
+      plan: newPlan,
+      availableTokens: newState.availableTokens,
+      tokensUsed: newState.usedTokens,
+      totalTokens: newState.totalTokens
     });
 
     this.tokenState = newState;
@@ -284,7 +316,9 @@ class TokenManager {
     await db.collection('users').doc(this.userData.id).update({
       tokenState: newState,
       'referralInfo.status': 'rewarded',
-      'referralInfo.rewardedAt': new Date().toISOString()
+      'referralInfo.rewardedAt': new Date().toISOString(),
+      availableTokens: newState.availableTokens,
+      totalTokens: newState.totalTokens
     });
 
     this.tokenState = newState;
