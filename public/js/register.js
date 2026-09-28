@@ -7,12 +7,13 @@ function waitForAuthService(callback, maxAttempts = 100, interval = 100) {
     let attempts = 0;
     const checkInterval = setInterval(() => {
         attempts++;
-        if (typeof window.authService !== 'undefined' && window.authService && window.authService.signUp) {
+        // Ne PAS vérifier window.authService (car il peut être null initialement)
+        if (typeof window.authService !== 'undefined' && typeof window.authService.signUp === 'function') {
             clearInterval(checkInterval);
             callback();
         } else if (attempts >= maxAttempts) {
             clearInterval(checkInterval);
-            console.error('%c❌ [Register] authService non disponible après 10 secondes', 'color: #dc3545; font-weight: bold;');
+            console.error('%c❌ [Register] authService.signUp non disponible après 10 secondes', 'color: #dc3545; font-weight: bold;');
             callback(); // Appeler quand même pour éviter un blocage
         }
     }, interval);

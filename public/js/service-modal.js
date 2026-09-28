@@ -415,7 +415,8 @@ function getPlanLabel(plan) {
 // Mettre à jour l'affichage des services selon le plan
 function updateServicesByPlan() {
     // Attendre que authService soit disponible et ait userData
-    if (typeof window.authService === 'undefined' || !window.authService || !window.authService.userData) {
+    // Ne PAS vérifier window.authService (car il peut être null initialement)
+    if (typeof window.authService === 'undefined' || typeof window.authService.userData === 'undefined' || !window.authService.userData) {
         // Réessayer plus tard
         setTimeout(updateServicesByPlan, 200);
         return;
@@ -662,8 +663,9 @@ document.addEventListener('DOMContentLoaded', initServiceModal);
 
 // Écouter les changements d'authentification - sera appelée automatiquement
 function setupAuthListener() {
-    // Vérifier que authService est disponible
-    if (typeof window.authService !== 'undefined' && window.authService && window.authService.auth) {
+    // Vérifier que authService est disponible et a auth
+    // Ne PAS vérifier window.authService (car il peut être null initialement)
+    if (typeof window.authService !== 'undefined' && typeof window.authService.auth !== 'undefined' && window.authService.auth) {
         window.authService.auth.onAuthStateChanged((user) => {
             setTimeout(updateServicesByPlan, 500); // Petit délai pour laisser le temps à userData de se charger
         });
