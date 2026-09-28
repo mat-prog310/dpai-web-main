@@ -10,44 +10,27 @@
 // Si authService est null, c'est que Firebase est en train de se charger
 // On attendra donc qu'il soit initialisé correctement
 
-// Si TokenManager existe mais n'est pas initialisé (mode démo), le configurer
-if (typeof window.TokenManager !== 'undefined') {
-    // Vérifier si on est en mode démo (file:// ou Firebase non disponible)
-    const isFileProtocol = window.location.protocol === 'file:';
-    const isFirebaseAvailable = typeof window.firebase !== 'undefined' && window.firebase;
-    const isDemoMode = !isFirebaseAvailable || isFileProtocol;
-    
-    if (isDemoMode && !window.TokenManager.tokenState) {
-        console.warn('[DPAI] TokenManager en mode démo, configuration');
-        // Remplacer le getter availableTokens pour retourner 9999
-        Object.defineProperty(window.TokenManager, 'availableTokens', {
-            get: function() { return 9999; },
-            configurable: true
-        });
-        
-        // S'assurer que getCost existe et retourne les bons coûts
-        if (!window.TokenManager.getCost) {
-            window.TokenManager.getCost = (type) => {
-                const costs = { swot: 5, porter: 20, pestel: 15, competitive: 20 };
-                return costs[type] || 10;
-            };
-        }
-        
-        // S'assurer que tokenState existe (pour éviter les erreurs)
-        if (!window.TokenManager.tokenState) {
-            window.TokenManager.tokenState = null;
-        }
-    }
-} else if (typeof window.TokenManager === 'undefined') {
-    console.warn('[DPAI] TokenManager non défini, création d\'un mock complet pour le mode démo');
+// Configuration de TokenManager pour éviter les erreurs
+// Suppression du mode démo qui forçait 9999 tokens - Utiliser les vraies valeurs
+if (typeof window.TokenManager === 'undefined') {
+    console.warn('[DPAI] TokenManager non défini, création d\'un mock avec 500 tokens par défaut');
     window.TokenManager = {
-        tokenState: null,
+        tokenState: {
+            availableTokens: 500,
+            usedTokens: 0,
+            totalTokens: 500
+        },
         getCost: (type) => {
-            const costs = { swot: 5, porter: 20, pestel: 15, competitive: 20 };
+            const costs = { 
+                swot: 40, porter: 120, pestel: 80, competitive: 120,
+                basic: 40, advanced: 80, detailed_report: 160, synergy: 200,
+                modeling: 240, benchmark: 160, due_diligence: 280, valuation: 320,
+                mergers_acquisitions: 400, strategic_audit: 240, risk_assessment: 200
+            };
             return costs[type] || 10;
         },
         get availableTokens() {
-            return 9999;
+            return this.tokenState ? this.tokenState.availableTokens : 500;
         }
     };
 }
@@ -1239,8 +1222,8 @@ function initAnalysisForm() {
             }
             
             const plan = authService.userData?.plan || 'free';
-            const cost = (TokenManager && TokenManager.getCost) ? TokenManager.getCost(type, plan) : 5;
-            const available = (TokenManager && TokenManager.availableTokens) ? (TokenManager.availableTokens || 0) : 9999;
+            const cost = (TokenManager && TokenManager.getCost) ? TokenManager.getCost(type, plan) : 40;
+            const available = TokenManager ? TokenManager.availableTokens : 500;
             
             if (available < cost) {
                 showAlert('error', 'Erreur', `Vous n'avez pas assez de tokens pour cette analyse. Nécessaire: ${cost}, Disponible: ${available}`);
@@ -1309,8 +1292,8 @@ function updateAnalysisEstimation(type) {
     const startAnalysisBtn = document.getElementById('startAnalysisBtn');
     
     const plan = authService.userData?.plan || 'free';
-    const cost = (TokenManager && TokenManager.getCost) ? TokenManager.getCost(type, plan) : 5;
-    const available = (TokenManager && TokenManager.availableTokens) ? (TokenManager.availableTokens || 0) : 9999;
+    const cost = (TokenManager && TokenManager.getCost) ? TokenManager.getCost(type, plan) : 40;
+    const available = TokenManager ? TokenManager.availableTokens : 500;
     const canAfford = available >= cost;
     
     if (estimatedAnalysisTypeEl) {
@@ -1364,7 +1347,7 @@ async function updateAfterAnalysis(type, name, description, cost) {
         
         let availableTokens, usedTokens, totalTokens, tokenLimit;
         
-        if (!isDemoMode && user) {
+        if (user) {
             // Mode normal : recharger les données utilisateur pour avoir les dernières valeurs
             const userData = await authService.loadUserData(user.uid);
             authService.userData = userData;
@@ -1379,22 +1362,12 @@ async function updateAfterAnalysis(type, name, description, cost) {
             tokenLimit = userData.tokenLimit || 
                          (userData.tokenState ? userData.tokenState.baseTokens : TokenConfig.baseTokenLimits.free) || 
                          TokenConfig.baseTokenLimits.free;
-        } else if (isDemoMode) {
-            // Mode démo : utiliser les valeurs simulées
-            const currentAvailable = window.TokenManager._demoTokens || 9999;
-            const initialTokens = 9999; // Valeur initiale en mode démo
-            const demoUsedTokens = initialTokens - currentAvailable;
-            
-            availableTokens = currentAvailable;
-            usedTokens = demoUsedTokens;
-            totalTokens = initialTokens;
-            tokenLimit = TokenConfig.baseTokenLimits.free || 50;
         } else {
-            // Mode non connecté ou autre cas
-            availableTokens = TokenManager.availableTokens || 0;
+            // Mode non connecté : utiliser TokenManager ou valeurs par défaut
+            availableTokens = TokenManager ? TokenManager.availableTokens : 500;
             usedTokens = 0;
-            totalTokens = TokenConfig.baseTokenLimits.free || 50;
-            tokenLimit = TokenConfig.baseTokenLimits.free || 50;
+            totalTokens = TokenManager ? (TokenManager.tokenState ? TokenManager.tokenState.totalTokens : 500) : 500;
+            tokenLimit = TokenConfig.baseTokenLimits.free || 500;
         }
         
         if (availableTokensEl) {
