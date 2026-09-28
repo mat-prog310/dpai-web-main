@@ -29,8 +29,9 @@ class AuthService {
     // Configurer la persistance AVANT d'écouter les changements d'auth
     // C'est crucial pour que la persistance soit effective
     try {
-      if (this.auth && this.auth.setPersistence) {
-        this.auth.setPersistence(this.auth.Persistence.LOCAL)
+      if (this.auth && this.auth.setPersistence && typeof firebase !== 'undefined') {
+        // Firebase v8: utiliser firebase.auth.Auth.Persistence.LOCAL
+        this.auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
             .then(() => {
               console.log('%c✅ [AuthService] Persistance configurée avec succès', 'color: #28a745; font-weight: bold;');
             })
