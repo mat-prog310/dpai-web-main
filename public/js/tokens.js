@@ -3,24 +3,18 @@
 // =============================================================================
 
 // Configuration des plans (TOUS LES UTILISATEURS ONT UN PLAN GRATUIT AVEC 500 TOKENS)
-// Pour plus de tokens: envoyer un email à duprey.conseil@gmail.com
+// Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à duprey.conseil@gmail.com
 const TokenConfig = {
   baseTokenLimits: {
-    free: 490,    // 490 + 10 (bonus) + 0 (welcome) = 500 tokens
-    pro: 490,     // Plus utilisé - tous en free
-    enterprise: 490
+    free: 490    // 490 + 10 (bonus) = 500 tokens
   },
   
   tokenBonuses: {
-    free: 0.0204,  // 490 * 0.0204 = ~10 tokens de bonus
-    pro: 0.0204,
-    enterprise: 0.0204
+    free: 0.0204  // 490 * 0.0204 = ~10 tokens de bonus
   },
   
   planPrices: {
-    free: 0.0,
-    pro: 0.0,     // Plus utilisé
-    enterprise: 0.0
+    free: 0.0
   },
   
   welcomeBonus: 0,    // Désactivé pour avoir exactement 500
@@ -31,9 +25,7 @@ const TokenConfig = {
   
   loyaltyBonusPerAnalysis: 1,
   maxMonthlyLoyaltyBonus: {
-    free: 10,
-    pro: 50,
-    enterprise: 100
+    free: 10
   },
   
   companyDiscountRate: 0.20,
@@ -41,35 +33,33 @@ const TokenConfig = {
   tokenResetDays: 30
 };
 
-// Coûts des analyses par type - COÛTS FIXES ET ÉLEVÉS
-// Phases 1 & 2 : Tous les services sont GRATUITS (coût en tokens déduit du solde)
-// Phases 3 & 4 : BLOQUÉES (contact par mail)
-// Email: duprey.conseil@gmail.com
+// Coûts des analyses par type - TOUS LES UTILISATEURS ONT ACCÈS AUX PHASES 1 & 2
+// Email: duprey.conseil@gmail.com pour Phases 3 & 4
 const AnalysisCosts = {
-  // PHASE 1 & 2 : Toutes les analyses sont GRATUITES (mais déduisent des tokens)
-  swot: { free: 10, pro: 10, enterprise: 10 },
-  porter: { free: 30, pro: 30, enterprise: 30 },
-  pestel: { free: 20, pro: 20, enterprise: 20 },
-  competitive: { free: 30, pro: 30, enterprise: 30 },
-  basic: { free: 10, pro: 10, enterprise: 10 },
-  advanced: { free: 20, pro: 20, enterprise: 20 },
-  detailed_report: { free: 40, pro: 40, enterprise: 40 },
-  synergy: { free: 50, pro: 50, enterprise: 50 },
-  modeling: { free: 60, pro: 60, enterprise: 60 },
-  benchmark: { free: 40, pro: 40, enterprise: 40 },
-  due_diligence: { free: 70, pro: 70, enterprise: 70 },
-  valuation: { free: 80, pro: 80, enterprise: 80 },
-  mergers_acquisitions: { free: 100, pro: 100, enterprise: 100 },
-  strategic_audit: { free: 60, pro: 60, enterprise: 60 },
-  risk_assessment: { free: 50, pro: 50, enterprise: 50 },
+  // PHASE 1 & 2 : Toutes les analyses sont GRATUITES (coût en tokens déduit du solde)
+  swot: 10,
+  porter: 30,
+  pestel: 20,
+  competitive: 30,
+  basic: 10,
+  advanced: 20,
+  detailed_report: 40,
+  synergy: 50,
+  modeling: 60,
+  benchmark: 40,
+  due_diligence: 70,
+  valuation: 80,
+  mergers_acquisitions: 100,
+  strategic_audit: 60,
+  risk_assessment: 50,
   
   // PHASE 3 : NÉGOCIATION & SIGNATURE - BLOQUÉ (Contact par mail)
-  loi_generation: { free: 999999, pro: 999999, enterprise: 999999 },
-  negotiation_simulator: { free: 999999, pro: 999999, enterprise: 999999 },
+  loi_generation: 999999,
+  negotiation_simulator: 999999,
   
   // PHASE 4 : INTÉGRATION & SUIVI - BLOQUÉ (Contact par mail)
-  action_plan_100: { free: 999999, pro: 999999, enterprise: 999999 },
-  post_acquisition_dashboard: { free: 999999, pro: 999999, enterprise: 999999 }
+  action_plan_100: 999999,
+  post_acquisition_dashboard: 999999
 };
 
 // Tous les services sont gratuits - Plus de packs de tokens
@@ -97,7 +87,7 @@ class LoyaltySystem {
     const bonus = TokenConfig.loyaltyBonusPerAnalysis;
     newInfo.monthlyLoyaltyTokens = Math.min(
       newInfo.monthlyLoyaltyTokens + bonus,
-      TokenConfig.maxMonthlyLoyaltyBonus[loyaltyInfo.plan || 'free']
+      TokenConfig.maxMonthlyLoyaltyBonus.free
     );
     
     newInfo.lastAnalysisDate = new Date().toISOString();
@@ -141,19 +131,18 @@ class TokenManager {
   static init(userData) {
     this.userData = userData;
     
-    // Vérifier si le tokenState existe et correspond au plan actuel
-    // Si le plan a changé ou si tokenState est invalide, le recréer
-    const expectedBaseTokens = TokenConfig.baseTokenLimits[userData.plan] || TokenConfig.baseTokenLimits.free;
+    // Vérifier si le tokenState existe et est valide
+    // Tous les utilisateurs ont le plan 'free' avec 500 tokens
+    const expectedBaseTokens = TokenConfig.baseTokenLimits.free;
     const hasValidTokenState = userData.tokenState && 
-                                userData.tokenState.plan === userData.plan &&
                                 userData.tokenState.baseTokens === expectedBaseTokens;
     
     if (hasValidTokenState) {
       this.tokenState = userData.tokenState;
     } else {
-      // Re créer le tokenState avec le bon plan, en conservant l'historique d'utilisation
-      console.log('[TokenManager] Recalcul du tokenState pour le plan:', userData.plan);
-      this.tokenState = this.createTokenState(userData.id, userData.plan, userData.tokenState);
+      // Re créer le tokenState avec le plan free, en conservant l'historique d'utilisation
+      console.log('[TokenManager] Recalcul du tokenState');
+      this.tokenState = this.createTokenState(userData.id, 'free', userData.tokenState);
     }
     
     this.loyaltyInfo = userData.loyaltyInfo || LoyaltySystem.create(userData.id);
@@ -161,9 +150,9 @@ class TokenManager {
     this.hasCompanyDiscount = userData.hasCompanyDiscount || false;
   }
 
-  static createTokenState(userId, plan, existingTokenState = null) {
-    const baseTokens = TokenConfig.baseTokenLimits[plan] || TokenConfig.baseTokenLimits.free;
-    const bonusTokens = Math.floor(baseTokens * (TokenConfig.tokenBonuses[plan] || 0));
+  static createTokenState(userId, plan = 'free', existingTokenState = null) {
+    const baseTokens = TokenConfig.baseTokenLimits.free;
+    const bonusTokens = Math.floor(baseTokens * TokenConfig.tokenBonuses.free);
     
     const totalTokens = baseTokens + bonusTokens + TokenConfig.welcomeBonus;
     const usedTokens = existingTokenState?.usedTokens || 0;
@@ -172,7 +161,7 @@ class TokenManager {
     
     return {
       userId: userId,
-      plan: plan,
+      plan: 'free',
       baseTokens: baseTokens,
       bonusTokens: bonusTokens,
       totalTokens: totalTokens,
@@ -248,9 +237,8 @@ class TokenManager {
   }
 
   static async resetMonthlyTokens() {
-    const plan = this.userData.plan || 'free';
-    const baseTokens = TokenConfig.baseTokenLimits[plan];
-    const bonusTokens = Math.floor(baseTokens * (TokenConfig.tokenBonuses[plan] || 0));
+    const baseTokens = TokenConfig.baseTokenLimits.free;
+    const bonusTokens = Math.floor(baseTokens * TokenConfig.tokenBonuses.free);
     
     const newState = {
       ...this.tokenState,
@@ -310,11 +298,11 @@ class TokenManager {
   }
 
   static getCost(analysisType, plan) {
-    return AnalysisCosts[analysisType]?.[plan || 'free'] || AnalysisCosts.basic?.free || 0;
+    return AnalysisCosts[analysisType] || 0;
   }
 
   static canPerformAnalysis(analysisType, plan) {
-    const cost = this.getCost(analysisType, plan);
+    const cost = this.getCost(analysisType);
     return this.availableTokens >= cost;
   }
 
@@ -335,7 +323,7 @@ class TokenUtils {
   }
 
   static isPremiumPlan(plan) {
-    return ['pro', 'enterprise'].includes(plan);
+    return false; // Plus de plans premium, tout est gratuit
   }
 
   static formatTokens(amount) {

@@ -5,15 +5,10 @@
 // Références Firebase (exposées par firebase-config.js)
 // db est défini globalement dans firebase-config.js
 
-// Mode démo : créer des objets mock si Firebase n'est pas disponible
-if (typeof window.authService === 'undefined') {
-    console.warn('[DPAI] authService non défini, création d\'un mock pour le mode démo');
-    window.authService = {
-        currentUser: null,
-        userData: null,
-        loadUserData: async () => null
-    };
-}
+// Ne PAS créer de mock authService car il est déjà initialisé dans auth.js
+// auth.js définit window.authService = null au début, puis le remplace par une instance quand Firebase est prêt
+// Si authService est null, c'est que Firebase est en train de se charger
+// On attendra donc qu'il soit initialisé correctement
 
 // Si TokenManager existe mais n'est pas initialisé (mode démo), le configurer
 if (typeof window.TokenManager !== 'undefined') {
@@ -60,10 +55,10 @@ if (typeof window.TokenManager !== 'undefined') {
 // Configurer TokenConfig si non défini
 if (typeof window.TokenConfig === 'undefined') {
     window.TokenConfig = {
-        baseTokenLimits: { free: 50, pro: 500, enterprise: 5000 },
-        tokenBonuses: { free: 0.0, pro: 0.20, enterprise: 0.30 },
-        welcomeBonus: 10,
-        firstAnalysisBonus: 5
+        baseTokenLimits: { free: 500 },
+        tokenBonuses: { free: 0.0204 },
+        welcomeBonus: 0,
+        firstAnalysisBonus: 0
     };
 }
 
@@ -177,20 +172,22 @@ function initQuickActions() {
         if (!services) {
             console.warn('[DASHBOARD] servicesData non disponible, utilisation du fallback COMPLET');
             services = {
+                // PHASE 1 & 2 - TOUS GRATUITS
                 swot: { id: 'swot', name: 'Analyse SWOT', icon: 'fa-swimming-pool', tokens: '5-10', requiredPlan: 'free' },
                 porter: { id: 'porter', name: 'Porter 5 Forces', icon: 'fa-project-diagram', tokens: '20-120', requiredPlan: 'free' },
                 pestel: { id: 'pestel', name: 'Analyse PESTEL', icon: 'fa-globe-americas', tokens: '15-75', requiredPlan: 'free' },
-                competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: '20-160', requiredPlan: 'pro' },
-                reports: { id: 'reports', name: 'Rapports Détaillés', icon: 'fa-file-alt', tokens: '25-250', requiredPlan: null },
-                ideal_sector: { id: 'ideal_sector', name: 'Secteur idéal', icon: 'fa-globe', tokens: '35', requiredPlan: 'pro' },
-                maturity_score: { id: 'maturity_score', name: 'Score de maturité', icon: 'fa-chart-line', tokens: '50', requiredPlan: 'pro' },
-                integration_matrix: { id: 'integration_matrix', name: 'Matrice d\'intégration', icon: 'fa-th', tokens: '180', requiredPlan: 'enterprise' },
-                valuation_simulator: { id: 'valuation_simulator', name: 'Simulateur de valorisation', icon: 'fa-euro-sign', tokens: '200', requiredPlan: 'enterprise' },
-                due_diligence: { id: 'due_diligence', name: 'Checklist Due Diligence', icon: 'fa-check-square', tokens: '100', requiredPlan: 'enterprise' },
-                loi_generator: { id: 'loi_generator', name: 'Générateur de LOI', icon: 'fa-file-contract', tokens: '150', requiredPlan: 'enterprise' },
-                negotiation_simulator: { id: 'negotiation_simulator', name: 'Simulateur de négociation', icon: 'fa-handshake', tokens: '180', requiredPlan: 'enterprise' },
-                action_plan_100_days: { id: 'action_plan_100_days', name: 'Plan 100 jours', icon: 'fa-route', tokens: '250', requiredPlan: 'enterprise' },
-                post_acquisition_dashboard: { id: 'post_acquisition_dashboard', name: 'Dashboard Post-Acquisition', icon: 'fa-chart-area', tokens: '80/mois', requiredPlan: 'enterprise' }
+                competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: '20-160', requiredPlan: 'free' },
+                reports: { id: 'reports', name: 'Rapports Détaillés', icon: 'fa-file-alt', tokens: '25-250', requiredPlan: 'free' },
+                benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: '40', requiredPlan: 'free' },
+                modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: '60', requiredPlan: 'free' },
+                due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: '70', requiredPlan: 'free' },
+                valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: '80', requiredPlan: 'free' },
+                synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: '50', requiredPlan: 'free' },
+                // PHASE 3 & 4 - BLOQUÉS (contact par mail)
+                loi_generator: { id: 'loi_generator', name: 'Générateur de LOI', icon: 'fa-file-contract', tokens: '150', requiredPlan: 'blocked' },
+                negotiation_simulator: { id: 'negotiation_simulator', name: 'Simulateur de négociation', icon: 'fa-handshake', tokens: '180', requiredPlan: 'blocked' },
+                action_plan_100_days: { id: 'action_plan_100_days', name: 'Plan 100 jours', icon: 'fa-route', tokens: '250', requiredPlan: 'blocked' },
+                post_acquisition_dashboard: { id: 'post_acquisition_dashboard', name: 'Dashboard Post-Acquisition', icon: 'fa-chart-area', tokens: '80/mois', requiredPlan: 'blocked' }
             };
         }
         
@@ -281,11 +278,10 @@ function renderQuickActions(services) {
         if (service) {
             const btn = document.createElement('button');
             
-            // Vérifier si le service est accessible avec le plan actuel
-            // En mode démo (sans userData), tout est accessible
-            const isAccessible = hasUserData && typeof isServiceAccessible !== 'undefined' 
-                ? isServiceAccessible(service, userPlan) 
-                : true; // Par défaut accessible si pas de userData ou pas de fonction
+            // Vérifier si le service est accessible
+            // Tous les services avec requiredPlan === 'free' ou non défini sont accessibles
+            // Les services avec requiredPlan === 'blocked' nécessitent contact par mail
+            const isAccessible = !service.requiredPlan || service.requiredPlan === 'free';
             
             btn.className = 'quick-action-btn' + (isAccessible ? '' : ' locked');
             
@@ -296,7 +292,7 @@ function renderQuickActions(services) {
                     e.stopPropagation();
                     showPlanUpgradeMessage(service);
                 };
-                btn.setAttribute('title', `Ce service nécessite le plan ${service.requiredPlan ? service.requiredPlan.charAt(0).toUpperCase() + service.requiredPlan.slice(1) : 'Pro'}`);
+                btn.setAttribute('title', 'Contactez-nous pour accéder à ce service');
             } else {
                 btn.onclick = () => startAnalysis(serviceId);
             }
@@ -323,10 +319,9 @@ function renderQuickActions(services) {
     }
 }
 
-// Afficher un message pour inviter à passer à un plan supérieur
+// Afficher un message pour inviter à contacter pour les services bloqués
 function showPlanUpgradeMessage(service) {
-    const requiredPlan = service.requiredPlan ? service.requiredPlan.charAt(0).toUpperCase() + service.requiredPlan.slice(1) : 'Pro';
-    const message = `Ce service est réservé aux utilisateurs du plan ${requiredPlan} et supérieurs. Passez au plan ${requiredPlan} pour y accéder.`;
+    const message = 'Ce service fait partie des Phases 3 & 4. Contactez duprey.conseil@gmail.com pour un devis personnalisé.';
     
     // Afficher une notification
     showNotification(message, 'warning');
@@ -679,9 +674,7 @@ function updateDashboardStats(userData) {
     }
     
     const planNames = {
-        free: 'Gratuit',
-        pro: 'Pro',
-        enterprise: 'Entreprise'
+        free: 'Gratuit'
     };
     
     // Mettre à jour les tokens

@@ -2,6 +2,9 @@
 // AUTH.JS - Gestion de l'authentification Firebase
 // =============================================================================
 
+// Définir authService comme null pour éviter que d'autres scripts ne créent de mocks
+window.authService = null;
+
 class AuthService {
   constructor() {
     // Utiliser les instances exposées par firebase-config.js
@@ -10,6 +13,14 @@ class AuthService {
     this.currentUser = null;
     this.authStateListener = null;
     this.functions = window.firebaseFunctions || (firebase.functions ? firebase.functions() : null);
+    
+    // Configurer la persistance de l'authentification pour rester connecté 2 semaines
+    // Firebase Auth peut utiliser : IN_MEMORY, SESSION, ou LOCAL
+    // LOCAL permet de persister les données de connexion entre les sessions
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .catch((error) => {
+            console.warn('Erreur configuration persistance Firebase Auth:', error);
+        });
   }
 
   // Initialisation

@@ -100,7 +100,7 @@ function updateAuthUI(user, userData) {
 function updateDashboardStats(userData) {
     if (!userData) return;
     
-    const planNames = { free: 'Gratuit', pro: 'Pro', enterprise: 'Entreprise' };
+    const planNames = { free: 'Gratuit' };  // Tous les utilisateurs ont le plan free
     
     const availableTokensEl = document.getElementById('availableTokens');
     const usedTokensEl = document.getElementById('usedTokens');

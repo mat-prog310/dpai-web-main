@@ -2,9 +2,27 @@
 // REGISTER.JS - Gestion de l'inscription
 // =============================================================================
 
+// Attendre que authService soit disponible
+function waitForAuthService(callback, maxAttempts = 100, interval = 100) {
+    let attempts = 0;
+    const checkInterval = setInterval(() => {
+        attempts++;
+        if (typeof window.authService !== 'undefined' && window.authService && window.authService.signUp) {
+            clearInterval(checkInterval);
+            callback();
+        } else if (attempts >= maxAttempts) {
+            clearInterval(checkInterval);
+            console.error('%c❌ [Register] authService non disponible après 10 secondes', 'color: #dc3545; font-weight: bold;');
+            callback(); // Appeler quand même pour éviter un blocage
+        }
+    }, interval);
+}
+
 // Attendre que le DOM soit chargé
 document.addEventListener('DOMContentLoaded', function() {
-    initRegisterForm();
+    waitForAuthService(() => {
+        initRegisterForm();
+    });
 });
 
 // Initialiser le formulaire d'inscription

@@ -163,12 +163,8 @@ function updateAccountInfo(user, userData) {
     }
     
     if (planEl) {
-        const planNames = {
-            free: 'Gratuit',
-            pro: 'Pro',
-            enterprise: 'Entreprise'
-        };
-        planEl.textContent = planNames[userData.plan] || userData.plan || 'Gratuit';
+        const planNames = { free: 'Gratuit' };
+        planEl.textContent = 'Gratuit';  // Tous les utilisateurs ont le plan free
     }
     
     if (joinDateEl) {
@@ -890,33 +886,11 @@ function hideDowngradeModal() {
 }
 
 function updateDowngradeLosesList() {
-    const userPlan = authService?.userData?.plan;
+    // Tous les utilisateurs ont le plan free, donc pas de downgrade possible
     const losesList = document.getElementById('downgradeLosesList');
-    
-    if (!losesList) return;
-    
-    const planFeatures = {
-        pro: [
-            'Accès aux analyses avancées',
-            '500 tokens/mois supplémentaires',
-            'Support prioritaire',
-            'Projets illimités'
-        ],
-        enterprise: [
-            'Accès à TOUTES les analyses',
-            '5000 tokens/mois supplémentaires',
-            'Support dédié 24/7',
-            'Accès API',
-            'Formation incluse',
-            'Rapports personnalisés',
-            'Services de stratégie de croissance externe'
-        ]
-    };
-    
-    const features = planFeatures[userPlan] || [];
-    losesList.innerHTML = features.map(feature => 
-        `<li><i class="fas fa-times-circle"></i> ${feature}</li>`
-    ).join('');
+    if (losesList) {
+        losesList.innerHTML = '<li><i class="fas fa-info-circle"></i> Tous les services Phases 1 & 2 sont accessibles gratuitement.</li>';
+    }
 }
 
 function downgradePlan() {
@@ -1076,9 +1050,7 @@ function updatePlanUI(userData) {
     // Mettre à jour la description du plan
     const currentPlanDescription = document.getElementById('currentPlanDescription');
     const planDescriptions = {
-        free: 'Accès aux fonctionnalités de base avec 50 tokens gratuits.',
-        pro: 'Accès à toutes les analyses avec 500 tokens/mois + 1/jour.',
-        enterprise: 'Accès complet à toutes les fonctionnalités avec 5000 tokens/mois + 1/jour, support dédié et formation incluse.'
+        free: '500 tokens gratuits. Tous les services Phases 1 & 2 sont accessibles.'
     };
     if (currentPlanDescription) {
         currentPlanDescription.textContent = planDescriptions[plan] || '';
@@ -1088,26 +1060,17 @@ function updatePlanUI(userData) {
     const currentPlanFeatures = document.getElementById('currentPlanFeatures');
     const planFeaturesMap = {
         free: [
-            'Analyses de base',
-            '50 tokens gratuits',
-            'Accès limité',
-            '3 projets maximum'
-        ],
-        pro: [
-            'Toutes les analyses',
-            '500 tokens/mois + 1/jour',
-            'Rapports détaillés',
-            'Projets illimités',
-            'Support prioritaire'
-        ],
-        enterprise: [
-            'Toutes les analyses premium',
-            '5000 tokens/mois + 1/jour',
-            'Support dédié 24/7',
-            'Accès API',
-            'Formation incluse',
-            'Stratégie de croissance externe',
-            'Rapports personnalisés'
+            'Analyse SWOT',
+            'Porter 5 Forces',
+            'Analyse PESTEL',
+            'Analyse Concurrentielle',
+            'Benchmarking',
+            'Modélisation',
+            'Due Diligence (de base)',
+            'Valorisation (de base)',
+            'Analyse des Synergies',
+            '500 tokens gratuits',
+            'Support par email pour Phases 3 & 4'
         ]
     };
     

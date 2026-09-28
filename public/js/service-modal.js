@@ -1,13 +1,13 @@
 // =============================================================================
 // SERVICE-MODAL.JS - Gestion des modales de détails des services
 // Tous les services sont gratuits avec déduction de tokens
+// Un seul plan : free (500 tokens)
+// Phases 3 & 4 : bloquées (contact par mail duprey.conseil@gmail.com)
 // =============================================================================
 
-// Hiérarchie des plans (index plus élevé = meilleur plan)
+// Hiérarchie des plans (un seul plan maintenant)
 const PlanHierarchy = {
-    free: 0,
-    pro: 1,
-    enterprise: 2
+    free: 0
 };
 
 // Données des services
@@ -101,7 +101,7 @@ const servicesData = {
             'Identification des concurrents directs et indirects',
             'Évaluation des barrières à l\'entrée'
         ],
-        requiredPlan: 'pro'
+        requiredPlan: 'free'
     },
     reports: {
         id: 'reports',
@@ -126,7 +126,7 @@ const servicesData = {
             'Export en PDF et Excel',
             'Présentation prête à l\'emploi'
         ],
-        requiredPlan: null
+        requiredPlan: 'free'
     },
     dashboard: {
         id: 'dashboard',
@@ -148,7 +148,8 @@ const servicesData = {
             'Gestion de vos projets stratégiques',
             'Optimisation de l\'utilisation de vos tokens',
             'Prise de décision basée sur les données'
-        ]
+        ],
+        requiredPlan: 'free'
     },
     // =============================================================================
     // SERVICES DE STRATEGIE DE CROISSANCE EXTERNE
@@ -176,7 +177,7 @@ const servicesData = {
             'Optimisation de portefeuille d\'activités',
             'Veille stratégique sectorielle'
         ],
-        requiredPlan: 'pro',
+        requiredPlan: 'free',
         category: 'Stratégie - Phase 1: Préparation'
     },
     maturity_score: {
@@ -200,11 +201,11 @@ const servicesData = {
             'Benchmark de maturité interne',
             'Identification des axes d\'amélioration'
         ],
-        requiredPlan: 'pro',
+        requiredPlan: 'free',
         category: 'Stratégie - Phase 1: Préparation'
     },
     
-    // Phase 2: RECHERCHE & EVALUATION - Entreprise uniquement
+    // Phase 2: RECHERCHE & EVALUATION - Gratuit (500 tokens)
     integration_matrix: {
         id: 'integration_matrix',
         name: 'Matrice d\'intégration',
@@ -226,7 +227,7 @@ const servicesData = {
             'Évaluation de la compatibilité stratégique',
             'Optimisation des processus de fusion'
         ],
-        requiredPlan: 'enterprise',
+        requiredPlan: 'blocked',
         category: 'Stratégie - Phase 2: Recherche & Évaluation'
     },
     valuation_simulator: {
@@ -250,7 +251,7 @@ const servicesData = {
             'Évaluation de cibles potentielles',
             'Benchmark de valorisation'
         ],
-        requiredPlan: 'enterprise',
+        requiredPlan: 'blocked',
         category: 'Stratégie - Phase 2: Recherche & Évaluation'
     },
     due_diligence: {
@@ -274,11 +275,11 @@ const servicesData = {
             'Identification des red flags',
             'Préparation des documents de transaction'
         ],
-        requiredPlan: 'enterprise',
+        requiredPlan: 'blocked',
         category: 'Stratégie - Phase 2: Recherche & Évaluation'
     },
     
-    // Phase 3: NEGOCIATION & SIGNATURE - Entreprise uniquement
+    // Phase 3: NEGOCIATION & SIGNATURE - Bloqué (contact par mail)
     loi_generator: {
         id: 'loi_generator',
         name: 'Générateur de LOI',
@@ -300,7 +301,7 @@ const servicesData = {
             'Préparation des offres d\'achat',
             'Négociation professionnelle'
         ],
-        requiredPlan: 'enterprise',
+        requiredPlan: 'blocked',
         category: 'Stratégie - Phase 3: Négociation & Signature'
     },
     negotiation_simulator: {
@@ -324,7 +325,7 @@ const servicesData = {
             'Test de différentes stratégies',
             'Optimisation des résultats de négociation'
         ],
-        requiredPlan: 'enterprise',
+        requiredPlan: 'blocked',
         category: 'Stratégie - Phase 3: Négociation & Signature'
     },
     
@@ -350,7 +351,7 @@ const servicesData = {
             'Alignement des équipes',
             'Suivi de la progression'
         ],
-        requiredPlan: 'enterprise',
+        requiredPlan: 'blocked',
         category: 'Stratégie - Phase 4: Intégration & Suivi'
     },
     post_acquisition_dashboard: {
@@ -374,7 +375,7 @@ const servicesData = {
             'Rapport aux actionnaires',
             'Optimisation de la valeur créée'
         ],
-        requiredPlan: 'enterprise',
+        requiredPlan: 'blocked',
         category: 'Stratégie - Phase 4: Intégration & Suivi'
     }
 };
@@ -386,30 +387,29 @@ function isServiceAccessible(service, userPlan) {
     const serviceRequiredPlan = service.requiredPlan;
     if (!serviceRequiredPlan) return true; // Pas de restriction = accessible à tous
     
-    const userPlanIndex = PlanHierarchy[userPlan] || 0;
-    const requiredPlanIndex = PlanHierarchy[serviceRequiredPlan.toLowerCase()] || 0;
+    // Tous les utilisateurs ont le plan 'free'
+    // Les services avec requiredPlan === 'blocked' ne sont pas accessibles
+    if (serviceRequiredPlan === 'blocked') {
+        return false;
+    }
     
-    return userPlanIndex >= requiredPlanIndex;
+    return true; // Tous les autres services (free) sont accessibles
 }
 
-// Obtenir l'icône du plan
+// Obtenir l'icône du plan (un seul plan : free)
 function getPlanIcon(plan) {
     const planIcons = {
-        free: 'fa-user',
-        pro: 'fa-star',
-        enterprise: 'fa-building'
+        free: 'fa-user'
     };
     return planIcons[plan?.toLowerCase()] || 'fa-lock';
 }
 
-// Obtenir le libellé du plan
+// Obtenir le libellé du plan (un seul plan : free)
 function getPlanLabel(plan) {
     const planLabels = {
-        free: 'Gratuit',
-        pro: 'Pro',
-        enterprise: 'Entreprise'
+        free: 'Gratuit'
     };
-    return planLabels[plan?.toLowerCase()] || plan || 'Unknown';
+    return planLabels[plan?.toLowerCase()] || plan || 'Gratuit';
 }
 
 // Mettre à jour l'affichage des services selon le plan
