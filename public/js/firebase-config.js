@@ -1,5 +1,5 @@
 // Configuration Firebase pour DPAI Web
-// Les scripts Firebase sont chargés AVANT ce fichier dans index.html
+// Initialisation immédiate - les scripts Firebase sont chargés AVANT ce fichier
 
 const firebaseConfig = {
   apiKey: "AIzaSyDowkBbuxpYbpkMqdXyrxXGgk7FHxy7m68",
@@ -20,37 +20,54 @@ if (window.location.protocol === 'file:') {
   window.FIREBASE_FILE_PROTOCOL = true;
 }
 
-// Attendre que Firebase SDK soit complètement chargé
-function initializeFirebaseWhenReady() {
-  const checkInterval = setInterval(() => {
-    // Vérifier que firebase est défini ET a une méthode initializeApp
-    if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
-      clearInterval(checkInterval);
-      
-      // Initialiser l'application si ce n'est pas déjà fait
-      if (!firebase.apps.length) {
+// Initialiser Firebase IMMEDIATEMENT
+try {
+  // Vérifier que firebase est déjà chargé
+  if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+    // Initialiser l'application si ce n'est pas déjà fait
+    if (!firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
+    }
+    
+    // Définir les instances globalement
+    window.firebase = firebase;
+    window.firebaseAuth = firebase.auth();
+    window.db = firebase.firestore();
+    window.firebaseDB = firebase.firestore();
+    window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
+    
+    console.log('%c✅ [Firebase] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
+  } else {
+    // Firebase SDK pas encore chargé - essayer de le charger manuellement
+    console.warn('⚠️ [Firebase] SDK non encore chargé, initialisation reportée');
+    
+    // Fonction pour réessayer
+    window.initializeFirebase = function() {
+      if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function' && !firebase.apps.length) {
         firebase.initializeApp(firebaseConfig);
+        window.firebase = firebase;
+        window.firebaseAuth = firebase.auth();
+        window.db = firebase.firestore();
+        window.firebaseDB = firebase.firestore();
+        window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
+        console.log('%c✅ [Firebase] Initialisé avec succès (reporté)', 'color: #28a745; font-weight: bold;');
       }
-      
-      // Définir les instances globalement
-      window.firebase = firebase;
-      window.firebaseAuth = firebase.auth();
-      window.db = firebase.firestore();
-      window.firebaseDB = firebase.firestore();
-      window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
-      
-      console.log('%c✅ [Firebase] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
-    }
-  }, 100);
-  
-  // Timeout de sécurité
-  setTimeout(() => {
-    clearInterval(checkInterval);
-    if (typeof firebase === 'undefined') {
+    };
+    
+    // Vérifier périodiquement
+    const initInterval = setInterval(() => {
+      if (typeof firebase !== 'undefined' && typeof firebase.initializeApp === 'function') {
+        clearInterval(initInterval);
+        window.initializeFirebase();
+      }
+    }, 100);
+    
+    // Timeout de sécurité
+    setTimeout(() => {
+      clearInterval(initInterval);
       console.error('%c❌ [Firebase] SDK non chargé après 10 secondes', 'color: #dc3545; font-weight: bold;');
-    }
-  }, 10000);
+    }, 10000);
+  }
+} catch (error) {
+  console.error('%c❌ [Firebase] Erreur d\'initialisation:', 'color: #dc3545; font-weight: bold;', error);
 }
-
-// Lancer l'initialisation
-initializeFirebaseWhenReady();
