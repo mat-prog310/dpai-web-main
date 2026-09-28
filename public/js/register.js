@@ -1,31 +1,33 @@
 // =============================================================================
 // REGISTER.JS - Gestion de l'inscription
+// Version simplifiée et fiable
 // =============================================================================
 
-// Attendre que authService soit disponible
-function waitForAuthService(callback, maxAttempts = 100, interval = 100) {
-    let attempts = 0;
-    const checkInterval = setInterval(() => {
-        attempts++;
-        // Ne PAS vérifier window.authService (car il peut être null initialement)
-        if (typeof window.authService !== 'undefined' && typeof window.authService.signUp === 'function') {
-            clearInterval(checkInterval);
-            callback();
-        } else if (attempts >= maxAttempts) {
-            clearInterval(checkInterval);
-            console.error('%c❌ [Register] authService.signUp non disponible après 10 secondes', 'color: #dc3545; font-weight: bold;');
-            callback(); // Appeler quand même pour éviter un blocage
-        }
-    }, interval);
-}
+console.log('%c[Register.js] Chargement du module d\'inscription...', 'color: #FF5722; font-weight: bold;');
 
-// Attendre que le DOM soit chargé
+// Attendre que le DOM et authService soient prêts
 document.addEventListener('DOMContentLoaded', function() {
-    waitForAuthService(() => {
-        // authService.init() est déjà appelé dans auth.js, ne pas le rappeler ici
+    // Attendre que authService soit disponible
+    const checkAuthReady = setInterval(() => {
+        if (window.authService && typeof window.authService.signUp === 'function') {
+            clearInterval(checkAuthReady);
+            console.log('%c✅ [Register] authService est disponible', 'color: #4CAF50; font-weight: bold;');
+            initRegisterForm();
+        }
+    }, 100);
+    
+    // Timeout de sécurité
+    setTimeout(() => {
+        clearInterval(checkAuthReady);
+        console.error('%c❌ [Register] authService NON disponible après 10 secondes', 'color: #F44336; font-weight: bold;');
+        // Essayer quand même d'initialiser le formulaire
         initRegisterForm();
-    });
+    }, 10000);
 });
+
+// =============================================================================
+// FONCTIONS D'INITIALISATION
+// =============================================================================
 
 // Initialiser le formulaire d'inscription
 function initRegisterForm() {
@@ -34,6 +36,7 @@ function initRegisterForm() {
     const registerEmail = document.getElementById('registerEmail');
     const registerPassword = document.getElementById('registerPassword');
     const registerConfirmPassword = document.getElementById('registerConfirmPassword');
+    const registerReferralCode = document.getElementById('registerReferralCode');
     const registerBtn = document.getElementById('registerBtnForm');
     const registerError = document.getElementById('registerError');
     const registerErrorTitle = document.getElementById('registerErrorTitle');
@@ -41,107 +44,80 @@ function initRegisterForm() {
     const registerErrorClose = document.getElementById('registerErrorClose');
     const registerSuccess = document.getElementById('registerSuccess');
     const googleRegisterBtn = document.getElementById('googleRegisterBtn');
-    const termsAgreement = document.getElementById('termsAgreement');
+    
+    if (!registerForm) return;
     
     // Gérer la soumission du formulaire
-    if (registerForm) {
-        registerForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            // Cacher les alertes
-            hideAllAlerts([registerError, registerSuccess]);
-            
-            // Désactiver le bouton
-            if (registerBtn) {
-                registerBtn.disabled = true;
-                registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Création...';
+    registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Cacher les alertes
+        hideAllAlerts([registerError, registerSuccess]);
+        
+        // Désactiver le bouton
+        if (registerBtn) {
+            registerBtn.disabled = true;
+            registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription...';
+        }
+        
+        // Récupérer les valeurs
+        const name = registerName ? registerName.value.trim() : '';
+        const email = registerEmail ? registerEmail.value.trim() : '';
+        const password = registerPassword ? registerPassword.value : '';
+        const confirmPassword = registerConfirmPassword ? registerConfirmPassword.value : '';
+        const referralCode = registerReferralCode ? registerReferralCode.value.trim() : null;
+        
+        // Validation
+        if (!name || name.length < 2) {
+            showError(registerError, registerErrorTitle, registerErrorMessage, 'Le nom doit contenir au moins 2 caractères');
+            resetRegisterButton(registerBtn);
+            return;
+        }
+        
+        if (!email || !validateEmail(email)) {
+            showError(registerError, registerErrorTitle, registerErrorMessage, 'Adresse email invalide');
+            resetRegisterButton(registerBtn);
+            return;
+        }
+        
+        if (password.length < 6) {
+            showError(registerError, registerErrorTitle, registerErrorMessage, 'Le mot de passe doit contenir au moins 6 caractères');
+            resetRegisterButton(registerBtn);
+            return;
+        }
+        
+        if (password !== confirmPassword) {
+            showError(registerError, registerErrorTitle, registerErrorMessage, 'Les mots de passe ne correspondent pas');
+            resetRegisterButton(registerBtn);
+            return;
+        }
+        
+        // Vérifier qu'authService est disponible
+        if (!window.authService || typeof window.authService.signUp !== 'function') {
+            showError(registerError, registerErrorTitle, registerErrorMessage, 'Service d\'authentification non disponible. Veuillez rafraîchir la page.');
+            resetRegisterButton(registerBtn);
+            return;
+        }
+        
+        // Inscription Firebase
+        window.authService.signUp(email, password, name, referralCode).then(result => {
+            if (result.success) {
+                // Afficher le succès
+                if (registerSuccess) registerSuccess.style.display = 'flex';
+                
+                // Rediriger après 1 seconde
+                setTimeout(() => {
+                    window.location.href = './dashboard.html';
+                }, 1000);
+            } else {
+                showError(registerError, registerErrorTitle, registerErrorMessage, result.error || 'Erreur d\'inscription');
+                resetRegisterButton(registerBtn);
             }
-            
-            // Récupérer les valeurs
-            const name = registerName.value.trim();
-            const email = registerEmail.value.trim();
-            const password = registerPassword.value;
-            const confirmPassword = registerConfirmPassword.value;
-            const referralCode = document.getElementById('referralCode').value.trim();
-            const companyName = document.getElementById('companyName').value.trim();
-            
-            // Validation
-            if (name.length < 2) {
-                showError(registerError, registerErrorTitle, registerErrorMessage, 'Le nom doit contenir au moins 2 caractères');
-                if (registerBtn) {
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Créer mon compte';
-                }
-                return;
-            }
-            
-            if (!validateEmail(email)) {
-                showError(registerError, registerErrorTitle, registerErrorMessage, 'Adresse email invalide');
-                if (registerBtn) {
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Créer mon compte';
-                }
-                return;
-            }
-            
-            if (password.length < 6) {
-                showError(registerError, registerErrorTitle, registerErrorMessage, 'Le mot de passe doit contenir au moins 6 caractères');
-                if (registerBtn) {
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Créer mon compte';
-                }
-                return;
-            }
-            
-            if (password !== confirmPassword) {
-                showError(registerError, registerErrorTitle, registerErrorMessage, 'Les mots de passe ne correspondent pas');
-                if (registerBtn) {
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Créer mon compte';
-                }
-                return;
-            }
-            
-            if (!termsAgreement || !termsAgreement.checked) {
-                showError(registerError, registerErrorTitle, registerErrorMessage, 'Vous devez accepter les conditions générales');
-                if (registerBtn) {
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Créer mon compte';
-                }
-                return;
-            }
-            
-            // Inscription Firebase
-            authService.signUp(email, password, name, referralCode).then(result => {
-                if (result.success) {
-                    // Afficher le succès
-                    if (registerSuccess) registerSuccess.style.display = 'flex';
-                    
-                    // Mettre à jour le nom de l'entreprise si fourni
-                    if (companyName && result.user) {
-                        authService.updateProfile(name, companyName);
-                    }
-                    
-                    // Rediriger après 3 secondes
-                    setTimeout(() => {
-                        window.location.href = './dashboard.html';
-                    }, 3000);
-                } else {
-                    showError(registerError, registerErrorTitle, registerErrorMessage, result.error || 'Erreur d\'inscription');
-                    if (registerBtn) {
-                        registerBtn.disabled = false;
-                        registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Créer mon compte';
-                    }
-                }
-            }).catch(error => {
-                showError(registerError, registerErrorTitle, registerErrorMessage, error.message || 'Erreur d\'inscription');
-                if (registerBtn) {
-                    registerBtn.disabled = false;
-                    registerBtn.innerHTML = '<i class="fas fa-user-plus"></i> Créer mon compte';
-                }
-            });
+        }).catch(error => {
+            showError(registerError, registerErrorTitle, registerErrorMessage, error.message || 'Erreur d\'inscription');
+            resetRegisterButton(registerBtn);
         });
-    }
+    });
     
     // Fermer l'alerte d'erreur
     if (registerErrorClose) {
@@ -154,35 +130,53 @@ function initRegisterForm() {
     if (googleRegisterBtn) {
         googleRegisterBtn.onclick = function() {
             // Désactiver le bouton
-            this.disabled = true;
-            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Connexion...';
+            const btn = this;
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Inscription...';
             
-            // Utiliser Firebase Google Auth via authService
-            const provider = new (window.firebaseAuth || firebase.auth).GoogleAuthProvider();
-            
-            authService.auth.signInWithPopup(provider)
-                .then(result => {
-                    // Nouveau utilisateur
-                    if (result.additionalUserInfo.isNewUser) {
-                        return createNewUserFromGoogle(result.user);
+            // Vérifier qu'authService et Firebase sont prêts
+            const checkReady = setInterval(() => {
+                if (typeof firebase !== 'undefined' && firebase && firebase.auth && 
+                    window.authService && window.authService.auth) {
+                    clearInterval(checkReady);
+                    
+                    try {
+                        const provider = new firebase.auth.GoogleAuthProvider();
+                        
+                        window.authService.auth.signInWithPopup(provider)
+                            .then(async (result) => {
+                                // Nouveau utilisateur
+                                if (result.additionalUserInfo.isNewUser) {
+                                    await createNewUserFromGoogle(result.user);
+                                }
+                                // Rediriger
+                                window.location.href = './dashboard.html';
+                            })
+                            .catch(error => {
+                                showError(registerError, registerErrorTitle, registerErrorMessage, error.message || 'Erreur d\'inscription Google');
+                                resetGoogleButton(btn);
+                            });
+                    } catch (e) {
+                        showError(registerError, registerErrorTitle, registerErrorMessage, 'Firebase non initialisé. Veuillez rafraîchir la page.');
+                        resetGoogleButton(btn);
                     }
-                    return Promise.resolve();
-                })
-                .then(() => {
-                    // Rediriger
-                    window.location.href = './dashboard.html';
-                })
-                .catch(error => {
-                    showError(registerError, registerErrorTitle, registerErrorMessage, error.message || 'Erreur de connexion Google');
-                    this.disabled = false;
-                    this.innerHTML = '<i class="fab fa-google"></i> S\'inscrire avec Google';
-                });
+                }
+            }, 100);
+            
+            // Timeout de sécurité
+            setTimeout(() => {
+                clearInterval(checkReady);
+                showError(registerError, registerErrorTitle, registerErrorMessage, 'Firebase met trop de temps à se charger. Veuillez rafraîchir la page.');
+                resetGoogleButton(btn);
+            }, 10000);
         };
     }
 }
 
 // Créer un nouvel utilisateur à partir de Google
 async function createNewUserFromGoogle(user) {
+    if (!window.authService || !window.authService.db) return;
+    
     const userData = {
         id: user.uid,
         name: user.displayName || user.email || 'Utilisateur',
@@ -190,16 +184,16 @@ async function createNewUserFromGoogle(user) {
         plan: 'free',
         subscriptionStartDate: new Date().toISOString(),
         subscriptionEndDate: null,
-        tokenState: TokenManager.createTokenState(user.uid, 'free'),
-        loyaltyInfo: LoyaltySystem.create(user.uid),
+        tokenState: typeof TokenManager !== 'undefined' ? TokenManager.createTokenState(user.uid, 'free') : { availableTokens: 500, usedTokens: 0, totalTokens: 500 },
+        loyaltyInfo: typeof LoyaltySystem !== 'undefined' ? LoyaltySystem.create(user.uid) : { totalAnalyses: 0, monthlyAnalyses: 0, monthlyLoyaltyTokens: 0 },
         referralCode: null,
         referralInfo: null,
         companyName: null,
-        companyDomain: TokenUtils.extractDomain(user.email),
+        companyDomain: typeof TokenUtils !== 'undefined' ? TokenUtils.extractDomain(user.email) : null,
         hasCompanyDiscount: false,
-        hasAccessToPremiumSuggestions: false,
-        hasAccessToAdvancedAnalytics: false,
-        hasAccessToAPI: false,
+        hasAccessToPremiumSuggestions: true,
+        hasAccessToAdvancedAnalytics: true,
+        hasAccessToAPI: true,
         isEmailVerified: user.emailVerified || false,
         isActive: true,
         createdAt: new Date().toISOString(),
@@ -209,15 +203,38 @@ async function createNewUserFromGoogle(user) {
     };
     
     try {
-        await db.collection('users').doc(user.uid).set(userData);
-        TokenManager.init(userData);
+        await window.authService.db.collection('users').doc(user.uid).set(userData);
+        if (typeof TokenManager !== 'undefined') {
+            TokenManager.init(userData);
+        }
     } catch (error) {
         console.error('Erreur création utilisateur Google:', error);
     }
 }
 
+// =============================================================================
+// FONCTIONS UTILITAIRES
+// =============================================================================
+
+// Réinitialiser le bouton d'inscription
+function resetRegisterButton(btn) {
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fas fa-user-plus"></i> S\'inscrire';
+    }
+}
+
+// Réinitialiser le bouton Google
+function resetGoogleButton(btn) {
+    if (btn) {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="fab fa-google"></i> Continuer avec Google';
+    }
+}
+
 // Cacher toutes les alertes
 function hideAllAlerts(alerts) {
+    if (!alerts) return;
     alerts.forEach(alert => {
         if (alert) alert.style.display = 'none';
     });
@@ -232,6 +249,7 @@ function showError(errorEl, titleEl, messageEl, message) {
 
 // Valider un email
 function validateEmail(email) {
+    if (!email) return false;
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
 }
