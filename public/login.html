@@ -92,6 +92,25 @@
                         <p>Connectez-vous avec votre email et mot de passe</p>
                     </div>
                     
+                    <!-- Alert Error -->
+                    <div id="loginError" class="alert alert-error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div class="alert-content">
+                            <span class="alert-title" id="loginErrorTitle">Erreur</span>
+                            <span class="alert-message" id="loginErrorMessage"></span>
+                        </div>
+                        <button type="button" id="loginErrorClose" class="alert-close"><i class="fas fa-times"></i></button>
+                    </div>
+                    
+                    <!-- Alert Success -->
+                    <div id="loginSuccess" class="alert alert-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="alert-content">
+                            <span class="alert-title">Connexion réussie !</span>
+                            <span class="alert-message">Redirection en cours...</span>
+                        </div>
+                    </div>
+                    
                     <form id="loginForm" class="auth-form">
                         <div class="form-group">
                             <label class="form-label" for="loginEmail">Email</label>
@@ -119,7 +138,7 @@
                             </div>
                         </div>
                         
-                        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtnSubmit">
+                        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtnForm">
                             <i class="fas fa-sign-in-alt"></i> Se connecter
                         </button>
                         

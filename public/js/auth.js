@@ -303,10 +303,15 @@ function initializeAuthService() {
                window.firebaseDB;
     };
     
+    const createAndInit = () => {
+        window.authService = new AuthService();
+        window.authService.init();
+        console.log('%c✅ [AuthService] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
+    };
+    
     // Essayer de créer immédiatement
     if (checkAuthReady()) {
-        window.authService = new AuthService();
-        console.log('%c✅ [AuthService] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
+        createAndInit();
         return;
     }
     
@@ -314,8 +319,7 @@ function initializeAuthService() {
     const checkInterval = setInterval(() => {
         if (checkAuthReady()) {
             clearInterval(checkInterval);
-            window.authService = new AuthService();
-            console.log('%c✅ [AuthService] Initialisé avec succès', 'color: #28a745; font-weight: bold;');
+            createAndInit();
         }
     }, 100);
     

@@ -3,7 +3,7 @@
 // =============================================================================
 
 // Configuration des plans (TOUS LES UTILISATEURS ONT UN PLAN GRATUIT AVEC 500 TOKENS)
-// Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à duprey.conseil@gmail.com
+// Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à contact@dpai-strategy.com
 const TokenConfig = {
   baseTokenLimits: {
     free: 490    // 490 + 10 (bonus) = 500 tokens
@@ -34,7 +34,7 @@ const TokenConfig = {
 };
 
 // Coûts des analyses par type - TOUS LES UTILISATEURS ONT ACCÈS AUX PHASES 1 & 2
-// Email: duprey.conseil@gmail.com pour Phases 3 & 4
+// Email: contact@dpai-strategy.com pour Phases 3 & 4
 const AnalysisCosts = {
   // PHASE 1 & 2 : Toutes les analyses sont GRATUITES (coût en tokens déduit du solde)
   swot: 10,
@@ -63,7 +63,7 @@ const AnalysisCosts = {
 };
 
 // Tous les services sont gratuits - Plus de packs de tokens
-// Pour plus de tokens: contacter duprey.conseil@gmail.com
+// Pour plus de tokens: contacter contact@dpai-strategy.com
 
 // Système de fidélité
 class LoyaltySystem {
