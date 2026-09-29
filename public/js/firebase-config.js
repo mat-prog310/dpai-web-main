@@ -8,7 +8,7 @@ const CONTACT_EMAIL = 'duprey.conseil@gmail.com';
 
 const firebaseConfig = {
   apiKey: "AIzaSyDowkBbuxpYbpkMqdXyrxXGgk7FHxy7m68",
-  authDomain: "dpaiweb.com",
+  authDomain: "dpai-8be62.firebaseapp.com",
   projectId: "dpai-8be62",
   storageBucket: "dpai-8be62.firebasestorage.app",
   messagingSenderId: "829160806332",
