@@ -1364,32 +1364,38 @@ function updateAnalysisEstimation(type) {
     const startAnalysisBtn = document.getElementById('startAnalysisBtn');
     
     // Vérifier que TokenManager est initialisé
-    let available = 500;
+    let available = 0;
     let cost = 40;
     
-    // Essayer de lire depuis TokenManager en priorité
-    if (TokenManager && TokenManager.tokenState) {
-        const plan = authService.userData?.plan || 'free';
-        cost = TokenManager.getCost ? TokenManager.getCost(type, plan) : 40;
-        available = TokenManager.availableTokens || 500;
-    } else if (TokenManager && TokenManager.getCost) {
-        // TokenManager existe mais tokenState pas encore chargé
-        const plan = authService.userData?.plan || 'free';
-        cost = TokenManager.getCost(type, plan) || 40;
-        available = authService.userData?.availableTokens || 500;
-    } else if (authService.userData) {
-        // TokenManager pas encore chargé, mais userData existe
-        available = authService.userData.availableTokens || authService.userData.tokenState?.availableTokens || 500;
-        cost = (window.AnalysisCosts && AnalysisCosts[type]) || 40;
+    // Priority 1: Lire directement depuis le DOM (le plus fiable)
+    const availableTokensEl = document.getElementById('availableTokens');
+    if (availableTokensEl) {
+        const domAvailable = parseInt(availableTokensEl.textContent.replace(/\s/g, '')) || 0;
+        available = domAvailable;
     }
     
-    // Fallback : lire depuis le DOM si aucune source n'est disponible
-    if (available === 500) {
-        const availableTokensEl = document.getElementById('availableTokens');
-        if (availableTokensEl) {
-            const domAvailable = parseInt(availableTokensEl.textContent.replace(/\s/g, '')) || 500;
-            available = domAvailable;
-        }
+    // Priority 2: Si DOM affiche 0, essayer authService.userData
+    if (available === 0 && authService?.userData) {
+        available = authService.userData.availableTokens || 
+                    (authService.userData.tokenState?.availableTokens || 0) || 0;
+    }
+    
+    // Priority 3: TokenManager
+    if (available === 0 && TokenManager && TokenManager.tokenState) {
+        available = TokenManager.availableTokens || 0;
+    }
+    
+    // Priority 4: Valeur par défaut
+    if (available === 0) {
+        available = 500;
+    }
+    
+    // Calculer le coût
+    if (TokenManager && TokenManager.getCost) {
+        const plan = authService.userData?.plan || 'free';
+        cost = TokenManager.getCost(type, plan) || 40;
+    } else if (window.AnalysisCosts && AnalysisCosts[type]) {
+        cost = AnalysisCosts[type];
     }
     
     const canAfford = available >= cost;
