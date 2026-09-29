@@ -1105,8 +1105,319 @@ function updateSpecificFields(type, container) {
             `;
             break;
             
+        case 'reports':
+            html += `
+                <div class="specific-fields-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nom de l'entreprise</label>
+                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secteur d'activité</label>
+                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Retail, etc.">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type de rapport</label>
+                        <select class="form-select" id="reportType">
+                            <option value="">Sélectionnez...</option>
+                            <option value="financial">Financier</option>
+                            <option value="strategic">Stratégique</option>
+                            <option value="operational">Opérationnel</option>
+                            <option value="market">Marché</option>
+                            <option value="comprehensive">Complet</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Profondeur d'analyse</label>
+                        <select class="form-select" id="analysisDepth">
+                            <option value="">Sélectionnez...</option>
+                            <option value="surface">Surface</option>
+                            <option value="detailed">Détaillée</option>
+                            <option value="exhaustive">Exhaustive</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Période d'analyse</label>
+                        <select class="form-select" id="analysisPeriod">
+                            <option value="">Sélectionnez...</option>
+                            <option value="1year">1 an</option>
+                            <option value="3years">3 ans</option>
+                            <option value="5years">5 ans</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Focus particulier (optionnel)</label>
+                        <input type="text" class="form-input" id="reportFocus" placeholder="Ex: Croissance, Rentabilité, Risque">
+                    </div>
+                </div>
+                <p class="form-hint"><i class="fas fa-info-circle"></i> Plus votre demande est précise, plus le rapport sera utile.</p>
+            `;
+            break;
+            
+        case 'ideal_sector':
+            html += `
+                <div class="specific-fields-grid">
+                    <div class="form-group">
+                        <label class="form-label">Votre entreprise actuelle</label>
+                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secteur actuel</label>
+                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Retail">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Chiffre d'affaires actuel (€)</label>
+                        <input type="number" class="form-input" id="currentRevenue" placeholder="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Objectif principal</label>
+                        <select class="form-select" id="mainObjective">
+                            <option value="">Sélectionnez...</option>
+                            <option value="growth">Croissance</option>
+                            <option value="profitability">Rentabilité</option>
+                            <option value="stability">Stabilité</option>
+                            <option value="innovation">Innovation</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Budget disponible (€)</label>
+                        <input type="number" class="form-input" id="availableBudget" placeholder="0" min="0" step="10000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Compétences clés</label>
+                        <input type="text" class="form-input" id="keySkills" placeholder="Ex: Tech, Ventes, Marketing">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Région cible</label>
+                        <input type="text" class="form-input" id="targetRegion" placeholder="Ex: Europe, Asie, Global">
+                    </div>
+                </div>
+                <p class="form-hint"><i class="fas fa-info-circle"></i> Nous identifierons le secteur le plus adapté à votre profil.</p>
+            `;
+            break;
+            
+        case 'maturity_score':
+            html += `
+                <div class="specific-fields-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nom de l'entreprise</label>
+                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secteur d'activité</label>
+                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Industrie">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Année de création</label>
+                        <input type="number" class="form-input" id="foundingYear" placeholder="2020" min="1900" max="2026">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Chiffre d'affaires (€)</label>
+                        <input type="number" class="form-input" id="companyRevenue" placeholder="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Nombre d'employés</label>
+                        <input type="number" class="form-input" id="companyEmployees" placeholder="0" min="0">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Niveau de digitalisation (1-10)</label>
+                        <input type="number" class="form-input" id="digitalizationLevel" placeholder="0" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Maturité processus (1-10)</label>
+                        <input type="number" class="form-input" id="processMaturity" placeholder="0" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Culture d'innovation (1-10)</label>
+                        <input type="number" class="form-input" id="innovationCulture" placeholder="0" min="1" max="10">
+                    </div>
+                </div>
+                <p class="form-hint"><i class="fas fa-info-circle"></i> Évaluez la maturité globale de votre entreprise sur plusieurs dimensions.</p>
+            `;
+            break;
+            
+        case 'integration_matrix':
+            html += `
+                <div class="specific-fields-grid">
+                    <div class="form-group">
+                        <label class="form-label">Entreprise cible</label>
+                        <input type="text" class="form-input" id="targetCompany" placeholder="Nom de l'entreprise cible">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secteur cible</label>
+                        <input type="text" class="form-input" id="targetIndustry" placeholder="Secteur de l'entreprise cible">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Votre secteur</label>
+                        <input type="text" class="form-input" id="companyIndustry" placeholder="Votre secteur">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type d'intégration</label>
+                        <select class="form-select" id="integrationType">
+                            <option value="">Sélectionnez...</option>
+                            <option value="acquisition">Acquisition</option>
+                            <option value="merger">Fusion</option>
+                            <option value="partnership">Partenariat</option>
+                            <option value="joint_venture">Coentreprise</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Compatibilité culturelle (1-10)</label>
+                        <input type="number" class="form-input" id="culturalFit" placeholder="0" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Synergies opérationnelles (1-10)</label>
+                        <input type="number" class="form-input" id="operationalSynergies" placeholder="0" min="1" max="10">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Valeur stratégique (1-10)</label>
+                        <input type="number" class="form-input" id="strategicValue" placeholder="0" min="1" max="10">
+                    </div>
+                </div>
+                <p class="form-hint"><i class="fas fa-info-circle"></i> Évaluez le potentiel d'intégration entre votre entreprise et la cible.</p>
+            `;
+            break;
+            
+        case 'valuation_simulator':
+            html += `
+                <div class="specific-fields-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nom de l'entreprise</label>
+                        <input type="text" class="form-input" id="companyName" placeholder="Nom de l'entreprise">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secteur</label>
+                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Industrie">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Chiffre d'affaires (€)</label>
+                        <input type="number" class="form-input" id="companyRevenue" placeholder="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">EBITDA (€)</label>
+                        <input type="number" class="form-input" id="companyEbitda" placeholder="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Croissance annuelle (%)</label>
+                        <input type="number" class="form-input" id="growthRate" placeholder="0" min="-100" max="100" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Dette (€)</label>
+                        <input type="number" class="form-input" id="companyDebt" placeholder="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Actifs (€)</label>
+                        <input type="number" class="form-input" id="companyAssets" placeholder="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Méthode de valorisation</label>
+                        <select class="form-select" id="valuationMethod">
+                            <option value="">Sélectionnez...</option>
+                            <option value="dcf">DCF (Flux de trésorerie)</option>
+                            <option value="comparables">Multiples</option>
+                            <option value="asset_based">Valeur d'actifs</option>
+                        </select>
+                    </div>
+                </div>
+                <p class="form-hint"><i class="fas fa-info-circle"></i> Simulez la valorisation de votre entreprise ou d'une cible.</p>
+            `;
+            break;
+            
+        case 'due_diligence':
+            html += `
+                <div class="specific-fields-grid">
+                    <div class="form-group">
+                        <label class="form-label">Entreprise cible</label>
+                        <input type="text" class="form-input" id="targetCompany" placeholder="Nom de l'entreprise cible">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secteur</label>
+                        <input type="text" class="form-input" id="companyIndustry" placeholder="Secteur d'activité">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Type de due diligence</label>
+                        <select class="form-select" id="ddType">
+                            <option value="">Sélectionnez...</option>
+                            <option value="financial">Financière</option>
+                            <option value="legal">Juridique</option>
+                            <option value="commercial">Commerciale</option>
+                            <option value="operational">Opérationnelle</option>
+                            <option value="technical">Technique</option>
+                            <option value="comprehensive">Complète</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priorité</label>
+                        <select class="form-select" id="ddPriority">
+                            <option value="">Sélectionnez...</option>
+                            <option value="critical">Critique</option>
+                            <option value="high">Élevée</option>
+                            <option value="medium">Moyenne</option>
+                            <option value="low">Faible</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Budget alloué (€)</label>
+                        <input type="number" class="form-input" id="ddBudget" placeholder="0" min="0" step="1000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Échéance</label>
+                        <input type="date" class="form-input" id="ddDeadline">
+                    </div>
+                </div>
+                <p class="form-hint"><i class="fas fa-info-circle"></i> Identifiez les risques et opportunités avant la transaction.</p>
+            `;
+            break;
+            
+        case 'loi_generator':
+        case 'negotiation_simulator':
+        case 'action_plan_100_days':
+        case 'post_acquisition_dashboard':
+            html += `
+                <div class="specific-fields-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nom du projet</label>
+                        <input type="text" class="form-input" id="projectName" placeholder="Nom de votre projet">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Entreprise concernée</label>
+                        <input type="text" class="form-input" id="companyName" placeholder="Nom de l'entreprise">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secteur</label>
+                        <input type="text" class="form-input" id="companyIndustry" placeholder="Secteur d'activité">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Contexte (optionnel)</label>
+                        <textarea class="form-textarea" id="projectContext" placeholder="Décrivez le contexte de votre projet..." rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Objectifs principaux</label>
+                        <textarea class="form-textarea" id="mainObjectives" placeholder="Quels sont vos objectifs principaux ?" rows="3"></textarea>
+                    </div>
+                </div>
+                <p class="form-hint"><i class="fas fa-info-circle"></i> Ces services font partie des Phases 3 & 4. Contactez-nous pour un devis personnalisé.</p>
+            `;
+            break;
+            
         default:
-            html += '<p>Aucun champ spécifique pour ce type d\'analyse.</p>';
+            html += `
+                <div class="specific-fields-grid">
+                    <div class="form-group">
+                        <label class="form-label">Nom de l'entreprise / Projet</label>
+                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise ou projet">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secteur d'activité</label>
+                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Industrie">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="analysisDescriptionExtra" placeholder="Décrivez ce que vous souhaitez analyser..." rows="3"></textarea>
+                    </div>
+                </div>
+                <p class="form-hint"><i class="fas fa-info-circle"></i> Plus vous fournissez d'informations, plus l'analyse sera précise et personnalisée.</p>
+            `;
     }
     
     section.innerHTML = html;
