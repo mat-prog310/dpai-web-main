@@ -251,6 +251,49 @@ async function loadUserData() {
     
     try {
         const userData = await authService.loadUserData(user.uid);
+        
+        if (!userData) {
+            // Firebase non disponible ou utilisateur non trouvé - utiliser données par défaut
+            console.warn('[Dashboard] userData null, utilisation de données par défaut pour utilisateur connecté');
+            const defaultUserData = {
+                id: user.uid,
+                name: user.displayName || user.email || 'Utilisateur',
+                email: user.email || '',
+                plan: 'free',
+                availableTokens: 500,
+                tokensUsed: 0,
+                totalTokens: 500,
+                totalAnalyses: 0,
+                monthlyAnalyses: 0,
+                tokenState: {
+                    userId: user.uid,
+                    plan: 'free',
+                    baseTokens: 500,
+                    bonusTokens: 0,
+                    totalTokens: 500,
+                    usedTokens: 0,
+                    availableTokens: 500,
+                    lastTokenUpdate: new Date().toISOString(),
+                    firstAnalysisDone: false,
+                    monthlyTokensUsed: 0,
+                    lastMonthlyReset: new Date().toISOString()
+                },
+                loyaltyInfo: {
+                    userId: user.uid,
+                    totalAnalyses: 0,
+                    monthlyAnalyses: 0,
+                    monthlyLoyaltyTokens: 0,
+                    lastAnalysisDate: null,
+                    lastMonthlyReset: new Date().toISOString()
+                }
+            };
+            authService.userData = defaultUserData;
+            TokenManager.init(defaultUserData);
+            updateAuthUI(user, defaultUserData);
+            updateDashboardStats(defaultUserData);
+            return;
+        }
+        
         authService.userData = userData;
         TokenManager.init(userData);
         
@@ -259,6 +302,43 @@ async function loadUserData() {
         updateDashboardStats(userData);
     } catch (error) {
         console.error('Erreur chargement données utilisateur:', error);
+        // En cas d'erreur, utiliser données par défaut
+        const defaultUserData = {
+            id: user.uid,
+            name: user.displayName || user.email || 'Utilisateur',
+            email: user.email || '',
+            plan: 'free',
+            availableTokens: 500,
+            tokensUsed: 0,
+            totalTokens: 500,
+            totalAnalyses: 0,
+            monthlyAnalyses: 0,
+            tokenState: {
+                userId: user.uid,
+                plan: 'free',
+                baseTokens: 500,
+                bonusTokens: 0,
+                totalTokens: 500,
+                usedTokens: 0,
+                availableTokens: 500,
+                lastTokenUpdate: new Date().toISOString(),
+                firstAnalysisDone: false,
+                monthlyTokensUsed: 0,
+                lastMonthlyReset: new Date().toISOString()
+            },
+            loyaltyInfo: {
+                userId: user.uid,
+                totalAnalyses: 0,
+                monthlyAnalyses: 0,
+                monthlyLoyaltyTokens: 0,
+                lastAnalysisDate: null,
+                lastMonthlyReset: new Date().toISOString()
+            }
+        };
+        authService.userData = defaultUserData;
+        TokenManager.init(defaultUserData);
+        updateAuthUI(user, defaultUserData);
+        updateDashboardStats(defaultUserData);
     }
 }
 
@@ -558,10 +638,10 @@ async function loadAnalysisHistory() {
                 `;
                     return;
                 }
-            
-            analysesSnapshot.forEach(doc => {
-                analyses.push({ id: doc.id, ...doc.data() });
-            });
+                
+                analysesSnapshot.forEach(doc => {
+                    analyses.push({ id: doc.id, ...doc.data() });
+                });
             }
         } else if (isDemoMode) {
             // Mode démo : charger depuis localStorage
@@ -2676,9 +2756,9 @@ async function showAllAnalyses() {
                     .collection('analyses')
                     .orderBy('createdAt', 'desc')
                     .get();
-            
-            if (analysesSnapshot.empty) {
-                recentAnalysesEl.innerHTML = `
+                
+                if (analysesSnapshot.empty) {
+                    recentAnalysesEl.innerHTML = `
                     <div class="empty-state small">
                         <div class="empty-state-icon">
                             <i class="fas fa-chart-bar"></i>
@@ -2686,12 +2766,12 @@ async function showAllAnalyses() {
                         <p>Vous n'avez pas encore réalisé d'analyse.</p>
                     </div>
                 `;
-                return;
-            }
-            
-            analysesSnapshot.forEach(doc => {
-                analyses.push({ id: doc.id, ...doc.data() });
-            });
+                    return;
+                }
+                
+                analysesSnapshot.forEach(doc => {
+                    analyses.push({ id: doc.id, ...doc.data() });
+                });
             }
         } else if (isDemoMode) {
             // Mode démo : charger TOUTES les analyses depuis localStorage

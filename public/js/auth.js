@@ -150,6 +150,20 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                 return currentUserData;
             },
 
+            // Charger les données utilisateur depuis Firestore
+            loadUserData: async function(userId) {
+                try {
+                    const userDoc = await db.collection('users').doc(userId).get();
+                    if (userDoc.exists) {
+                        return { id: userId, ...userDoc.data() };
+                    }
+                    return null;
+                } catch (error) {
+                    console.error('%c❌ [Auth.js] Erreur chargement userData:', 'color: #F44336;', error);
+                    return null;
+                }
+            },
+
             // Connexion email/password
             signIn: async function(email, password) {
                 try {
