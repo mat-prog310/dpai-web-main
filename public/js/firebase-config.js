@@ -3,6 +3,9 @@
 
 console.log('%c[Firebase-Config] Chargement du fichier de configuration...', 'color: #2196F3; font-weight: bold;');
 
+// Email de contact principal
+const CONTACT_EMAIL = 'duprey.conseil@gmail.com';
+
 const firebaseConfig = {
   apiKey: "AIzaSyDowkBbuxpYbpkMqdXyrxXGgk7FHxy7m68",
   authDomain: "dpai-8be62.firebaseapp.com",
@@ -68,3 +71,6 @@ try {
 } catch (error) {
   console.error('%c❌ [Firebase] Erreur d\'initialisation:', 'color: #dc3545; font-weight: bold;', error);
 }
+
+// Exposer l'email de contact globalement
+window.CONTACT_EMAIL = CONTACT_EMAIL;

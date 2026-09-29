@@ -536,7 +536,7 @@ function renderQuickActions(services) {
 
 // Afficher un message pour inviter à contacter pour les services bloqués
 function showPlanUpgradeMessage(service) {
-    const message = 'Ce service fait partie des Phases 3 & 4. Contactez contact@dpai-strategy.com pour un devis personnalisé.';
+    const message = `Ce service fait partie des Phases 3 & 4. Contactez ${typeof CONTACT_EMAIL !== 'undefined' ? CONTACT_EMAIL : 'duprey.conseil@gmail.com'} pour un devis personnalisé.`;
     
     // Afficher une notification
     showNotification(message, 'warning');

@@ -3023,6 +3023,122 @@
     border-color: var(--primary-light);
 }
 
+/* =============================================================================
+   SERVICES PREMIUM (PHASES 3 & 4) - Styles améliorés
+   ============================================================================= */
+
+.premium-services-section {
+    background: linear-gradient(180deg, var(--gray-50) 0%, var(--white) 100%);
+    padding: var(--spacing-2xl) 0;
+}
+
+.premium-services-section .section-header {
+    text-align: center;
+    margin-bottom: var(--spacing-2xl);
+}
+
+.premium-services-section .section-title {
+    color: var(--warning-dark);
+}
+
+.premium-services-section .section-subtitle {
+    color: var(--gray-600);
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.premium-services-section .section-tag {
+    background: var(--warning-bg);
+    color: var(--warning-dark);
+}
+
+.premium-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: var(--spacing-xl);
+}
+
+.service-card.premium-card {
+    background: linear-gradient(135deg, var(--white) 0%, var(--gray-50) 100%);
+    border: 1px solid var(--warning-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.service-card.premium-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--warning), var(--gold));
+}
+
+.service-card.premium-card:hover {
+    box-shadow: 0 8px 25px rgba(255, 193, 7, 0.15);
+    transform: translateY(-4px);
+    border-color: var(--warning);
+}
+
+.service-card.premium-card .service-icon {
+    background: linear-gradient(135deg, var(--warning-bg), var(--warning));
+    color: var(--white);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.service-card.premium-card .service-title {
+    color: var(--gray-800);
+    position: relative;
+    padding-right: 24px;
+}
+
+.service-card.premium-card .service-description {
+    color: var(--gray-600);
+    font-size: var(--font-size-sm);
+    line-height: 1.6;
+}
+
+.service-card.premium-card .service-meta {
+    margin-top: var(--spacing-sm);
+}
+
+.service-card.premium-card .service-tokens {
+    background: var(--warning-bg);
+    color: var(--warning-dark);
+    font-weight: 700;
+}
+
+.service-card.premium-card .service-access {
+    color: var(--warning);
+    font-weight: 600;
+}
+
+.service-card.premium-card .premium-btn {
+    background: linear-gradient(135deg, var(--warning), var(--warning-dark));
+    border: none;
+    color: var(--white);
+    font-weight: 600;
+    transition: all var(--transition-base);
+    box-shadow: 0 4px 12px rgba(255, 193, 7, 0.3);
+}
+
+.service-card.premium-card .premium-btn:hover {
+    background: linear-gradient(135deg, var(--warning-dark), var(--warning));
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 193, 7, 0.4);
+}
+
+.service-card.premium-card .service-access .fas.fa-lock {
+    color: var(--warning);
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
 .service-card-header {
     display: flex;
     align-items: flex-start;

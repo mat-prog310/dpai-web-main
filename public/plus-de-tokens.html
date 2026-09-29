@@ -111,12 +111,20 @@
                 </div>
                 
                 <div class="contact-cta">
-                    <a href="mailto:contact@dpai-strategy.com?subject=Demande de tokens supplémentaires et accès premium" class="btn btn-primary btn-xl">
+                    <a id="contactEmailLink" href="#" class="btn btn-primary btn-xl">
                         <i class="fas fa-paper-plane"></i> 
                         Contactez-nous par email
                     </a>
                     <p><i class="fas fa-clock"></i> Réponse sous 24 heures</p>
                 </div>
+                <script>
+                    // Utiliser la constante CONTACT_EMAIL définie dans firebase-config.js
+                    const emailLink = document.getElementById('contactEmailLink');
+                    if (emailLink) {
+                        const contactEmail = typeof CONTACT_EMAIL !== 'undefined' ? CONTACT_EMAIL : 'duprey.conseil@gmail.com';
+                        emailLink.href = `mailto:${contactEmail}?subject=Demande de tokens supplémentaires et accès premium`;
+                    }
+                </script>
             </div>
         </div>
     </section>

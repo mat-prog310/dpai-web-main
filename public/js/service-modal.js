@@ -2,7 +2,7 @@
 // SERVICE-MODAL.JS - Gestion des modales de détails des services
 // Tous les services sont gratuits avec déduction de tokens
 // Un seul plan : free (500 tokens)
-// Phases 3 & 4 : bloquées (contact par mail contact@dpai-strategy.com)
+// Phases 3 & 4 : bloquées (contact par mail via CONTACT_EMAIL)
 // =============================================================================
 
 // Hiérarchie des plans (un seul plan maintenant)

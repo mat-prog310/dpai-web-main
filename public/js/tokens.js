@@ -18,7 +18,7 @@ function getDB() {
 }
 
 // Configuration des plans (TOUS LES UTILISATEURS ONT UN PLAN GRATUIT AVEC 500 TOKENS)
-// Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à contact@dpai-strategy.com
+// Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à window.CONTACT_EMAIL
 const TokenConfig = {
   baseTokenLimits: {
     free: 500    // 500 tokens gratuits pour tous les utilisateurs
@@ -49,7 +49,7 @@ const TokenConfig = {
 };
 
 // Coûts des analyses par type - TOUS LES UTILISATEURS ONT ACCÈS AUX PHASES 1 & 2
-// Email: contact@dpai-strategy.com pour Phases 3 & 4
+// Email: window.CONTACT_EMAIL pour Phases 3 & 4
 // Les coûts ont été multipliés par 4 pour équilibrer avec les 500 tokens gratuits
 const AnalysisCosts = {
   // PHASE 1 & 2 : Coûts en tokens (x4 par rapport à la version précédente)
@@ -87,7 +87,7 @@ const AnalysisCosts = {
 };
 
 // Tous les services sont gratuits - Plus de packs de tokens
-// Pour plus de tokens: contacter contact@dpai-strategy.com
+// Pour plus de tokens: contacter window.CONTACT_EMAIL
 
 // Système de fidélité
 class LoyaltySystem {
