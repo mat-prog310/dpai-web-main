@@ -58,11 +58,20 @@ if (document.readyState === 'loading') {
             }
         }, 100);
         
-        // Timeout de sécurité
+        // Timeout de sécurité - initialiser avec données mock si authService pas disponible
         setTimeout(() => {
             clearInterval(authCheck);
+            console.warn('[Dashboard] authService non disponible après 5s, initialisation avec données mock');
+            // Créer un authService mock avec données par défaut
+            if (typeof window.authService === 'undefined') {
+                window.authService = {
+                    currentUser: null,
+                    userData: null,
+                    loadUserData: async () => null
+                };
+            }
             initDashboard();
-            console.warn('[Dashboard] authService non disponible, réessayez plus tard');
+            loadUserData();
         }, 5000);
     });
 } else {
@@ -76,11 +85,20 @@ if (document.readyState === 'loading') {
         }
     }, 100);
     
-    // Timeout de sécurité
+    // Timeout de sécurité - initialiser avec données mock si authService pas disponible
     setTimeout(() => {
         clearInterval(authCheck);
+        console.warn('[Dashboard] authService non disponible après 5s, initialisation avec données mock');
+        // Créer un authService mock avec données par défaut
+        if (typeof window.authService === 'undefined') {
+            window.authService = {
+                currentUser: null,
+                userData: null,
+                loadUserData: async () => null
+            };
+        }
         initDashboard();
-        console.warn('[Dashboard] authService non disponible, réessayez plus tard');
+        loadUserData();
     }, 5000);
 }
 
@@ -121,7 +139,46 @@ function initDashboard() {
 async function loadUserData() {
     const user = authService.currentUser;
     
-    if (!user) return;
+    if (!user) {
+        // Pas d'utilisateur connecté - utiliser des données par défaut
+        console.log('[Dashboard] Pas d\'utilisateur connecté, initialisation avec données par défaut');
+        const defaultUserData = {
+            id: 'demo',
+            name: 'Utilisateur',
+            plan: 'free',
+            availableTokens: 500,
+            tokensUsed: 0,
+            totalTokens: 500,
+            totalAnalyses: 0,
+            monthlyAnalyses: 0,
+            tokenState: {
+                userId: 'demo',
+                plan: 'free',
+                baseTokens: 500,
+                bonusTokens: 0,
+                totalTokens: 500,
+                usedTokens: 0,
+                availableTokens: 500,
+                lastTokenUpdate: new Date().toISOString(),
+                firstAnalysisDone: false,
+                monthlyTokensUsed: 0,
+                lastMonthlyReset: new Date().toISOString()
+            },
+            loyaltyInfo: {
+                userId: 'demo',
+                totalAnalyses: 0,
+                monthlyAnalyses: 0,
+                monthlyLoyaltyTokens: 0,
+                lastAnalysisDate: null,
+                lastMonthlyReset: new Date().toISOString()
+            }
+        };
+        authService.userData = defaultUserData;
+        TokenManager.init(defaultUserData);
+        updateAuthUI(null, defaultUserData);
+        updateDashboardStats(defaultUserData);
+        return;
+    }
     
     try {
         const userData = await authService.loadUserData(user.uid);
