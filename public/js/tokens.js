@@ -179,8 +179,10 @@ class TokenManager {
       }
       
       // Si l'utilisateur n'a pas du tout de tokens configurés, lui donner 500
-      if (totalTokens === 0 || (userData.availableTokens === undefined && userData.tokensUsed === undefined && !userData.tokenState)) {
-        console.log('[TokenManager] Nouvel utilisateur sans tokens: initialisation à 500');
+      // Tous les utilisateurs free ont droit à 500 tokens
+      if (totalTokens === 0 || availableTokens === 0 || 
+          (userData.availableTokens === undefined && userData.tokensUsed === undefined && !userData.tokenState)) {
+        console.log('[TokenManager] Nouvel utilisateur ou tokens à 0: initialisation à 500');
         usedTokens = 0;
         availableTokens = 500;
         totalTokens = 500;

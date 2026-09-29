@@ -277,9 +277,23 @@ function initQuickActions() {
         // Si servicesData existe (depuis service-modal.js), l'utiliser
         let services = typeof window.servicesData !== 'undefined' ? window.servicesData : null;
         
-        // Fallback COMPLET : si servicesData n'est pas disponible, créer TOUS les services
-        if (!services) {
-            console.warn('[DASHBOARD] servicesData non disponible, utilisation du fallback COMPLET');
+        // Vérifier que servicesData est complet (contient les services de base)
+        const requiredServices = ['swot', 'porter', 'pestel', 'competitive'];
+        let servicesComplete = true;
+        
+        if (services) {
+            requiredServices.forEach(serviceId => {
+                if (!services[serviceId]) {
+                    servicesComplete = false;
+                }
+            });
+        } else {
+            servicesComplete = false;
+        }
+        
+        // Fallback COMPLET : si servicesData n'est pas disponible ou incomplet, créer TOUS les services
+        if (!servicesComplete) {
+            console.warn('[DASHBOARD] servicesData non disponible ou incomplet, utilisation du fallback COMPLET');
             services = {
                 // PHASE 1 & 2 - TOUS GRATUITS
                 swot: { id: 'swot', name: 'Analyse SWOT', icon: 'fa-swimming-pool', tokens: 40, requiredPlan: 'free' },
