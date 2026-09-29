@@ -547,7 +547,7 @@ async function loadAnalysisHistory() {
                     .get();
                 
                 if (analysesSnapshot.empty) {
-                recentAnalysesEl.innerHTML = `
+                    recentAnalysesEl.innerHTML = `
                     <div class="empty-state small">
                         <div class="empty-state-icon">
                             <i class="fas fa-chart-bar"></i>
@@ -556,12 +556,13 @@ async function loadAnalysisHistory() {
                         <p class="empty-state-message">Commencez par lancer votre première analyse !</p>
                     </div>
                 `;
-                return;
-            }
+                    return;
+                }
             
             analysesSnapshot.forEach(doc => {
                 analyses.push({ id: doc.id, ...doc.data() });
             });
+            }
         } else if (isDemoMode) {
             // Mode démo : charger depuis localStorage
             try {
@@ -570,7 +571,7 @@ async function loadAnalysisHistory() {
             if (demoAnalyses.length === 0) {
                 console.warn('[DPAI] Aucune analyse trouvée dans localStorage. Lancez une nouvelle analyse pour voir l\'historique.');
             }
-                analyses = demoAnalyses.slice(0, 5);
+            analyses = demoAnalyses.slice(0, 5);
             } catch (e) {
                 console.error('[DPAI] Erreur chargement historique démo:', e);
                 analyses = [];
@@ -835,6 +836,13 @@ function updateDashboardStats(userData) {
                       (userData.tokenState ? userData.tokenState.usedTokens : 0) || 0;
     const totalTokens = userData.totalTokens || 
                        (userData.tokenState ? userData.tokenState.totalTokens : 0) || 0;
+    
+    // Fallback: si availableTokens est 0 et qu'il n'y a pas d'historique d'utilisation, donner 500 tokens
+    // Cela corrige les utilisateurs existants avec 0 tokens
+    if (availableTokens === 0 && usedTokens === 0 && totalTokens === 0) {
+        availableTokens = 500;
+        totalTokens = 500;
+    }
     const tokenLimit = userData.tokenLimit || 
                        (userData.tokenState ? userData.tokenState.baseTokens : TokenConfig.baseTokenLimits.free) || 
                        TokenConfig.baseTokenLimits.free;
@@ -2684,6 +2692,7 @@ async function showAllAnalyses() {
             analysesSnapshot.forEach(doc => {
                 analyses.push({ id: doc.id, ...doc.data() });
             });
+            }
         } else if (isDemoMode) {
             // Mode démo : charger TOUTES les analyses depuis localStorage
             try {
