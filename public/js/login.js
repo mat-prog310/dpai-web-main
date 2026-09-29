@@ -76,10 +76,12 @@ document.addEventListener('DOMContentLoaded', () => {
     // Gestion du formulaire de connexion
     form.onsubmit = async (e) => {
         e.preventDefault();
+        console.log('[Login.js] Formulaire soumis');
         closeError();
 
         const email = emailInput?.value?.trim() || '';
         const password = passwordInput?.value || '';
+        console.log('[Login.js] Email:', email, 'Password:', password ? '****' : 'vide');
 
         // Validation
         if (!email) {
