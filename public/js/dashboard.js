@@ -1712,7 +1712,7 @@ function initAnalysisForm() {
             if (modal) modal.classList.remove('visible');
             
             // Lancer l'analyse avec les données personnalisées
-            launchAnalysis(type, name, description, cost, companyData);
+            launchAnalysis(type, name, description, cost);
         });
         
         // Gérer le bouton Annuler
@@ -1769,22 +1769,22 @@ function updateAnalysisEstimation(type) {
     let available = 0;
     let cost = 40;
     
-    // Priority 1: Lire directement depuis le DOM (le plus fiable)
-    const availableTokensEl = document.getElementById('availableTokens');
-    if (availableTokensEl) {
-        const domAvailable = parseInt(availableTokensEl.textContent.replace(/\s/g, '')) || 0;
-        available = domAvailable;
+    // Priority 1: TokenManager (le plus fiable si initialisé)
+    if (TokenManager && TokenManager.tokenState) {
+        available = TokenManager.availableTokens || 0;
     }
-    
-    // Priority 2: Si DOM affiche 0, essayer authService.userData
-    if (available === 0 && authService?.userData) {
+    // Priority 2: authService.userData
+    else if (authService?.userData) {
         available = authService.userData.availableTokens || 
                     (authService.userData.tokenState?.availableTokens || 0) || 0;
     }
-    
-    // Priority 3: TokenManager
-    if (available === 0 && TokenManager && TokenManager.tokenState) {
-        available = TokenManager.availableTokens || 0;
+    // Priority 3: Lire depuis le DOM
+    else {
+        const availableTokensEl = document.getElementById('availableTokens');
+        if (availableTokensEl) {
+            const domAvailable = parseInt(availableTokensEl.textContent.replace(/\s/g, '')) || 0;
+            available = domAvailable;
+        }
     }
     
     // Priority 4: Valeur par défaut
@@ -2895,8 +2895,54 @@ async function startAnalysis(type) {
     }
 }
 
+// Lancer une analyse (appelée depuis la modal)
+async function launchAnalysis(type, name, description, cost) {
+    console.log('[DPAI] launchAnalysis appelé:', { type, name, description, cost });
+    
+    try {
+        // Vérifier qu'on peut utiliser les tokens
+        if (!TokenManager || !TokenManager.tokenState) {
+            showAlert('error', 'Erreur', 'TokenManager non initialisé. Veuillez recharger la page.');
+            return;
+        }
+        
+        const available = TokenManager.availableTokens || 0;
+        if (available < cost) {
+            showAlert('error', 'Erreur', `Vous n'avez pas assez de tokens. Nécessaire: ${TokenUtils.formatTokens(cost)}, Disponible: ${TokenUtils.formatTokens(available)}`);
+            return;
+        }
+        
+        // Utiliser les tokens via TokenManager
+        console.log('[DPAI] Déduction de', cost, 'tokens...');
+        const success = await TokenManager.useTokens(cost, type);
+        
+        if (!success) {
+            showAlert('error', 'Erreur', 'Impossible de déduire les tokens.');
+            return;
+        }
+        
+        console.log('[DPAI] Tokens déduits avec succès');
+        
+        // Mettre à jour l'interface
+        await updateAfterAnalysis(type, name, description, cost);
+        
+        // Fermer le modal si ouvert
+        const modal = document.getElementById('analysisModal');
+        if (modal && modal.classList.contains('visible')) {
+            modal.classList.remove('visible');
+        }
+        
+        showAlert('success', 'Succès', 'Analyse lancée avec succès ! Les tokens ont été déduits.');
+        
+    } catch (error) {
+        console.error('[DPAI] Erreur dans launchAnalysis:', error);
+        showAlert('error', 'Erreur', 'Une erreur est survenue lors du lancement de l\'analyse : ' + error.message);
+    }
+}
+
 // Rendre les fonctions disponibles globalement
 window.startAnalysis = startAnalysis;
+window.launchAnalysis = launchAnalysis;
 window.viewAnalysis = viewAnalysis;
 window.exportAnalysis = exportAnalysis;
 window.deleteAnalysis = deleteAnalysis;
