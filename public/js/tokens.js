@@ -2,6 +2,21 @@
 // TOKENS.JS - Système de gestion des tokens
 // =============================================================================
 
+// Helper pour obtenir db (Firestore) avec fallback
+function getDB() {
+    if (typeof db !== 'undefined') {
+        return db;
+    }
+    if (typeof window !== 'undefined' && typeof window.firebaseDB !== 'undefined') {
+        return window.firebaseDB;
+    }
+    if (typeof window !== 'undefined' && typeof window.firebase !== 'undefined' && window.firebase.firestore) {
+        return window.firebase.firestore();
+    }
+    console.warn('[Tokens] Firestore non disponible');
+    return null;
+}
+
 // Configuration des plans (TOUS LES UTILISATEURS ONT UN PLAN GRATUIT AVEC 500 TOKENS)
 // Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à contact@dpai-strategy.com
 const TokenConfig = {
@@ -205,8 +220,9 @@ class TokenManager {
       
       // Sauvegarder le tokenState corrigé dans Firestore
       // Cela permet de corriger les utilisateurs existants
-      if (userData.id) {
-        db.collection('users').doc(userData.id).update({
+      const firestoreDB = getDB();
+      if (userData.id && firestoreDB) {
+        firestoreDB.collection('users').doc(userData.id).update({
           tokenState: this.tokenState,
           availableTokens: this.tokenState.availableTokens,
           tokensUsed: this.tokenState.usedTokens,
@@ -214,6 +230,10 @@ class TokenManager {
         }).catch(err => {
           console.warn('[TokenManager] Impossible de sauvegarder le tokenState corrigé:', err);
         });
+      } else if (!userData.id) {
+        console.log('[TokenManager] Pas d\'ID utilisateur, sauvegarde Firestore ignorée');
+      } else {
+        console.log('[TokenManager] Firestore non disponible (mode file://), sauvegarde ignorée');
       }
     }
     
@@ -290,7 +310,13 @@ class TokenManager {
       totalTokens: newState.totalTokens
     };
     
-    await db.collection('users').doc(this.userData.id).update(updateData);
+    const firestoreDB = getDB();
+    if (firestoreDB && this.userData && this.userData.id) {
+      await firestoreDB.collection('users').doc(this.userData.id).update(updateData);
+    } else {
+      console.log('[TokenManager.useTokens] Firestore non disponible, utilisation en mode démo');
+      // En mode démo, on met juste à jour localement
+    }
 
     this.tokenState = newState;
     return true;
@@ -302,11 +328,14 @@ class TokenManager {
     newState.totalTokens += amount;
     
     // Sauvegarder dans Firestore (tokenState + champs racine)
-    await db.collection('users').doc(this.userData.id).update({
-      tokenState: newState,
-      availableTokens: newState.availableTokens,
-      totalTokens: newState.totalTokens
-    });
+    const firestoreDB = getDB();
+    if (firestoreDB && this.userData && this.userData.id) {
+      await firestoreDB.collection('users').doc(this.userData.id).update({
+        tokenState: newState,
+        availableTokens: newState.availableTokens,
+        totalTokens: newState.totalTokens
+      });
+    }
 
     this.tokenState = newState;
     return true;
@@ -327,13 +356,16 @@ class TokenManager {
     // Réinitialiser la fidélité mensuelle
     this.loyaltyInfo = LoyaltySystem.resetMonthly(this.loyaltyInfo);
     
-    await db.collection('users').doc(this.userData.id).update({
-      tokenState: newState,
-      loyaltyInfo: this.loyaltyInfo,
-      availableTokens: newState.availableTokens,
-      tokensUsed: newState.usedTokens,
-      totalTokens: newState.totalTokens
-    });
+    const firestoreDB = getDB();
+    if (firestoreDB && this.userData && this.userData.id) {
+      await firestoreDB.collection('users').doc(this.userData.id).update({
+        tokenState: newState,
+        loyaltyInfo: this.loyaltyInfo,
+        availableTokens: newState.availableTokens,
+        tokensUsed: newState.usedTokens,
+        totalTokens: newState.totalTokens
+      });
+    }
 
     this.tokenState = newState;
   }
@@ -345,13 +377,16 @@ class TokenManager {
     const unusedTokens = this.tokenState.totalTokens - this.tokenState.usedTokens;
     newState.availableTokens += Math.min(unusedTokens, newState.baseTokens);
     
-    await db.collection('users').doc(this.userData.id).update({
-      tokenState: newState,
-      plan: newPlan,
-      availableTokens: newState.availableTokens,
-      tokensUsed: newState.usedTokens,
-      totalTokens: newState.totalTokens
-    });
+    const firestoreDB = getDB();
+    if (firestoreDB && this.userData && this.userData.id) {
+      await firestoreDB.collection('users').doc(this.userData.id).update({
+        tokenState: newState,
+        plan: newPlan,
+        availableTokens: newState.availableTokens,
+        tokensUsed: newState.usedTokens,
+        totalTokens: newState.totalTokens
+      });
+    }
 
     this.tokenState = newState;
   }
@@ -365,13 +400,16 @@ class TokenManager {
     newState.availableTokens += TokenConfig.referralBonusSponsor;
     newState.totalTokens += TokenConfig.referralBonusSponsor;
     
-    await db.collection('users').doc(this.userData.id).update({
-      tokenState: newState,
-      'referralInfo.status': 'rewarded',
-      'referralInfo.rewardedAt': new Date().toISOString(),
-      availableTokens: newState.availableTokens,
-      totalTokens: newState.totalTokens
-    });
+    const firestoreDB = getDB();
+    if (firestoreDB && this.userData && this.userData.id) {
+      await firestoreDB.collection('users').doc(this.userData.id).update({
+        tokenState: newState,
+        'referralInfo.status': 'rewarded',
+        'referralInfo.rewardedAt': new Date().toISOString(),
+        availableTokens: newState.availableTokens,
+        totalTokens: newState.totalTokens
+      });
+    }
 
     this.tokenState = newState;
     this.referralInfo.status = 'rewarded';
@@ -424,7 +462,12 @@ class TokenUtils {
 // Charger les données utilisateur
 async function loadUserTokenData(userId) {
   try {
-    const userDoc = await db.collection('users').doc(userId).get();
+    const firestoreDB = getDB();
+    if (!firestoreDB) {
+      console.log('[loadUserTokenData] Firestore non disponible');
+      return null;
+    }
+    const userDoc = await firestoreDB.collection('users').doc(userId).get();
     if (userDoc.exists) {
       const userData = { id: userId, ...userDoc.data() };
       TokenManager.init(userData);

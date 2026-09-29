@@ -35,6 +35,7 @@ function initializeFirebaseInstances() {
       window.firebase = firebase;
       window.firebaseAuth = firebase.auth();
       window.firebaseDB = firebase.firestore();
+      window.db = firebase.firestore();  // Alias pour compatibilité
       window.firebaseFunctions = firebase.functions ? firebase.functions() : null;
       
       console.log('%c✅ [Firebase] Initialisé avec succès', 'color: #28a745; font-weight: bold;');

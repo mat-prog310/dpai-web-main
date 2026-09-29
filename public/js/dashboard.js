@@ -731,14 +731,14 @@ async function loadAnalysisHistory() {
                     </div>
                     <div class="analysis-card-actions">
                         <button class="btn btn-sm btn-outline view-analysis-btn" 
-                                onclick="viewAnalysis('${doc.id}', '${analysis.type}')">
+                                onclick="viewAnalysis('${analysis.id}', '${analysis.type}')">
                             <i class="fas fa-eye"></i> Voir
                         </button>
-                        <button class="btn btn-sm btn-ghost" onclick="exportAnalysis('${doc.id}')">
+                        <button class="btn btn-sm btn-ghost" onclick="exportAnalysis('${analysis.id}')">
                             <i class="fas fa-download"></i> Exporter
                         </button>
                         <button class="btn btn-sm btn-ghost delete-analysis-btn" 
-                                onclick="deleteAnalysis('${doc.id}')">
+                                onclick="deleteAnalysis('${analysis.id}')":
                             <i class="fas fa-trash"></i> Supprimer
                         </button>
                     </div>
