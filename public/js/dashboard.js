@@ -1291,9 +1291,21 @@ function updateAnalysisEstimation(type) {
     const insufficientTokensAlert = document.getElementById('insufficientTokensAlert');
     const startAnalysisBtn = document.getElementById('startAnalysisBtn');
     
-    const plan = authService.userData?.plan || 'free';
-    const cost = (TokenManager && TokenManager.getCost) ? TokenManager.getCost(type, plan) : 40;
-    const available = TokenManager ? TokenManager.availableTokens : 500;
+    // Vérifier que TokenManager est initialisé
+    let available = 500;
+    let cost = 40;
+    
+    if (TokenManager && TokenManager.tokenState) {
+        const plan = authService.userData?.plan || 'free';
+        cost = TokenManager.getCost ? TokenManager.getCost(type, plan) : 40;
+        available = TokenManager.availableTokens || 500;
+    } else if (TokenManager && TokenManager.getCost) {
+        // TokenManager existe mais tokenState pas encore chargé
+        const plan = authService.userData?.plan || 'free';
+        cost = TokenManager.getCost(type, plan) || 40;
+        available = authService.userData?.availableTokens || 500;
+    }
+    
     const canAfford = available >= cost;
     
     if (estimatedAnalysisTypeEl) {
@@ -2287,8 +2299,27 @@ function showAlert(type, title, message) {
 }
 
 // Lancer une analyse (fonction globale pour les boutons d'action rapide)
-function startAnalysis(type) {
+async function startAnalysis(type) {
     console.log('[DPAI] startAnalysis appelé avec type:', type);
+    
+    // Attendre que TokenManager soit initialisé
+    if (typeof TokenManager !== 'undefined' && !TokenManager.tokenState) {
+        console.log('[DPAI] TokenManager non initialisé, attente...');
+        await new Promise((resolve) => {
+            const checkInterval = setInterval(() => {
+                if (TokenManager.tokenState) {
+                    clearInterval(checkInterval);
+                    resolve();
+                }
+            }, 100);
+            
+            setTimeout(() => {
+                clearInterval(checkInterval);
+                resolve(); // Continuer même si non initialisé
+            }, 2000);
+        });
+    }
+    
     const modal = document.getElementById('analysisModal');
     const modalTitle = document.getElementById('analysisModalTitle');
     
