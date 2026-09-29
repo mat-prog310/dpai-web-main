@@ -2075,11 +2075,18 @@ function showAnalysisResults(analysisData) {
         localStorage.setItem('dpai_analysis_results', JSON.stringify(analysisData));
         console.log('[DPAI] Données sauvegardées dans localStorage');
         
-        // Ouvrir la page des résultats dans un nouvel onglet
-        const resultsWindow = window.open('analysis-results.html', '_blank');
+        // Essayer window.open d'abord (fonctionne si déclenché par click utilisateur)
+        let resultsWindow;
+        try {
+            resultsWindow = window.open('analysis-results.html', '_blank');
+        } catch (e) {
+            resultsWindow = null;
+        }
+        
         if (!resultsWindow) {
-            console.error('[DPAI] window.open a été bloqué par le navigateur');
-            alert('Impossible d\'ouvrir les résultats dans une nouvelle fenêtre. Veuillez autoriser les pop-ups pour ce site et réessayer.');
+            console.error('[DPAI] window.open bloqué par le navigateur');
+            // Fallback: rediriger vers la page des résultats
+            window.location.href = 'analysis-results.html';
         } else {
             console.log('[DPAI] Nouvelle fenêtre ouverte avec succès');
         }
