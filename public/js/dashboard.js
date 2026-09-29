@@ -45,6 +45,22 @@ if (typeof window.TokenConfig === 'undefined') {
     };
 }
 
+// Helper pour obtenir db (Firestore) avec fallback mock si Firebase non disponible
+function getDB() {
+    if (typeof db !== 'undefined') {
+        return db;
+    }
+    if (typeof window.firebaseDB !== 'undefined') {
+        return window.firebaseDB;
+    }
+    if (typeof firebase !== 'undefined' && firebase.firestore) {
+        return firebase.firestore();
+    }
+    // Firebase non disponible - retourner null
+    console.warn('[Dashboard] Firebase Firestore non disponible, retour null');
+    return null;
+}
+
 // Synchronisation automatique entre availableTokens (dashboard) et userAvailableTokens (modal)
 function setupTokenSynchronization() {
     const availableTokensEl = document.getElementById('availableTokens');
@@ -492,14 +508,19 @@ async function loadAnalysisHistory() {
         
         if (!isDemoMode && user) {
             // Mode normal : charger depuis Firestore
-            const analysesSnapshot = await db.collection('users')
-                .doc(user.uid)
-                .collection('analyses')
-                .orderBy('createdAt', 'desc')
-                .limit(5)
-                .get();
-            
-            if (analysesSnapshot.empty) {
+            const firestoreDB = getDB();
+            if (!firestoreDB) {
+                console.warn('[Dashboard] Firestore non disponible, passage en mode démo');
+                isDemoMode = true;
+            } else {
+                const analysesSnapshot = await firestoreDB.collection('users')
+                    .doc(user.uid)
+                    .collection('analyses')
+                    .orderBy('createdAt', 'desc')
+                    .limit(5)
+                    .get();
+                
+                if (analysesSnapshot.empty) {
                 recentAnalysesEl.innerHTML = `
                     <div class="empty-state small">
                         <div class="empty-state-icon">
@@ -645,7 +666,12 @@ async function loadTokenHistory() {
     
     try {
         // Charger l'historique des transactions depuis Firestore
-        const transactionsSnapshot = await db.collection('users')
+        const firestoreDB = getDB();
+        if (!firestoreDB) {
+            console.warn('[Dashboard] Firestore non disponible pour tokenHistory');
+            return;
+        }
+        const transactionsSnapshot = await firestoreDB.collection('users')
             .doc(user.uid)
             .collection('tokenTransactions')
             .orderBy('createdAt', 'desc')
@@ -1967,7 +1993,12 @@ async function viewAnalysis(analysisId, analysisType) {
     if (!user) return;
     
     try {
-        const analysisDoc = await db.collection('users')
+        const firestoreDB = getDB();
+        if (!firestoreDB) {
+            console.warn('[Dashboard] Firestore non disponible pour viewAnalysis');
+            return;
+        }
+        const analysisDoc = await firestoreDB.collection('users')
             .doc(user.uid)
             .collection('analyses')
             .doc(analysisId)
@@ -2495,7 +2526,12 @@ async function exportAnalysis(analysisId) {
     if (!user) return;
     
     try {
-        const analysisDoc = await db.collection('users')
+        const firestoreDB = getDB();
+        if (!firestoreDB) {
+            console.warn('[Dashboard] Firestore non disponible pour exportAnalysis');
+            return;
+        }
+        const analysisDoc = await firestoreDB.collection('users')
             .doc(user.uid)
             .collection('analyses')
             .doc(analysisId)
@@ -2553,7 +2589,12 @@ async function deleteAnalysis(analysisId) {
     if (!user) return;
     
     try {
-        await db.collection('users')
+        const firestoreDB = getDB();
+        if (!firestoreDB) {
+            console.warn('[Dashboard] Firestore non disponible pour deleteAnalysis');
+            return;
+        }
+        await firestoreDB.collection('users')
             .doc(user.uid)
             .collection('analyses')
             .doc(analysisId)
@@ -2591,11 +2632,16 @@ async function showAllAnalyses() {
         
         if (!isDemoMode && user) {
             // Mode normal : charger TOUTES les analyses depuis Firestore
-            const analysesSnapshot = await db.collection('users')
-                .doc(user.uid)
-                .collection('analyses')
-                .orderBy('createdAt', 'desc')
-                .get();
+            const firestoreDB = getDB();
+            if (!firestoreDB) {
+                console.warn('[Dashboard] Firestore non disponible pour showAllAnalyses');
+                isDemoMode = true;
+            } else {
+                const analysesSnapshot = await firestoreDB.collection('users')
+                    .doc(user.uid)
+                    .collection('analyses')
+                    .orderBy('createdAt', 'desc')
+                    .get();
             
             if (analysesSnapshot.empty) {
                 recentAnalysesEl.innerHTML = `
