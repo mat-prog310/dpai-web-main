@@ -182,9 +182,6 @@ function initDashboard() {
     // Charger l'historique des tokens
     loadTokenHistory();
     
-    // Mettre à jour les statistiques
-    updateDashboardStats();
-    
     // Initialiser le formulaire d'analyse
     initAnalysisForm();
     
@@ -202,6 +199,8 @@ function initDashboard() {
             showAllAnalyses();
         });
     }
+    
+    // NE PAS appeler updateDashboardStats() ici - elle est appelée dans loadUserData()
 }
 
 // Charger les données utilisateur
