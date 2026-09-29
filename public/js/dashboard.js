@@ -756,6 +756,15 @@ function updateDashboardStats(userData) {
     if (loyaltyMonthlyAnalysesEl && userData.loyaltyInfo) {
         loyaltyMonthlyAnalysesEl.textContent = userData.loyaltyInfo.monthlyAnalyses || 0;
     }
+    
+    // Synchroniser userAvailableTokens dans la modal si elle est ouverte
+    const analysisModal = document.getElementById('analysisModal');
+    if (analysisModal && analysisModal.classList.contains('visible')) {
+        const analysisTypeSelect = document.getElementById('analysisType');
+        if (analysisTypeSelect && analysisTypeSelect.value) {
+            updateAnalysisEstimation(analysisTypeSelect.value);
+        }
+    }
 }
 
 // Mettre à jour les champs spécifiques selon le type d'analyse
@@ -1301,6 +1310,7 @@ function updateAnalysisEstimation(type) {
     let available = 500;
     let cost = 40;
     
+    // Essayer de lire depuis TokenManager en priorité
     if (TokenManager && TokenManager.tokenState) {
         const plan = authService.userData?.plan || 'free';
         cost = TokenManager.getCost ? TokenManager.getCost(type, plan) : 40;
@@ -1310,6 +1320,19 @@ function updateAnalysisEstimation(type) {
         const plan = authService.userData?.plan || 'free';
         cost = TokenManager.getCost(type, plan) || 40;
         available = authService.userData?.availableTokens || 500;
+    } else if (authService.userData) {
+        // TokenManager pas encore chargé, mais userData existe
+        available = authService.userData.availableTokens || authService.userData.tokenState?.availableTokens || 500;
+        cost = (window.AnalysisCosts && AnalysisCosts[type]) || 40;
+    }
+    
+    // Fallback : lire depuis le DOM si aucune source n'est disponible
+    if (available === 500) {
+        const availableTokensEl = document.getElementById('availableTokens');
+        if (availableTokensEl) {
+            const domAvailable = parseInt(availableTokensEl.textContent.replace(/\s/g, '')) || 500;
+            available = domAvailable;
+        }
     }
     
     const canAfford = available >= cost;
@@ -1419,6 +1442,15 @@ async function updateAfterAnalysis(type, name, description, cost) {
         const userAvailableTokensEl = document.getElementById('userAvailableTokens');
         if (userAvailableTokensEl) {
             userAvailableTokensEl.textContent = TokenUtils.formatTokens(availableTokens);
+        }
+        
+        // Synchroniser la modal si elle est ouverte
+        const analysisModal = document.getElementById('analysisModal');
+        if (analysisModal && analysisModal.classList.contains('visible')) {
+            const analysisTypeSelect = document.getElementById('analysisType');
+            if (analysisTypeSelect && analysisTypeSelect.value) {
+                updateAnalysisEstimation(analysisTypeSelect.value);
+            }
         }
         
         // Mettre à jour les stats d'analyses
@@ -2314,12 +2346,13 @@ function showAlert(type, title, message) {
 async function startAnalysis(type) {
     console.log('[DPAI] startAnalysis appelé avec type:', type);
     
-    // Attendre que TokenManager soit initialisé
-    if (typeof TokenManager !== 'undefined' && !TokenManager.tokenState) {
-        console.log('[DPAI] TokenManager non initialisé, attente...');
+    // Attendre que TokenManager et userData soient initialisés
+    if (typeof TokenManager !== 'undefined' && (!TokenManager.tokenState || !authService.userData)) {
+        console.log('[DPAI] Attente TokenManager.tokenState ou authService.userData...');
         await new Promise((resolve) => {
             const checkInterval = setInterval(() => {
-                if (TokenManager.tokenState) {
+                if ((TokenManager.tokenState || typeof TokenManager === 'undefined') && 
+                    (authService.userData || typeof authService === 'undefined')) {
                     clearInterval(checkInterval);
                     resolve();
                 }
@@ -2328,7 +2361,7 @@ async function startAnalysis(type) {
             setTimeout(() => {
                 clearInterval(checkInterval);
                 resolve(); // Continuer même si non initialisé
-            }, 2000);
+            }, 3000);
         });
     }
     
