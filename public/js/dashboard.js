@@ -45,6 +45,44 @@ if (typeof window.TokenConfig === 'undefined') {
     };
 }
 
+// Synchronisation automatique entre availableTokens (dashboard) et userAvailableTokens (modal)
+function setupTokenSynchronization() {
+    const availableTokensEl = document.getElementById('availableTokens');
+    const userAvailableTokensEl = document.getElementById('userAvailableTokens');
+    
+    if (availableTokensEl && userAvailableTokensEl) {
+        // Synchroniser immédiatement
+        userAvailableTokensEl.textContent = availableTokensEl.textContent;
+        
+        // Observer les changements futurs
+        const observer = new MutationObserver((mutations) => {
+            mutations.forEach((mutation) => {
+                if (mutation.type === 'characterData' || mutation.type === 'childList') {
+                    userAvailableTokensEl.textContent = availableTokensEl.textContent;
+                }
+            });
+        });
+        
+        observer.observe(availableTokensEl, {
+            characterData: true,
+            childList: true,
+            subtree: true
+        });
+        
+        console.log('[Dashboard] Synchronisation automatique tokens → modal activée');
+    } else {
+        // Essayer plus tard si les éléments n'existent pas encore
+        setTimeout(setupTokenSynchronization, 500);
+    }
+}
+
+// Initialiser la synchronisation dès que possible
+if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(setupTokenSynchronization, 100);
+} else {
+    document.addEventListener('DOMContentLoaded', setupTokenSynchronization);
+}
+
 // Attendre que le DOM soit chargé
 // Si le DOM est déjà chargé (script chargé à la fin du body), exécuter immédiatement
 if (document.readyState === 'loading') {
