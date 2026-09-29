@@ -483,3 +483,4 @@ async function loadUserTokenData(userId) {
 window.TokenConfig = TokenConfig;
 window.TokenManager = TokenManager;
 window.TokenUtils = TokenUtils;
+window.AnalysisCosts = AnalysisCosts;
