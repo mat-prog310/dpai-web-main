@@ -59,6 +59,7 @@ function setupTokenSynchronization() {
             mutations.forEach((mutation) => {
                 if (mutation.type === 'characterData' || mutation.type === 'childList') {
                     userAvailableTokensEl.textContent = availableTokensEl.textContent;
+                    console.log('[Dashboard] Mutation détectée, userAvailableTokens synchronisé:', availableTokensEl.textContent);
                 }
             });
         });
@@ -68,6 +69,20 @@ function setupTokenSynchronization() {
             childList: true,
             subtree: true
         });
+        
+        // Vérification périodique toutes les 500ms (fallback si MutationObserver échoue)
+        const syncInterval = setInterval(() => {
+            if (availableTokensEl.textContent !== userAvailableTokensEl.textContent) {
+                userAvailableTokensEl.textContent = availableTokensEl.textContent;
+                console.log('[Dashboard] Sync périodique: userAvailableTokens =', availableTokensEl.textContent);
+            }
+        }, 500);
+        
+        // Arrêter le fallback après 30 secondes (quand tout devrait être stable)
+        setTimeout(() => {
+            clearInterval(syncInterval);
+            console.log('[Dashboard] Arrêt du sync périodique (fallback)');
+        }, 30000);
         
         console.log('[Dashboard] Synchronisation automatique tokens → modal activée');
     } else {
