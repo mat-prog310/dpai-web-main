@@ -2867,6 +2867,14 @@ async function startAnalysis(type) {
         const specificFieldsContainer = document.getElementById('analysisSpecificFields');
         updateSpecificFields(type, specificFieldsContainer);
         
+        // FORCER la synchronisation de userAvailableTokens depuis le dashboard
+        const availableTokensEl = document.getElementById('availableTokens');
+        const userAvailableTokensEl = document.getElementById('userAvailableTokens');
+        if (availableTokensEl && userAvailableTokensEl) {
+            userAvailableTokensEl.textContent = availableTokensEl.textContent;
+            console.log('[DPAI] Sync forcée: userAvailableTokens =', availableTokensEl.textContent);
+        }
+        
         // Ouvrir le modal
         modal.classList.add('visible');
         console.log('[DPAI] Modal ouvert, classe visible ajoutée');
