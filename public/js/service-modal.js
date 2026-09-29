@@ -17,7 +17,7 @@ const servicesData = {
         name: 'Analyse SWOT',
         icon: 'fa-swimming-pool',
         difficulty: 'Débutant',
-        tokens: '5-10 tokens',
+        tokens: '40 tokens',
         description: `L'analyse SWOT (Forces, Faiblesses, Opportunités, Menaces) est un outil fondamental pour évaluer la situation actuelle de votre entreprise ou de votre cible d'acquisition. Elle vous permet d'identifier les facteurs internes et externes qui influencent votre stratégie.`,
         whatYouGet: [
             'Identification des forces internes',
@@ -40,7 +40,7 @@ const servicesData = {
         name: 'Porter 5 Forces',
         icon: 'fa-project-diagram',
         difficulty: 'Avancé',
-        tokens: '20-120 tokens',
+        tokens: '120 tokens',
         description: `Le modèle des 5 Forces de Porter est un cadre d'analyse fondamental en stratégie qui permet d'évaluer la compétitivité et l'attrait d'un secteur. En analysant ces cinq forces, vous pouvez comprendre la rentabilité potentielle et les défis d'un secteur.`,
         whatYouGet: [
             'Rivalité entre concurrents existants',
@@ -62,7 +62,7 @@ const servicesData = {
         name: 'Analyse PESTEL',
         icon: 'fa-globe-americas',
         difficulty: 'Intermédiaire',
-        tokens: '15-75 tokens',
+        tokens: '80 tokens',
         description: `L'analyse PESTEL permet d'évaluer les facteurs externes qui influencent votre entreprise ou votre projet. Contrairement à SWOT qui se concentre sur des aspects internes et externes spécifiques, PESTEL examine des facteurs macro-environnementaux plus larges.`,
         whatYouGet: [
             '<strong>P</strong>olitique : stabilité, réglementations, fiscalité',
@@ -85,7 +85,7 @@ const servicesData = {
         name: 'Analyse Concurrentielle',
         icon: 'fa-users',
         difficulty: 'Avancé',
-        tokens: '20-160 tokens',
+        tokens: '120 tokens',
         description: `L'analyse concurrentielle vous permet de comprendre en profondeur vos concurrents, leurs forces, leurs faiblesses, et leurs stratégies. Cette analyse est cruciale pour positionner efficacement votre entreprise et identifier vos avantages concurrentiels.`,
         whatYouGet: [
             'Positionnement de chaque concurrent',
@@ -108,7 +108,7 @@ const servicesData = {
         name: 'Rapports Détaillés',
         icon: 'fa-file-alt',
         difficulty: 'Expert',
-        tokens: '25-250 tokens',
+        tokens: '160 tokens',
         description: `Nos rapports détaillés combinent plusieurs analyses pour vous fournir une vision complète et actionnable. Chaque rapport est personnalisé selon vos besoins spécifiques et inclut des recommandations stratégiques concrètes.`,
         whatYouGet: [
             'Rapport de due diligence',
@@ -235,7 +235,7 @@ const servicesData = {
         name: 'Simulateur de valorisation',
         icon: 'fa-euro-sign',
         difficulty: 'Expert',
-        tokens: '200 tokens',
+        tokens: '320 tokens',
         description: `Estimez le prix d'achat d'une entreprise cible avec notre simulateur de valorisation. Cet outil prend en compte les multiples sectoriels, la santé financière de la cible, les synergies potentielles et les conditions de marché pour vous fournir une fourchette de valorisation réaliste.`,
         whatYouGet: [
             'Calcul des multiples sectoriels',
@@ -259,7 +259,7 @@ const servicesData = {
         name: 'Checklist Due Diligence',
         icon: 'fa-check-square',
         difficulty: 'Avancé',
-        tokens: '100 tokens',
+        tokens: '280 tokens',
         description: `Notre checklist complète de due diligence vous guide à travers tous les aspects à vérifier avant une acquisition. De l'analyse financière à l'audit juridique, en passant par l'évaluation des ressources humaines et de la propriété intellectuelle, cette checklist vous assure de ne rien oublier.`,
         whatYouGet: [
             'Checklist financière complète',
@@ -359,7 +359,7 @@ const servicesData = {
         name: 'Dashboard Post-Acquisition',
         icon: 'fa-chart-area',
         difficulty: 'Expert',
-        tokens: '80 tokens/mois',
+        tokens: 'Sur devis',
         description: `Surveillez la performance de votre acquisition en temps réel avec notre dashboard dédié. Suivez les indicateurs clés, comparez les résultats avec vos objectifs et identifiez rapidement les écarts pour prendre des actions correctives.`,
         whatYouGet: [
             'Tableau de bord personnalisable',

@@ -282,21 +282,25 @@ function initQuickActions() {
             console.warn('[DASHBOARD] servicesData non disponible, utilisation du fallback COMPLET');
             services = {
                 // PHASE 1 & 2 - TOUS GRATUITS
-                swot: { id: 'swot', name: 'Analyse SWOT', icon: 'fa-swimming-pool', tokens: '5-10', requiredPlan: 'free' },
-                porter: { id: 'porter', name: 'Porter 5 Forces', icon: 'fa-project-diagram', tokens: '20-120', requiredPlan: 'free' },
-                pestel: { id: 'pestel', name: 'Analyse PESTEL', icon: 'fa-globe-americas', tokens: '15-75', requiredPlan: 'free' },
-                competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: '20-160', requiredPlan: 'free' },
-                reports: { id: 'reports', name: 'Rapports Détaillés', icon: 'fa-file-alt', tokens: '25-250', requiredPlan: 'free' },
-                benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: '40', requiredPlan: 'free' },
-                modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: '60', requiredPlan: 'free' },
-                due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: '70', requiredPlan: 'free' },
-                valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: '80', requiredPlan: 'free' },
-                synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: '50', requiredPlan: 'free' },
+                swot: { id: 'swot', name: 'Analyse SWOT', icon: 'fa-swimming-pool', tokens: '40 tokens', requiredPlan: 'free' },
+                porter: { id: 'porter', name: 'Porter 5 Forces', icon: 'fa-project-diagram', tokens: '120 tokens', requiredPlan: 'free' },
+                pestel: { id: 'pestel', name: 'Analyse PESTEL', icon: 'fa-globe-americas', tokens: '80 tokens', requiredPlan: 'free' },
+                competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: '120 tokens', requiredPlan: 'free' },
+                reports: { id: 'reports', name: 'Rapports Détaillés', icon: 'fa-file-alt', tokens: '160 tokens', requiredPlan: 'free' },
+                benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: '160 tokens', requiredPlan: 'free' },
+                modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: '240 tokens', requiredPlan: 'free' },
+                due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: '280 tokens', requiredPlan: 'free' },
+                valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: '320 tokens', requiredPlan: 'free' },
+                synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: '200 tokens', requiredPlan: 'free' },
+                ideal_sector: { id: 'ideal_sector', name: 'Secteur d\'activité idéal', icon: 'fa-globe', tokens: '35 tokens', requiredPlan: 'free' },
+                maturity_score: { id: 'maturity_score', name: 'Score de maturité', icon: 'fa-chart-line', tokens: '50 tokens', requiredPlan: 'free' },
+                integration_matrix: { id: 'integration_matrix', name: 'Matrice d\'intégration', icon: 'fa-th', tokens: '180 tokens', requiredPlan: 'blocked' },
+                valuation_simulator: { id: 'valuation_simulator', name: 'Simulateur de valorisation', icon: 'fa-euro-sign', tokens: '320 tokens', requiredPlan: 'blocked' },
                 // PHASE 3 & 4 - BLOQUÉS (contact par mail)
-                loi_generator: { id: 'loi_generator', name: 'Générateur de LOI', icon: 'fa-file-contract', tokens: '150', requiredPlan: 'blocked' },
-                negotiation_simulator: { id: 'negotiation_simulator', name: 'Simulateur de négociation', icon: 'fa-handshake', tokens: '180', requiredPlan: 'blocked' },
-                action_plan_100_days: { id: 'action_plan_100_days', name: 'Plan 100 jours', icon: 'fa-route', tokens: '250', requiredPlan: 'blocked' },
-                post_acquisition_dashboard: { id: 'post_acquisition_dashboard', name: 'Dashboard Post-Acquisition', icon: 'fa-chart-area', tokens: '80/mois', requiredPlan: 'blocked' }
+                loi_generator: { id: 'loi_generator', name: 'Générateur de LOI', icon: 'fa-file-contract', tokens: 'Sur devis', requiredPlan: 'blocked' },
+                negotiation_simulator: { id: 'negotiation_simulator', name: 'Simulateur de négociation', icon: 'fa-handshake', tokens: 'Sur devis', requiredPlan: 'blocked' },
+                action_plan_100_days: { id: 'action_plan_100_days', name: 'Plan 100 jours', icon: 'fa-route', tokens: 'Sur devis', requiredPlan: 'blocked' },
+                post_acquisition_dashboard: { id: 'post_acquisition_dashboard', name: 'Dashboard Post-Acquisition', icon: 'fa-chart-area', tokens: 'Sur devis', requiredPlan: 'blocked' }
             };
         }
         
