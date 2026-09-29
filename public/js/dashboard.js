@@ -705,6 +705,12 @@ function updateDashboardStats(userData) {
         userPlanEl.textContent = planNames[userData.plan] || userData.plan || 'Gratuit';
     }
     
+    // Mettre à jour userAvailableTokens dans la modal (doit être synchro avec availableTokens)
+    const userAvailableTokensEl = document.getElementById('userAvailableTokens');
+    if (userAvailableTokensEl) {
+        userAvailableTokensEl.textContent = TokenUtils.formatTokens(availableTokens);
+    }
+    
     // Mettre à jour les analyses
     const totalAnalysesEl = document.getElementById('totalAnalyses');
     const monthlyAnalysesEl = document.getElementById('monthlyAnalyses');
@@ -1226,7 +1232,7 @@ function initAnalysisForm() {
             const available = TokenManager ? TokenManager.availableTokens : 500;
             
             if (available < cost) {
-                showAlert('error', 'Erreur', `Vous n'avez pas assez de tokens pour cette analyse. Nécessaire: ${cost}, Disponible: ${available}`);
+                showAlert('error', 'Erreur', `Vous n'avez pas assez de tokens pour cette analyse. Nécessaire: ${TokenUtils.formatTokens(cost)}, Disponible: ${TokenUtils.formatTokens(available)}`);
                 return;
             }
             
@@ -1322,11 +1328,11 @@ function updateAnalysisEstimation(type) {
     }
     
     if (estimatedTokensEl) {
-        estimatedTokensEl.textContent = cost;
+        estimatedTokensEl.textContent = TokenUtils.formatTokens(cost);
     }
     
     if (userAvailableTokensEl) {
-        userAvailableTokensEl.textContent = available;
+        userAvailableTokensEl.textContent = TokenUtils.formatTokens(available);
     }
     
     if (insufficientTokensAlert) {
@@ -1407,6 +1413,12 @@ async function updateAfterAnalysis(type, name, description, cost) {
         }
         if (tokenAvailableEl) {
             tokenAvailableEl.textContent = TokenUtils.formatTokens(availableTokens);
+        }
+        
+        // Mettre à jour userAvailableTokens dans la modal
+        const userAvailableTokensEl = document.getElementById('userAvailableTokens');
+        if (userAvailableTokensEl) {
+            userAvailableTokensEl.textContent = TokenUtils.formatTokens(availableTokens);
         }
         
         // Mettre à jour les stats d'analyses
