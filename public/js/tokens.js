@@ -53,13 +53,21 @@ const AnalysisCosts = {
   mergers_acquisitions: 400,
   strategic_audit: 240,
   risk_assessment: 200,
+  // Services supplémentaires Phase 1 & 2
+  reports: 160,
+  ideal_sector: 35,
+  maturity_score: 50,
+  integration_matrix: 180,
+  valuation_simulator: 320,
   
   // PHASE 3 : NÉGOCIATION & SIGNATURE - BLOQUÉ (Contact par mail)
   loi_generation: 999999,
+  loi_generator: 999999,
   negotiation_simulator: 999999,
   
   // PHASE 4 : INTÉGRATION & SUIVI - BLOQUÉ (Contact par mail)
   action_plan_100: 999999,
+  action_plan_100_days: 999999,
   post_acquisition_dashboard: 999999
 };
 

@@ -17,7 +17,7 @@ const servicesData = {
         name: 'Analyse SWOT',
         icon: 'fa-swimming-pool',
         difficulty: 'Débutant',
-        tokens: '40 tokens',
+        tokens: 40,
         description: `L'analyse SWOT (Forces, Faiblesses, Opportunités, Menaces) est un outil fondamental pour évaluer la situation actuelle de votre entreprise ou de votre cible d'acquisition. Elle vous permet d'identifier les facteurs internes et externes qui influencent votre stratégie.`,
         whatYouGet: [
             'Identification des forces internes',
@@ -40,7 +40,7 @@ const servicesData = {
         name: 'Porter 5 Forces',
         icon: 'fa-project-diagram',
         difficulty: 'Avancé',
-        tokens: '120 tokens',
+        tokens: 120,
         description: `Le modèle des 5 Forces de Porter est un cadre d'analyse fondamental en stratégie qui permet d'évaluer la compétitivité et l'attrait d'un secteur. En analysant ces cinq forces, vous pouvez comprendre la rentabilité potentielle et les défis d'un secteur.`,
         whatYouGet: [
             'Rivalité entre concurrents existants',
@@ -62,7 +62,7 @@ const servicesData = {
         name: 'Analyse PESTEL',
         icon: 'fa-globe-americas',
         difficulty: 'Intermédiaire',
-        tokens: '80 tokens',
+        tokens: 80,
         description: `L'analyse PESTEL permet d'évaluer les facteurs externes qui influencent votre entreprise ou votre projet. Contrairement à SWOT qui se concentre sur des aspects internes et externes spécifiques, PESTEL examine des facteurs macro-environnementaux plus larges.`,
         whatYouGet: [
             '<strong>P</strong>olitique : stabilité, réglementations, fiscalité',
@@ -85,7 +85,7 @@ const servicesData = {
         name: 'Analyse Concurrentielle',
         icon: 'fa-users',
         difficulty: 'Avancé',
-        tokens: '120 tokens',
+        tokens: 120,
         description: `L'analyse concurrentielle vous permet de comprendre en profondeur vos concurrents, leurs forces, leurs faiblesses, et leurs stratégies. Cette analyse est cruciale pour positionner efficacement votre entreprise et identifier vos avantages concurrentiels.`,
         whatYouGet: [
             'Positionnement de chaque concurrent',
@@ -108,7 +108,7 @@ const servicesData = {
         name: 'Rapports Détaillés',
         icon: 'fa-file-alt',
         difficulty: 'Expert',
-        tokens: '160 tokens',
+        tokens: 160,
         description: `Nos rapports détaillés combinent plusieurs analyses pour vous fournir une vision complète et actionnable. Chaque rapport est personnalisé selon vos besoins spécifiques et inclut des recommandations stratégiques concrètes.`,
         whatYouGet: [
             'Rapport de due diligence',
@@ -133,7 +133,7 @@ const servicesData = {
         name: 'Tableau de Bord',
         icon: 'fa-chart-line',
         difficulty: 'Tous niveaux',
-        tokens: 'Gratuit',
+        tokens: 0,
         description: `Notre tableau de bord intuitif vous permet de suivre toutes vos analyses, vos tokens et vos performances en temps réel. Centralisez toutes vos données stratégiques en un seul endroit.`,
         whatYouGet: [
             'Vue d\'ensemble de toutes vos analyses',
@@ -161,7 +161,7 @@ const servicesData = {
         name: 'Secteur d\'activité idéal',
         icon: 'fa-globe',
         difficulty: 'Intermédiaire',
-        tokens: '35 tokens',
+        tokens: 35,
         description: `Cet outil vous aide à identifier et à trouver des cibles d'acquisition dans les secteurs les plus porteurs pour votre stratégie de croissance externe. Analysez les opportunités de marché et affinez votre cible en fonction de critères précis.`,
         whatYouGet: [
             'Analyse sectorielle complète',
@@ -185,7 +185,7 @@ const servicesData = {
         name: 'Score de maturité',
         icon: 'fa-chart-line',
         difficulty: 'Intermédiaire',
-        tokens: '50 tokens',
+        tokens: 50,
         description: `Évaluez votre niveau de préparation à une opération de croissance externe. Le score de maturité analyse vos capacités internes, votre expérience passée et votre readiness opérationnelle pour déterminer si vous êtes prêt à acheter une entreprise.`,
         whatYouGet: [
             'Évaluation complète de votre maturité',
@@ -211,7 +211,7 @@ const servicesData = {
         name: 'Matrice d\'intégration',
         icon: 'fa-th',
         difficulty: 'Avancé',
-        tokens: '180 tokens',
+        tokens: 180,
         description: `La matrice d'intégration vous permet d'anticiper les risques et les opportunités post-rachat. Cet outil analyse la compatibilité entre votre entreprise et la cible, identifie les synergies potentielles et évalue les défis d'intégration.`,
         whatYouGet: [
             'Analyse de compatibilité culturelle',
@@ -235,7 +235,7 @@ const servicesData = {
         name: 'Simulateur de valorisation',
         icon: 'fa-euro-sign',
         difficulty: 'Expert',
-        tokens: '320 tokens',
+        tokens: 320,
         description: `Estimez le prix d'achat d'une entreprise cible avec notre simulateur de valorisation. Cet outil prend en compte les multiples sectoriels, la santé financière de la cible, les synergies potentielles et les conditions de marché pour vous fournir une fourchette de valorisation réaliste.`,
         whatYouGet: [
             'Calcul des multiples sectoriels',
@@ -259,7 +259,7 @@ const servicesData = {
         name: 'Checklist Due Diligence',
         icon: 'fa-check-square',
         difficulty: 'Avancé',
-        tokens: '280 tokens',
+        tokens: 280,
         description: `Notre checklist complète de due diligence vous guide à travers tous les aspects à vérifier avant une acquisition. De l'analyse financière à l'audit juridique, en passant par l'évaluation des ressources humaines et de la propriété intellectuelle, cette checklist vous assure de ne rien oublier.`,
         whatYouGet: [
             'Checklist financière complète',
@@ -285,7 +285,7 @@ const servicesData = {
         name: 'Générateur de LOI',
         icon: 'fa-file-contract',
         difficulty: 'Expert',
-        tokens: '150 tokens',
+        tokens: 999999,
         description: `Générez une Letter of Intent (LOI) professionnelle et complète avec notre outil dédié. Formalisez votre offre d'achat avec tous les éléments nécessaires : prix, conditions, calendriers, garanties et clauses spécifiques.`,
         whatYouGet: [
             'Modèle de LOI personnalisable',
@@ -309,7 +309,7 @@ const servicesData = {
         name: 'Simulateur de négociation',
         icon: 'fa-handshake',
         difficulty: 'Expert',
-        tokens: '180 tokens',
+        tokens: 999999,
         description: `Entraînez-vous à négocier avec notre simulateur interactif. Préparez vos arguments, anticipez les objections du vendeur et testez différentes stratégies de négociation pour obtenir le meilleur accord possible.`,
         whatYouGet: [
             'Simulation de scénarios de négociation',
@@ -335,7 +335,7 @@ const servicesData = {
         name: 'Plan d\'action 100 jours',
         icon: 'fa-route',
         difficulty: 'Expert',
-        tokens: '250 tokens',
+        tokens: 999999,
         description: `Créez une feuille de route opérationnelle détaillée pour les 100 premiers jours post-acquisition. Ce plan d'action vous guide à travers toutes les étapes critiques de l'intégration, avec des objectifs clairs, des responsables désignés et un calendrier précis.`,
         whatYouGet: [
             'Feuille de route complète sur 100 jours',
@@ -359,7 +359,7 @@ const servicesData = {
         name: 'Dashboard Post-Acquisition',
         icon: 'fa-chart-area',
         difficulty: 'Expert',
-        tokens: 'Sur devis',
+        tokens: 999999,
         description: `Surveillez la performance de votre acquisition en temps réel avec notre dashboard dédié. Suivez les indicateurs clés, comparez les résultats avec vos objectifs et identifiez rapidement les écarts pour prendre des actions correctives.`,
         whatYouGet: [
             'Tableau de bord personnalisable',
