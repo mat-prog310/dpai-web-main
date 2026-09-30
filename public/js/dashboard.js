@@ -1798,7 +1798,17 @@ function initAnalysisForm() {
             
             const plan = authService.userData?.plan || 'free';
             const cost = (TokenManager && TokenManager.getCost) ? TokenManager.getCost(type, plan) : 40;
-            const available = TokenManager ? TokenManager.availableTokens : 500;
+            
+            // Calculer available avec la même logique que updateAnalysisEstimation
+            let available = 0;
+            if (TokenManager && TokenManager.tokenState) {
+                available = TokenManager.availableTokens || 0;
+            } else if (authService?.userData) {
+                available = authService.userData.availableTokens || 
+                            (authService.userData.tokenState?.availableTokens || 0) || 0;
+            } else {
+                available = 500; // Mode démo
+            }
             
             if (available < cost) {
                 showAlert('error', 'Erreur', `Vous n'avez pas assez de tokens pour cette analyse. Nécessaire: ${TokenUtils.formatTokens(cost)}, Disponible: ${TokenUtils.formatTokens(available)}`);
@@ -1888,8 +1898,11 @@ function updateAnalysisEstimation(type) {
         }
     }
     
-    // Priority 4: Valeur par défaut
-    if (available === 0) {
+    // Priority 4: Valeur par défaut UNIQUEMENT si aucune source n'a donné de valeur
+    // Si available === 0 mais qu'on a trouvé une source (TokenManager, authService, ou DOM), 
+    // c'est que l'utilisateur a vraiment 0 tokens, on ne force pas à 500
+    if (available === 0 && !TokenManager?.tokenState && !authService?.userData) {
+        // Seulement en mode démo non authentifié
         available = 500;
     }
     
@@ -1957,18 +1970,27 @@ async function updateAfterAnalysis(type, name, description, cost) {
         if (user) {
             // Mode normal : recharger les données utilisateur pour avoir les dernières valeurs
             const userData = await authService.loadUserData(user.uid);
-            authService.userData = userData;
-            TokenManager.init(userData);
             
-            availableTokens = userData.availableTokens || 
-                                  (userData.tokenState ? userData.tokenState.availableTokens : 0) || 0;
-            usedTokens = userData.tokensUsed || 
-                              (userData.tokenState ? userData.tokenState.usedTokens : 0) || 0;
-            totalTokens = userData.totalTokens || 
-                               (userData.tokenState ? userData.tokenState.totalTokens : 0) || 0;
-            tokenLimit = userData.tokenLimit || 
-                         (userData.tokenState ? userData.tokenState.baseTokens : TokenConfig.baseTokenLimits.free) || 
-                         TokenConfig.baseTokenLimits.free;
+            if (userData) {
+                authService.userData = userData;
+                TokenManager.init(userData);
+                
+                availableTokens = userData.availableTokens || 
+                                      (userData.tokenState ? userData.tokenState.availableTokens : 0) || 0;
+                usedTokens = userData.tokensUsed || 
+                                  (userData.tokenState ? userData.tokenState.usedTokens : 0) || 0;
+                totalTokens = userData.totalTokens || 
+                                   (userData.tokenState ? userData.tokenState.totalTokens : 0) || 0;
+                tokenLimit = userData.tokenLimit || 
+                             (userData.tokenState ? userData.tokenState.baseTokens : TokenConfig.baseTokenLimits.free) || 
+                             TokenConfig.baseTokenLimits.free;
+            } else {
+                // Firestore non disponible, utiliser TokenManager local
+                availableTokens = TokenManager ? TokenManager.availableTokens : 500;
+                usedTokens = TokenManager?.tokenState ? TokenManager.tokenState.usedTokens : 0;
+                totalTokens = TokenManager?.tokenState ? TokenManager.tokenState.totalTokens : 500;
+                tokenLimit = TokenConfig.baseTokenLimits.free || 500;
+            }
         } else {
             // Mode non connecté : utiliser TokenManager ou valeurs par défaut
             availableTokens = TokenManager ? TokenManager.availableTokens : 500;

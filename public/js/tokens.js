@@ -17,6 +17,8 @@ function getDB() {
     return null;
 }
 
+
+
 // Configuration des plans (TOUS LES UTILISATEURS ONT UN PLAN GRATUIT AVEC 500 TOKENS)
 // Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à window.CONTACT_EMAIL
 const TokenConfig = {
@@ -155,86 +157,78 @@ class TokenManager {
   static init(userData) {
     this.userData = userData;
     
-    // Vérifier si le tokenState existe et est valide
-    // Tous les utilisateurs ont le plan 'free' avec 500 tokens
-    const expectedBaseTokens = TokenConfig.baseTokenLimits.free;
-    const hasValidTokenState = userData.tokenState && 
-                                userData.tokenState.baseTokens === expectedBaseTokens;
+    const expectedBaseTokens = TokenConfig.baseTokenLimits.free; // 500
     
-    if (hasValidTokenState) {
-      this.tokenState = userData.tokenState;
-    } else {
-      // Re créer le tokenState avec le plan free
-      console.log('[TokenManager] Recalcul du tokenState');
-      
-      // Déterminer les valeurs correctes
-      // Si l'utilisateur a des tokens au niveau racine, les utiliser
-      // Sinon, donner 500 tokens par défaut
-      let usedTokens = 0;
-      let availableTokens = 500;
-      let totalTokens = 500;
-      
-      // Essayer de récupérer les valeurs existantes
-      if (userData.tokenState) {
-        usedTokens = userData.tokenState.usedTokens || 0;
-        availableTokens = userData.tokenState.availableTokens || 500;
-        totalTokens = userData.tokenState.totalTokens || 500;
-      } else if (userData.availableTokens !== undefined && userData.tokensUsed !== undefined) {
-        // Utiliser les valeurs du root
-        usedTokens = userData.tokensUsed || 0;
-        availableTokens = userData.availableTokens || 500;
-        totalTokens = userData.totalTokens || 500;
-      }
-      
-      // Si availableTokens + usedTokens !== totalTokens, corriger
-      const expectedAvailable = totalTokens - usedTokens;
-      if (availableTokens !== expectedAvailable) {
-        console.log('[TokenManager] Correction incohérence: availableTokens recalculé');
-        availableTokens = expectedAvailable;
-      }
-      
-      // Si l'utilisateur n'a pas du tout de tokens configurés, lui donner 500
-      // Tous les utilisateurs free ont droit à 500 tokens
-      if (totalTokens === 0 || availableTokens === 0 || 
-          (userData.availableTokens === undefined && userData.tokensUsed === undefined && !userData.tokenState)) {
-        console.log('[TokenManager] Nouvel utilisateur ou tokens à 0: initialisation à 500');
-        usedTokens = 0;
-        availableTokens = 500;
-        totalTokens = 500;
-      }
-      
-      // Créer le tokenState
-      this.tokenState = {
-        userId: userData.id,
-        plan: 'free',
-        baseTokens: expectedBaseTokens,
-        bonusTokens: 0,
-        totalTokens: totalTokens,
-        usedTokens: usedTokens,
-        availableTokens: availableTokens,
-        lastTokenUpdate: userData.tokenState?.lastTokenUpdate || new Date().toISOString(),
-        firstAnalysisDone: userData.tokenState?.firstAnalysisDone || false,
-        monthlyTokensUsed: userData.tokenState?.monthlyTokensUsed || 0,
-        lastMonthlyReset: userData.tokenState?.lastMonthlyReset || new Date().toISOString()
-      };
-      
-      // Sauvegarder le tokenState corrigé dans Firestore
-      // Cela permet de corriger les utilisateurs existants
-      const firestoreDB = getDB();
-      if (userData.id && firestoreDB) {
-        firestoreDB.collection('users').doc(userData.id).update({
-          tokenState: this.tokenState,
-          availableTokens: this.tokenState.availableTokens,
-          tokensUsed: this.tokenState.usedTokens,
-          totalTokens: this.tokenState.totalTokens
-        }).catch(err => {
-          console.warn('[TokenManager] Impossible de sauvegarder le tokenState corrigé:', err);
-        });
-      } else if (!userData.id) {
-        console.log('[TokenManager] Pas d\'ID utilisateur, sauvegarde Firestore ignorée');
-      } else {
-        console.log('[TokenManager] Firestore non disponible (mode file://), sauvegarde ignorée');
-      }
+    // TOUJOURS créer un tokenState valide
+    let usedTokens = 0;
+    let availableTokens = 500;
+    let totalTokens = 500;
+    let firstAnalysisDone = false;
+    let monthlyTokensUsed = 0;
+    let lastTokenUpdate = new Date().toISOString();
+    let lastMonthlyReset = new Date().toISOString();
+    
+    // Priorité 1: Récupérer depuis userData.tokenState
+    if (userData.tokenState) {
+      usedTokens = userData.tokenState.usedTokens || 0;
+      availableTokens = userData.tokenState.availableTokens || 0;
+      totalTokens = userData.tokenState.totalTokens || 500;
+      firstAnalysisDone = userData.tokenState.firstAnalysisDone || false;
+      monthlyTokensUsed = userData.tokenState.monthlyTokensUsed || 0;
+      lastTokenUpdate = userData.tokenState.lastTokenUpdate || new Date().toISOString();
+      lastMonthlyReset = userData.tokenState.lastMonthlyReset || new Date().toISOString();
+      console.log('[TokenManager] tokenState chargé depuis userData');
+    }
+    // Priorité 2: Récupérer depuis les champs racine
+    else if (userData.availableTokens !== undefined) {
+      usedTokens = userData.tokensUsed || 0;
+      availableTokens = userData.availableTokens || 0;
+      totalTokens = userData.totalTokens || 500;
+      firstAnalysisDone = (userData.totalAnalyses || 0) > 0;
+      console.log('[TokenManager] tokenState calculé depuis champs racine');
+    }
+    
+    // Corriger les incohérences: availableTokens = totalTokens - usedTokens
+    const expectedAvailable = totalTokens - usedTokens;
+    if (availableTokens !== expectedAvailable) {
+      console.log('[TokenManager] Correction incohérence: availableTokens =', expectedAvailable);
+      availableTokens = expectedAvailable;
+    }
+    
+    // Si totalTokens est 0, initialiser à 500 (nouvel utilisateur)
+    if (totalTokens === 0) {
+      totalTokens = 500;
+      usedTokens = 0;
+      availableTokens = 500;
+      console.log('[TokenManager] Nouvel utilisateur: 500 tokens');
+    }
+    
+    // Créer le tokenState
+    this.tokenState = {
+      userId: userData.id,
+      plan: 'free',
+      baseTokens: expectedBaseTokens,
+      bonusTokens: 0,
+      totalTokens: totalTokens,
+      usedTokens: usedTokens,
+      availableTokens: availableTokens,
+      lastTokenUpdate: lastTokenUpdate,
+      firstAnalysisDone: firstAnalysisDone,
+      monthlyTokensUsed: monthlyTokensUsed,
+      lastMonthlyReset: lastMonthlyReset
+    };
+    
+    // Sauvegarder dans Firestore pour corriger les anciens utilisateurs
+    const firestoreDB = getDB();
+    if (userData.id && firestoreDB) {
+      firestoreDB.collection('users').doc(userData.id).update({
+        tokenState: this.tokenState,
+        availableTokens: this.tokenState.availableTokens,
+        tokensUsed: this.tokenState.usedTokens,
+        totalTokens: this.tokenState.totalTokens
+      }).catch(err => {
+        console.warn('[TokenManager] Impossible de corriger tokenState:', err);
+      });
     }
     
     this.loyaltyInfo = userData.loyaltyInfo || LoyaltySystem.create(userData.id);
@@ -313,9 +307,6 @@ class TokenManager {
     const firestoreDB = getDB();
     if (firestoreDB && this.userData && this.userData.id) {
       await firestoreDB.collection('users').doc(this.userData.id).update(updateData);
-    } else {
-      console.log('[TokenManager.useTokens] Firestore non disponible, utilisation en mode démo');
-      // En mode démo, on met juste à jour localement
     }
 
     this.tokenState = newState;
