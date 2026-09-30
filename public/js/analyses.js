@@ -134,57 +134,144 @@ class SWOTAnalysis extends Analysis {
     generateStrengths(company) {
         const strengths = [];
         
-        if (!company) {
-            return [
-                'Forte notoriété de la marque sur le marché',
-                'Équipe expérimentée et qualifiée',
-                'Technologie avancée et innovante',
-                'Position financière solide',
-                'Réseau de distribution étendu'
-            ];
+        if (!company || Object.keys(company).length === 0) {
+            return [];
         }
 
-        // Forces basées sur les données réelles
-        if (company.marketShare && company.marketShare > 0.2) {
-            strengths.push(`Part de marché élevée (${(company.marketShare * 100).toFixed(1)}%)`);
+        // Forces basées sur les données réelles de l'entreprise
+        // Part de marché
+        if (company.marketShare !== undefined) {
+            const marketSharePct = company.marketShare * 100;
+            if (marketSharePct > 30) {
+                strengths.push(`Leader du marché avec ${marketSharePct.toFixed(1)}% de part de marché`);
+            } else if (marketSharePct > 20) {
+                strengths.push(`Position forte sur le marché avec ${marketSharePct.toFixed(1)}% de parts`);
+            } else if (marketSharePct > 10) {
+                strengths.push(`Présence significative avec ${marketSharePct.toFixed(1)}% du marché`);
+            } else if (marketSharePct > 5) {
+                strengths.push(`Position de challenger avec ${marketSharePct.toFixed(1)}% de part de marché`);
+            }
         }
 
-        if (company.revenue && company.revenue > 1000000) {
-            strengths.push(`Chiffre d'affaires significatif (${this.formatCurrency(company.revenue)})`);
+        // Chiffre d'affaires
+        if (company.revenue !== undefined) {
+            const revenueStr = this.formatCurrency(company.revenue);
+            if (company.revenue > 50000000) {
+                strengths.push(`Chiffre d'affaires substantiel de ${revenueStr}, permettant des investissements stratégiques`);
+            } else if (company.revenue > 10000000) {
+                strengths.push(`CA solide de ${revenueStr}, assurant une bonne stabilité financière`);
+            } else if (company.revenue > 1000000) {
+                strengths.push(`Chiffre d'affaires de ${revenueStr} avec un bon potentiel de croissance`);
+            }
         }
 
-        if (company.employees && company.employees > 50) {
-            strengths.push(`Équipe importante (${company.employees} employés)`);
+        // Effectifs
+        if (company.employees !== undefined) {
+            if (company.employees > 500) {
+                strengths.push(`Effectif important de ${company.employees} employés, offrant une grande capacité opérationnelle`);
+            } else if (company.employees > 100) {
+                strengths.push(`Équipe de ${company.employees} personnes, alliant agilité et expertise`);
+            } else if (company.employees > 20) {
+                strengths.push(`Structure humaine de ${company.employees} employés, favorisant la réactivité`);
+            }
         }
 
-        if (company.technology && company.technology.includes('innovant')) {
-            strengths.push('Technologie innovante et compétitive');
+        // Technologie
+        if (company.technology) {
+            if (company.technology.includes('innovant') || company.technology.includes('innovante')) {
+                strengths.push(`Technologie ${company.technology} offrant un avantage concurrentiel distinct`);
+            } else if (company.technology.includes('moderne')) {
+                strengths.push(`Infrastructure technologique moderne et performante`);
+            } else if (company.technology === 'avancée' || company.technology === 'advanced') {
+                strengths.push(`Technologie de pointe supportant l'innovation produit`);
+            }
         }
 
-        if (company.brandRecognition && company.brandRecognition > 7) {
-            strengths.push('Forte notoriété de la marque');
+        // Notoriété de la marque
+        if (company.brandRecognition !== undefined) {
+            if (company.brandRecognition > 9) {
+                strengths.push(`Marque très reconnue dans le secteur, avec une forte crédibilité`);
+            } else if (company.brandRecognition > 7) {
+                strengths.push(`Bonne notoriété de la marque, facilitant l'acquisition client`);
+            } else if (company.brandRecognition > 5) {
+                strengths.push(`Notoriété de marque en développement, en croissance constante`);
+            }
         }
 
-        if (company.customerSatisfaction && company.customerSatisfaction > 8) {
-            strengths.push('Taux de satisfaction client élevé');
+        // Satisfaction client
+        if (company.customerSatisfaction !== undefined) {
+            if (company.customerSatisfaction > 9) {
+                strengths.push(`Excellence en satisfaction client (${company.customerSatisfaction}/10), générant une forte fidélisation`);
+            } else if (company.customerSatisfaction > 8) {
+                strengths.push(`Taux de satisfaction client élevé (${company.customerSatisfaction}/10), supérieure à la moyenne du secteur`);
+            } else if (company.customerSatisfaction > 7) {
+                strengths.push(`Bonne satisfaction client (${company.customerSatisfaction}/10) avec une marge de progression`);
+            }
         }
 
-        if (company.patents && company.patents > 0) {
-            strengths.push(`Portfeuille de brevets solide (${company.patents} brevets)`);
+        // Brevets et propriété intellectuelle
+        if (company.patents !== undefined) {
+            if (company.patents > 10) {
+                strengths.push(`Portfeuille impressionnant de ${company.patents} brevets, protégeant les innovations clés`);
+            } else if (company.patents > 5) {
+                strengths.push(`Portfeuille solide de ${company.patents} brevets, renforçant la position technologique`);
+            } else if (company.patents > 0) {
+                strengths.push(`Base de ${company.patents} brevet(s), fondement pour le développement technologique`);
+            }
         }
 
-        if (company.location && company.location === 'strategic') {
-            strengths.push('Emplacement stratégique');
+        // Emplacement
+        if (company.location) {
+            if (company.location === 'strategic' || company.location === 'stratégique') {
+                strengths.push(`Emplacement stratégique offrant un accès privilégié aux marchés clés`);
+            } else if (company.location === 'central' || company.location === 'centre-ville') {
+                strengths.push(`Positionnement géographique central, optimisant la logistique et l'accessibilité`);
+            }
         }
 
-        // Si aucune force spécifique n'a été trouvée
-        if (strengths.length === 0) {
-            return [
-                'Équipe compétente et motivée',
-                'Expérience significative dans le secteur',
-                'Relation client solide',
-                'Processus opérationnels optimisés'
-            ];
+        // Qualité des produits
+        if (company.quality !== undefined) {
+            if (company.quality > 8) {
+                strengths.push(`Qualité des produits/services exceptionnelle (${company.quality}/10), reconnue par les clients`);
+            } else if (company.quality > 6) {
+                strengths.push(`Offre de qualité supérieure à la moyenne du marché (${company.quality}/10)`);
+            }
+        }
+
+        // Innovation
+        if (company.innovation !== undefined) {
+            if (company.innovation > 8) {
+                strengths.push(`Culture d'innovation très forte (${company.innovation}/10), moteur de croissance`);
+            } else if (company.innovation > 6) {
+                strengths.push(`Capacité d'innovation significative (${company.innovation}/10)`);
+            }
+        }
+
+        // Service client
+        if (company.customerService !== undefined) {
+            if (company.customerService > 8) {
+                strengths.push(`Service client d'excellence (${company.customerService}/10), différenciateur concurrentiel`);
+            } else if (company.customerService > 6) {
+                strengths.push(`Bon service client (${company.customerService}/10), contribuant à la satisfaction`);
+            }
+        }
+
+        // Force de la marque
+        if (company.brandStrength !== undefined) {
+            if (company.brandStrength > 8) {
+                strengths.push(`Marque forte et distincte (${company.brandStrength}/10) dans l'esprit des consommateurs`);
+            } else if (company.brandStrength > 6) {
+                strengths.push(`Marque bien positionnée (${company.brandStrength}/10) sur le marché`);
+            }
+        }
+
+        // Distribution
+        if (company.distribution !== undefined) {
+            if (company.distribution > 8) {
+                strengths.push(`Réseau de distribution très développé (${company.distribution}/10), assurant une large couverture`);
+            } else if (company.distribution > 6) {
+                strengths.push(`Bonne couverture de distribution (${company.distribution}/10)`);
+            }
         }
 
         return strengths;
@@ -193,51 +280,112 @@ class SWOTAnalysis extends Analysis {
     generateWeaknesses(company) {
         const weaknesses = [];
 
-        if (!company) {
-            return [
-                'Dépendance excessive à un client principal',
-                'Coûts opérationnels élevés',
-                'Manque de diversification géographique',
-                'Technologie vieillissante',
-                'Capacité de production limitée'
-            ];
+        if (!company || Object.keys(company).length === 0) {
+            return [];
         }
 
-        if (company.debtRatio && company.debtRatio > 0.6) {
-            weaknesses.push(`Ratio d'endettement élevé (${(company.debtRatio * 100).toFixed(1)}%)`);
+        // Ratio d'endettement
+        if (company.debtRatio !== undefined) {
+            const debtPct = company.debtRatio * 100;
+            if (debtPct > 70) {
+                weaknesses.push(`Ratio d'endettement critique (${debtPct.toFixed(1)}%) limitant la capacité d'investissement`);
+            } else if (debtPct > 60) {
+                weaknesses.push(`Endettement élevé (${debtPct.toFixed(1)}%) impactant la flexibilité financière`);
+            } else if (debtPct > 50) {
+                weaknesses.push(`Niveau d'endettement à surveiller (${debtPct.toFixed(1)}%)`);
+            }
         }
 
-        if (company.customerConcentration && company.customerConcentration > 0.3) {
-            weaknesses.push(`Dépendance à un client principal (${(company.customerConcentration * 100).toFixed(1)}% du CA)`);
+        // Concentration client
+        if (company.customerConcentration !== undefined) {
+            const concPct = company.customerConcentration * 100;
+            if (concPct > 50) {
+                weaknesses.push(`Dépendance dangereuse à un seul client (${concPct.toFixed(1)}% du CA)`);
+            } else if (concPct > 30) {
+                weaknesses.push(`Concentration client élevée (${concPct.toFixed(1)}% du CA) réduisant la stabilité`);
+            } else if (concPct > 20) {
+                weaknesses.push(`Dépendance modérée à certains clients (${concPct.toFixed(1)}% du CA)`);
+            }
         }
 
-        if (company.technology && company.technology.includes('vieillissant')) {
-            weaknesses.push('Technologie vieillissante nécessitant des mises à jour');
+        // Technologie
+        if (company.technology) {
+            if (company.technology.includes('vieillissant') || company.technology.includes('vieillissante')) {
+                weaknesses.push(`Technologie vieillissante nécessitant une modernisation urgente pour rester compétitif`);
+            } else if (company.technology === 'dépassée' || company.technology === 'obsolète') {
+                weaknesses.push(`Infrastructure technologique dépassée, frein à l'innovation`);
+            } else if (company.technology === 'basique' || company.technology === 'limitée') {
+                weaknesses.push(`Technologie basique limitant les capacités opérationnelles`);
+            }
         }
 
-        if (company.marketShare && company.marketShare < 0.05) {
-            weaknesses.push('Part de marché faible');
+        // Part de marché
+        if (company.marketShare !== undefined) {
+            const marketSharePct = company.marketShare * 100;
+            if (marketSharePct < 3) {
+                weaknesses.push(`Part de marché très faible (${marketSharePct.toFixed(1)}%) limitant la visibilité`);
+            } else if (marketSharePct < 5) {
+                weaknesses.push(`Présence limitée sur le marché (${marketSharePct.toFixed(1)}%)`);
+            } else if (marketSharePct < 10) {
+                weaknesses.push(`Part de marché modeste (${marketSharePct.toFixed(1)}%)`);
+            }
         }
 
-        if (company.employeeTurnover && company.employeeTurnover > 0.15) {
-            weaknesses.push(`Taux de turnover élevé (${(company.employeeTurnover * 100).toFixed(1)}%)`);
+        // Turnover employé
+        if (company.employeeTurnover !== undefined) {
+            const turnoverPct = company.employeeTurnover * 100;
+            if (turnoverPct > 25) {
+                weaknesses.push(`Taux de turnover très élevé (${turnoverPct.toFixed(1)}%) affectant la continuité opérationnelle`);
+            } else if (turnoverPct > 15) {
+                weaknesses.push(`Turnover élevé (${turnoverPct.toFixed(1)}%) indicateur de problèmes de rétention`);
+            }
         }
 
-        if (company.inventoryDays && company.inventoryDays > 90) {
-            weaknesses.push(`Rotation des stocks lente (${company.inventoryDays} jours)`);
+        // Rotation des stocks
+        if (company.inventoryDays !== undefined) {
+            if (company.inventoryDays > 120) {
+                weaknesses.push(`Rotation des stocks très lente (${company.inventoryDays} jours) impactant la trésorerie`);
+            } else if (company.inventoryDays > 90) {
+                weaknesses.push(`Gestion des stocks à améliorer (rotation de ${company.inventoryDays} jours)`);
+            } else if (company.inventoryDays > 60) {
+                weaknesses.push(`Rotation des stocks perfectible (${company.inventoryDays} jours)`);
+            }
         }
 
-        if (company.cashFlow && company.cashFlow < 0) {
-            weaknesses.push('Flux de trésorerie négatif');
+        // Flux de trésorerie
+        if (company.cashFlow !== undefined) {
+            if (company.cashFlow < 0) {
+                weaknesses.push(`Flux de trésorerie négatif nécessitant une attention immédiate`);
+            } else if (company.cashFlow < company.revenue * 0.1) {
+                weaknesses.push(`Marge de trésorerie limitée, vulnérabilité aux chocs`);
+            }
         }
 
-        if (weaknesses.length === 0) {
-            return [
-                'Ressources limitées pour la R&D',
-                'Dépendance à certains fournisseurs',
-                'Manque de visibilité sur certains marchés',
-                'Capacité marketing limitée'
-            ];
+        // Coûts opérationnels
+        if (company.variableCosts !== undefined) {
+            if (company.variableCosts > 0.7) {
+                weaknesses.push(`Structure de coûts déséquilibrée avec des coûts variables élevés (${(company.variableCosts * 100).toFixed(0)}%)`);
+            }
+        }
+
+        // Qualité des produits
+        if (company.quality !== undefined && company.quality < 6) {
+            weaknesses.push(`Qualité des produits/services à améliorer (${company.quality}/10) par rapport aux concurrents`);
+        }
+
+        // Innovation
+        if (company.innovation !== undefined && company.innovation < 5) {
+            weaknesses.push(`Capacité d'innovation insuffisante (${company.innovation}/10) pour maintenir la compétitivité`);
+        }
+
+        // Service client
+        if (company.customerService !== undefined && company.customerService < 6) {
+            weaknesses.push(`Service client perfectible (${company.customerService}/10), source de mécontentement`);
+        }
+
+        // Distribution
+        if (company.distribution !== undefined && company.distribution < 5) {
+            weaknesses.push(`Réseau de distribution limité (${company.distribution}/10) restreignant l'accès au marché`);
         }
 
         return weaknesses;
@@ -246,51 +394,100 @@ class SWOTAnalysis extends Analysis {
     generateOpportunities(company) {
         const opportunities = [];
 
-        if (!company) {
-            return [
-                'Nouveaux marchés en expansion',
-                'Partenariats stratégiques possibles',
-                'Technologies émergentes à adopter',
-                'Demande croissante pour les produits/services',
-                'Concurrence peu développée sur certains segments'
-            ];
+        if (!company || Object.keys(company).length === 0) {
+            return [];
         }
 
-        if (company.market && company.market.includes('croissance')) {
-            opportunities.push('Marché en croissance rapide');
+        // Croissance du marché
+        if (company.market) {
+            if (company.market.includes('croissance rapide') || company.marketGrowth > 15) {
+                opportunities.push(`Marché en forte croissance (${company.marketGrowth || '>15'}%) offrant un potentiel important`);
+            } else if (company.market.includes('croissance') || company.marketGrowth > 5) {
+                opportunities.push(`Marché en croissance modérée (${company.marketGrowth || '5-15'}%) à exploiter`);
+            } else if (company.market === 'stable') {
+                opportunities.push(`Marché stable permettant une croissance organique par gain de parts`);
+            }
         }
 
-        if (company.innovationPotential && company.innovationPotential > 7) {
-            opportunities.push('Potentiel d\'innovation important');
+        // Potentiel d'innovation
+        if (company.innovationPotential !== undefined) {
+            if (company.innovationPotential > 9) {
+                opportunities.push(`Potentiel d'innovation exceptionnel (${company.innovationPotential}/10) pour développer de nouveaux produits`);
+            } else if (company.innovationPotential > 7) {
+                opportunities.push(`Fort potentiel d'innovation (${company.innovationPotential}/10) à capitaliser`);
+            } else if (company.innovationPotential > 5) {
+                opportunities.push(`Potentiel d'innovation (${company.innovationPotential}/10) permettant de se différencier`);
+            }
         }
 
-        if (company.newMarkets) {
-            opportunities.push(`Opportunités sur ${company.newMarkets.join(', ')}`);
+        // Nouveaux marchés
+        if (company.newMarkets && company.newMarkets.length > 0) {
+            if (company.newMarkets.length > 3) {
+                opportunities.push(`Nombreuses opportunités sur de nouveaux marchés: ${company.newMarkets.join(', ')}`);
+            } else {
+                opportunities.push(`Potentiel d'expansion sur ${company.newMarkets.join(', ')}`);
+            }
         }
 
-        if (company.partnershipOpportunities) {
-            opportunities.push(`Possibilités de partenariats avec ${company.partnershipOpportunities.join(', ')}`);
+        // Opportunités de partenariat
+        if (company.partnershipOpportunities && company.partnershipOpportunities.length > 0) {
+            if (company.partnershipOpportunities.length > 2) {
+                opportunities.push(`Multiples possibilités de partenariats stratégiques avec ${company.partnershipOpportunities.join(', ')}`);
+            } else {
+                opportunities.push(`Opportunité de partenariat avec ${company.partnershipOpportunities.join(', ')}`);
+            }
         }
 
-        if (company.technologyTrends) {
-            opportunities.push(`Adoption possible de nouvelles technologies: ${company.technologyTrends.join(', ')}`);
+        // Tendances technologiques
+        if (company.technologyTrends && company.technologyTrends.length > 0) {
+            opportunities.push(`Possibilité d'adopter des technologies émergentes: ${company.technologyTrends.join(', ')} pour gagner en compétitivité`);
         }
 
-        if (company.regulationChanges && company.regulationChanges.includes('favorable')) {
-            opportunities.push('Changements réglementaires favorables');
+        // Changements réglementaires
+        if (company.regulationChanges) {
+            if (company.regulationChanges.includes('favorable') || company.regulationChanges === 'positif') {
+                opportunities.push(`Changements réglementaires favorables à exploiter pour développer l'activité`);
+            } else if (Array.isArray(company.regulationChanges)) {
+                const favorableChanges = company.regulationChanges.filter(r => r.includes('favorable') || r.includes('positif'));
+                if (favorableChanges.length > 0) {
+                    opportunities.push(`Opportunités liées aux changements réglementaires: ${favorableChanges.join(', ')}`);
+                }
+            }
         }
 
-        if (company.economicTrends && company.economicTrends === 'expansion') {
-            opportunities.push('Contexte économique porteur');
+        // Tendances économiques
+        if (company.economicTrends) {
+            if (company.economicTrends === 'expansion' || company.economicTrends === 'forte croissance') {
+                opportunities.push(`Contexte économique très porteur favorisant les investissements et la croissance`);
+            } else if (company.economicTrends === 'croissance') {
+                opportunities.push(`Contexte économique positif soutenant le développement`);
+            } else if (company.economicTrends === 'stabilité') {
+                opportunities.push(`Environnement économique stable permettant une croissance maîtrisée`);
+            }
         }
 
-        if (opportunities.length === 0) {
-            return [
-                'Expansion géographique possible',
-                'Diversification de la gamme de produits',
-                'Acquisitions stratégiques envisageables',
-                'Optimisation de la chaîne d\'approvisionnement'
-            ];
+        // Croissance du PIB
+        if (company.gdpGrowth !== undefined) {
+            if (company.gdpGrowth > 3) {
+                opportunities.push(`Croissance économique forte (PIB +${company.gdpGrowth}%) stimulant la demande`);
+            } else if (company.gdpGrowth > 1) {
+                opportunities.push(`Croissance économique modérée (PIB +${company.gdpGrowth}%)`);
+            }
+        }
+
+        // Marchés sous-exploités
+        if (company.marketShare !== undefined && company.marketShare < 0.3) {
+            opportunities.push(`Marge de progression importante sur le marché actuel (part de marché de ${(company.marketShare * 100).toFixed(1)}%)`);
+        }
+
+        // Diversification
+        if (company.geographicCoverage === 'local' || company.geographicCoverage === 'régional') {
+            opportunities.push(`Potentiel de diversification géographique au-delà du marché ${company.geographicCoverage}`);
+        }
+
+        // Produits/services
+        if (company.productDifferentiation === 'low' || company.productDifferentiation === 'faible') {
+            opportunities.push(`Opportunité de différenciation produit pour se démarquer de la concurrence`);
         }
 
         return opportunities;
@@ -299,55 +496,89 @@ class SWOTAnalysis extends Analysis {
     generateThreats(company) {
         const threats = [];
 
-        if (!company) {
-            return [
-                'Concurrence accrue sur le marché',
-                'Changements réglementaires défavorables',
-                'Fluctuations économiques',
-                'Nouveaux entrants sur le marché',
-                'Changement des préférences des consommateurs'
-            ];
+        if (!company || Object.keys(company).length === 0) {
+            return [];
         }
 
-        if (company.competitors && company.competitors.length > 5) {
-            threats.push(`Concurrence intense (${company.competitors.length} principaux concurrents)`);
+        // Concurrence
+        if (company.competitors && company.competitors.length > 0) {
+            if (company.competitors.length > 10) {
+                threats.push(`Concurrence très intense avec plus de ${company.competitors.length} acteurs majeurs sur le marché`);
+            } else if (company.competitors.length > 5) {
+                threats.push(`Concurrence intense avec ${company.competitors.length} principaux concurrents`);
+            } else if (company.competitors.length > 0) {
+                threats.push(`Pression concurrentielle de ${company.competitors.length} concurrents directs`);
+            }
         }
 
-        if (company.competitorMarketShare && company.competitorMarketShare > 0.4) {
-            threats.push(`Part de marché des concurrents élevée (${(company.competitorMarketShare * 100).toFixed(1)}%)`);
+        // Part de marché des concurrents
+        if (company.competitorMarketShare !== undefined) {
+            const competitorSharePct = company.competitorMarketShare * 100;
+            if (competitorSharePct > 60) {
+                threats.push(`Domination écrasante des concurrents avec ${competitorSharePct.toFixed(1)}% du marché`);
+            } else if (competitorSharePct > 40) {
+                threats.push(`Part de marché des concurrents élevée (${competitorSharePct.toFixed(1)}%) limitant la croissance`);
+            } else if (competitorSharePct > 20) {
+                threats.push(`Pression concurrentielle significative (${competitorSharePct.toFixed(1)}% du marché détenu par les concurrents)`);
+            }
         }
 
-        if (company.regulationChanges && company.regulationChanges.includes('défavorable')) {
-            threats.push('Changements réglementaires défavorables');
+        // Changements réglementaires
+        if (company.regulationChanges) {
+            if (company.regulationChanges.includes('défavorable') || company.regulationChanges.includes('négatif')) {
+                threats.push(`Changements réglementaires défavorables impactant négativement l'activité`);
+            } else if (Array.isArray(company.regulationChanges)) {
+                const unfavorableChanges = company.regulationChanges.filter(r => r.includes('défavorable') || r.includes('négatif') || r.includes('restrictif'));
+                if (unfavorableChanges.length > 0) {
+                    threats.push(`Menaces réglementaires: ${unfavorableChanges.join(', ')}`);
+                }
+            }
         }
 
-        if (company.economicTrends && company.economicTrends === 'récession') {
-            threats.push('Risque de récession économique');
+        // Tendances économiques
+        if (company.economicTrends) {
+            if (company.economicTrends === 'récession' || company.economicTrends === 'crise') {
+                threats.push(`Risque de récession économique impactant la demande globale`);
+            } else if (company.economicTrends === 'ralentissement' || company.economicTrends === 'slowdown') {
+                threats.push(`Ralentissement économique réduisant le pouvoir d'achat des clients`);
+            } else if (company.economicTrends === 'incertain' || company.economicTrends === 'volatile') {
+                threats.push(`Incertitude économique créant de la volatilité`);
+            }
         }
 
-        if (company.supplyChainRisks) {
-            threats.push(`Risques dans la chaîne d'approvisionnement: ${company.supplyChainRisks.join(', ')}`);
+        // Risques chaîne d'approvisionnement
+        if (company.supplyChainRisks && company.supplyChainRisks.length > 0) {
+            threats.push(`Risques dans la chaîne d'approvisionnement: ${company.supplyChainRisks.join(', ')} pouvant perturber l'activité`);
         }
 
-        if (company.technologyDisruption) {
-            threats.push(`Risque de disruption technologique: ${company.technologyDisruption.join(', ')}`);
+        // Disruption technologique
+        if (company.technologyDisruption && company.technologyDisruption.length > 0) {
+            threats.push(`Menace de disruption technologique: ${company.technologyDisruption.join(', ')} risquant de rendre les produits obsolètes`);
         }
 
+        // Changement des préférences
         if (company.customerPreferenceChanges) {
-            threats.push('Changement des préférences des consommateurs');
+            threats.push(`Évolution des préférences des consommateurs pouvant rendre les produits/services moins attractifs`);
         }
 
+        // Produits de substitution
         if (company.substitutes && company.substitutes.length > 0) {
-            threats.push(`Menace des produits de substitution: ${company.substitutes.join(', ')}`);
+            threats.push(`Menace des produits de substitution: ${company.substitutes.join(', ')} offrant des alternatives à moindre coût`);
         }
 
-        if (threats.length === 0) {
-            return [
-                'Risque de nouveaux entrants sur le marché',
-                'Pression sur les marges',
-                'Dépendance aux conditions économiques',
-                'Cybersécurité et risques de données'
-            ];
+        // Fluctuations des taux de change
+        if (company.exchangeRates === 'volatile' || company.exchangeRates === 'instable') {
+            threats.push(`Volatilité des taux de change impactant les coûts et les marges`);
+        }
+
+        // Inflation
+        if (company.inflationRate && company.inflationRate > 5) {
+            threats.push(`Inflation élevée (${company.inflationRate}%) excerçant une pression sur les coûts`);
+        }
+
+        // Taux d'intérêt
+        if (company.interestRates === 'high' || company.interestRates === 'élevés') {
+            threats.push(`Taux d'intérêt élevés augmentant le coût du crédit`);
         }
 
         return threats;
@@ -398,31 +629,105 @@ class SWOTAnalysis extends Analysis {
     }
 
     combineInsight(item1, item2, type) {
-        const templates = {
-            SO: `Exploiter ${item1.toLowerCase()} pour saisir l'opportunité de ${item2.toLowerCase()}`,
-            ST: `Utiliser ${item1.toLowerCase()} pour contrer la menace de ${item2.toLowerCase()}`,
-            WO: `Améliorer ${item1.toLowerCase()} pour profiter de ${item2.toLowerCase()}`,
-            WT: `Éviter que ${item1.toLowerCase()} ne soit aggravé par ${item2.toLowerCase()}`
+        // Nettoyer les items pour éviter les doublons de mots
+        const cleanItem = (str) => {
+            return str.replace(/^le |la |les |un |une |des /i, '').trim();
         };
-        return templates[type] || `${item1} -> ${item2}`;
+
+        const s1 = cleanItem(item1);
+        const s2 = cleanItem(item2);
+
+        const soTemplates = [
+            `Lever ${s1} pour capitaliser sur ${s2}`,
+            `Utiliser ${s1} afin de profiter pleinement de ${s2}`,
+            `Exploiter ${s1} pour maximiser l'opportunité liée à ${s2}`,
+            `Combiner ${s1} avec ${s2} pour créer un avantage concurrentiel`,
+            `Tirer parti de ${s1} pour développer ${s2}`
+        ];
+
+        const stTemplates = [
+            `Mobiliser ${s1} comme bouclier contre ${s2}`,
+            `Renforcer ${s1} pour atténuer l'impact de ${s2}`,
+            `Utiliser ${s1} de manière stratégique pour contrer ${s2}`,
+            `Protéger ${s1} face à la menace de ${s2}`,
+            `Transformer ${s1} en atout pour faire face à ${s2}`
+        ];
+
+        const woTemplates = [
+            `Corriger ${s1} afin de pouvoir saisir ${s2}`,
+            `Améliorer ${s1} pour être en position de bénéficier de ${s2}`,
+            `Résoudre ${s1} afin d'exploiter pleinement ${s2}`,
+            `Travailler sur ${s1} pour pouvoir capitaliser sur ${s2}`,
+            `Surmonter ${s1} pour tirer profit de ${s2}`
+        ];
+
+        const wtTemplates = [
+            `Agir rapidement pour éviter que ${s1} ne soit amplifié par ${s2}`,
+            `Prévenir le scénario où ${s1} serait exacerbé par ${s2}`,
+            `Mettre en place des mesures pour limiter l'impact de ${s2} sur ${s1}`,
+            `Anticiper les conséquences de ${s2} sur ${s1}`,
+            `Éviter la combinaison risquée entre ${s1} et ${s2}`
+        ];
+
+        const allTemplates = {
+            SO: soTemplates,
+            ST: stTemplates,
+            WO: woTemplates,
+            WT: wtTemplates
+        };
+
+        const templates = allTemplates[type];
+        if (templates && templates.length > 0) {
+            const randomIndex = Math.floor(Math.random() * templates.length);
+            return templates[randomIndex];
+        }
+        return `${item1} -> ${item2}`;
     }
 
     generateSummary(swotMatrix, strategicInsights) {
-        const strengthsCount = swotMatrix.internal.positive.length;
-        const weaknessesCount = swotMatrix.internal.negative.length;
-        const opportunitiesCount = swotMatrix.external.positive.length;
-        const threatsCount = swotMatrix.external.negative.length;
+        const strengths = swotMatrix.internal.positive;
+        const weaknesses = swotMatrix.internal.negative;
+        const opportunities = swotMatrix.external.positive;
+        const threats = swotMatrix.external.negative;
+
+        const strengthsCount = strengths.length;
+        const weaknessesCount = weaknesses.length;
+        const opportunitiesCount = opportunities.length;
+        const threatsCount = threats.length;
 
         let overallAssessment = '';
-        
+        const internalBalance = strengthsCount - weaknessesCount;
+        const externalBalance = opportunitiesCount - threatsCount;
+
+        // Analyser les forces dominantes
         if (strengthsCount > weaknessesCount && opportunitiesCount > threatsCount) {
-            overallAssessment = 'Position stratégique forte avec de nombreuses opportunités à saisir';
+            if (internalBalance >= 2 && externalBalance >= 2) {
+                overallAssessment = 'Position stratégique exceptionnelle avec des forces internes solides et un environnement externe porteur. Idéal pour une stratégie d\'expansion agressive.';
+            } else if (internalBalance >= 1 && externalBalance >= 1) {
+                overallAssessment = 'Position stratégique forte avec de nombreux atouts internes et des opportunités externes à saisir. Stratégie recommandée: croissance et développement.';
+            } else {
+                overallAssessment = 'Position stratégique positive avec des forces et opportunités équilibrées. Poursuivre les initiatives en cours.';
+            }
         } else if (strengthsCount > weaknessesCount && opportunitiesCount <= threatsCount) {
-            overallAssessment = 'Position interne solide mais environnement externe défavorable';
+            if (internalBalance >= 2 && externalBalance <= -2) {
+                overallAssessment = 'Position interne très solide, mais environnement externe défavorable. Stratégie recommandée: se concentrer sur la consolidation des forces internes.';
+            } else {
+                overallAssessment = 'Position interne solide mais environnement externe difficile. Adopter une stratégie défensive tout en maintenant les avantages concurrentiels.';
+            }
         } else if (strengthsCount <= weaknessesCount && opportunitiesCount > threatsCount) {
-            overallAssessment = 'Faiblesses internes à corriger pour profiter des opportunités externes';
+            if (internalBalance <= -2 && externalBalance >= 2) {
+                overallAssessment = 'Faiblesses internes significatives, mais environnement externe très favorable. Stratégie recommandée: corriger les faiblesses pour profiter des opportunités.';
+            } else {
+                overallAssessment = 'Faiblesses internes à corriger pour pouvoir pleinement profiter des opportunités externes.';
+            }
         } else {
-            overallAssessment = 'Position défensive nécessaire face à un environnement difficile';
+            if (internalBalance <= -2 && externalBalance <= -2) {
+                overallAssessment = 'Position stratégique difficile avec des faiblesses internes et un environnement externe défavorable. Urgence: réévaluer la stratégie globale.';
+            } else if (internalBalance <= -1 && externalBalance <= -1) {
+                overallAssessment = 'Position défensive nécessaire face à un environnement difficile. Se concentrer sur la survie et la consolidation.';
+            } else {
+                overallAssessment = 'Position fragile nécessitant une attention particulière à la fois sur les forces internes et les menaces externes.';
+            }
         }
 
         return {
@@ -434,64 +739,132 @@ class SWOTAnalysis extends Analysis {
                 threats: threatsCount
             },
             balance: {
-                internal: strengthsCount - weaknessesCount,
-                external: opportunitiesCount - threatsCount
+                internal: internalBalance,
+                external: externalBalance
             }
         };
     }
 
     formatRecommendations(results) {
         const recommendations = [];
-        const { strategicInsights, summary } = results;
+        const { strategicInsights, summary, strengths, weaknesses, opportunities, threats } = results;
 
-        // Prioriser les stratégies SO
-        strategicInsights.SO.forEach(insight => {
-            recommendations.push({
-                type: 'strategic',
-                priority: 'high',
-                action: insight,
-                category: 'SO'
+        // Ajouter des recommandations stratégiques basées sur les insights
+        if (strategicInsights && strategicInsights.SO && strategicInsights.SO.length > 0) {
+            strategicInsights.SO.forEach(insight => {
+                recommendations.push({
+                    type: 'strategic',
+                    priority: 'high',
+                    action: `🚀 ${insight}`,
+                    category: 'SO - Stratégie offensive'
+                });
             });
-        });
+        }
 
-        // Stratégies ST
-        strategicInsights.ST.forEach(insight => {
-            recommendations.push({
-                type: 'defensive',
-                priority: 'high',
-                action: insight,
-                category: 'ST'
+        if (strategicInsights && strategicInsights.ST && strategicInsights.ST.length > 0) {
+            strategicInsights.ST.forEach(insight => {
+                recommendations.push({
+                    type: 'defensive',
+                    priority: 'high',
+                    action: `🛡️ ${insight}`,
+                    category: 'ST - Stratégie défensive'
+                });
             });
-        });
+        }
 
-        // Stratégies WO
-        strategicInsights.WO.forEach(insight => {
-            recommendations.push({
-                type: 'improvement',
-                priority: 'medium',
-                action: insight,
-                category: 'WO'
+        if (strategicInsights && strategicInsights.WO && strategicInsights.WO.length > 0) {
+            strategicInsights.WO.forEach(insight => {
+                recommendations.push({
+                    type: 'improvement',
+                    priority: 'medium',
+                    action: `✨ ${insight}`,
+                    category: 'WO - Stratégie d\'amélioration'
+                });
             });
-        });
+        }
 
-        // Stratégies WT
-        strategicInsights.WT.forEach(insight => {
-            recommendations.push({
-                type: 'survival',
-                priority: 'high',
-                action: insight,
-                category: 'WT'
+        if (strategicInsights && strategicInsights.WT && strategicInsights.WT.length > 0) {
+            strategicInsights.WT.forEach(insight => {
+                recommendations.push({
+                    type: 'survival',
+                    priority: 'high',
+                    action: `⚠️ ${insight}`,
+                    category: 'WT - Stratégie de survie'
+                });
             });
-        });
+        }
 
-        // Ajouter une recommandation basée sur le résumé
-        if (summary.balance.internal < 0 && summary.balance.external < 0) {
-            recommendations.unshift({
-                type: 'critical',
-                priority: 'critical',
-                action: 'Réévaluer la stratégie globale de l\'entreprise face aux faiblesses internes et menaces externes',
-                category: 'emergency'
-            });
+        // Ajouter une recommandation basée sur le résumé avec des conseils spécifiques
+        if (summary && summary.balance) {
+            const { internal, external } = summary.balance;
+            
+            if (internal < 0 && external < 0) {
+                recommendations.unshift({
+                    type: 'critical',
+                    priority: 'critical',
+                    action: '🔴 URGENT: Réévaluer la stratégie globale de l\'entreprise. Les faiblesses internes combinées aux menaces externes créent une situation critique nécessitant une action immédiate.',
+                    category: 'emergency'
+                });
+            } else if (internal < 0 && external > 0) {
+                recommendations.unshift({
+                    type: 'warning',
+                    priority: 'high',
+                    action: '⚠️ Priorité: Corriger les faiblesses internes pour être en mesure de profiter des opportunités externes. Concentrez-vous sur l\'amélioration des aspects internes avant de chercher à croître.',
+                    category: 'priority'
+                });
+            } else if (internal > 0 && external < 0) {
+                recommendations.unshift({
+                    type: 'warning',
+                    priority: 'high',
+                    action: '⚠️ Attention: Malgrés des forces internes solides, l\'environnement externe est défavorable. Adoptez une stratégie défensive pour protéger vos atouts.',
+                    category: 'priority'
+                });
+            } else if (internal > 2 && external > 2) {
+                recommendations.unshift({
+                    type: 'success',
+                    priority: 'high',
+                    action: '🎯 EXCELLENT: Position stratégique exceptionnelle. Poursuivez les initiatives d\'expansion et d\'innovation pour maximiser cette position avantageuse.',
+                    category: 'opportunity'
+                });
+            }
+        }
+
+        // Ajouter des recommandations spécifiques basées sur les comptes
+        if (strengths && strengths.length > 0 && weaknesses && weaknesses.length > 0) {
+            if (strengths.length > weaknesses.length * 2) {
+                recommendations.push({
+                    type: 'strategic',
+                    priority: 'high',
+                    action: 'Capitaliser sur vos nombreuses forces pour compenser les quelques faiblesses identifiées.',
+                    category: 'balance'
+                });
+            } else if (weaknesses.length > strengths.length * 2) {
+                recommendations.push({
+                    type: 'critical',
+                    priority: 'high',
+                    action: 'Urgent: Renforcer significativement vos points faibles qui surpassent en nombre vos forces.',
+                    category: 'balance'
+                });
+            }
+        }
+
+        // Recommandations basées sur les opportunités et menaces
+        if (opportunities && threats) {
+            if (opportunities.length > threats.length * 2) {
+                recommendations.push({
+                    type: 'strategic',
+                    priority: 'high',
+                    action: 'Exploiter le nombre important d\'opportunités disponibles pour compenser les menaces.',
+                    category: 'market'
+                });
+            } else if (threats.length > opportunities.length * 2) {
+                recommendations.push({
+                    type: 'defensive',
+                    priority: 'high',
+                    action: 'Développer des stratégies pour atténuer les nombreuses menaces qui dépassent les opportunités.',
+                    category: 'risk'
+                });
+            }
         }
 
         return recommendations;
@@ -573,23 +946,29 @@ class PorterFiveForcesAnalysis extends Analysis {
         };
 
         let score = 0;
-        let assessment = '';
+        const assessmentPoints = [];
 
-        // Concentration des fournisseurs (moins de fournisseurs = plus de pouvoir)
+        // Concentration des fournisseurs
         if (factors.concentration > 0.7) {
-            score += 30; // Pouvoir des fournisseurs très élevé
-            assessment += 'Fournisseurs très concentrés. ';
+            score += 30;
+            assessmentPoints.push(`fournisseurs très concentrés (${(factors.concentration * 100).toFixed(0)}% du marché)`);
         } else if (factors.concentration > 0.4) {
-            score += 20; // Pouvoir des fournisseurs élevé
-            assessment += 'Fournisseurs concentrés. ';
+            score += 20;
+            assessmentPoints.push(`fournisseurs concentrés (${(factors.concentration * 100).toFixed(0)}%)`);
         } else if (factors.concentration < 0.2) {
-            score += 5; // Pouvoir des fournisseurs faible
+            score += 5;
+            assessmentPoints.push(`base de fournisseurs large et diversifiée`);
+        } else {
+            score += 10;
         }
 
         // Coûts de changement
-        if (factors.switchingCosts === 'high') {
+        if (factors.switchingCosts === 'very_high') {
+            score += 30;
+            assessmentPoints.push(`coûts de changement de fournisseur très élevés`);
+        } else if (factors.switchingCosts === 'high') {
             score += 25;
-            assessment += 'Coûts de changement de fournisseur élevés. ';
+            assessmentPoints.push(`coûts de changement de fournisseur élevés`);
         } else if (factors.switchingCosts === 'medium') {
             score += 15;
         } else {
@@ -597,9 +976,12 @@ class PorterFiveForcesAnalysis extends Analysis {
         }
 
         // Unicité des inputs
-        if (factors.uniqueness === 'high') {
+        if (factors.uniqueness === 'very_high') {
+            score += 30;
+            assessmentPoints.push(`inputs uniques et hautement spécialisés`);
+        } else if (factors.uniqueness === 'high') {
             score += 25;
-            assessment += 'Inputs uniques et spécialisés. ';
+            assessmentPoints.push(`inputs spécialisés et uniques`);
         } else if (factors.uniqueness === 'medium') {
             score += 15;
         } else {
@@ -607,9 +989,12 @@ class PorterFiveForcesAnalysis extends Analysis {
         }
 
         // Menace d'intégration verticale
-        if (factors.threatOfForwardIntegration === 'high') {
+        if (factors.threatOfForwardIntegration === 'very_high') {
+            score += 20;
+            assessmentPoints.push(`menace très élevée d'intégration verticale par les fournisseurs`);
+        } else if (factors.threatOfForwardIntegration === 'high') {
             score += 15;
-            assessment += 'Menace élevée d\'intégration verticale. ';
+            assessmentPoints.push(`menace d'intégration verticale par les fournisseurs`);
         } else if (factors.threatOfForwardIntegration === 'medium') {
             score += 10;
         } else {
@@ -618,6 +1003,9 @@ class PorterFiveForcesAnalysis extends Analysis {
 
         // Importance pour la qualité
         if (factors.importanceToQuality === 'critical') {
+            score += 10;
+            assessmentPoints.push(`importance critique des inputs pour la qualité finale`);
+        } else if (factors.importanceToQuality === 'high') {
             score += 5;
         }
 
@@ -630,10 +1018,25 @@ class PorterFiveForcesAnalysis extends Analysis {
         else if (score >= 20) level = 'Faible';
         else level = 'Très faible';
 
+        // Générer un assessment détaillé
+        let assessment = '';
+        if (assessmentPoints.length > 0) {
+            assessment = `Le pouvoir des fournisseurs est ${level.toLowerCase()} en raison de : ${assessmentPoints.join(', ')}.`;
+            
+            // Ajouter une recommandation spécifique
+            if (score >= 70) {
+                assessment += ' Il est recommandé de diversifier la base de fournisseurs et de négocier des contrats à long terme pour réduire cette dépendance.';
+            } else if (score < 30) {
+                assessment += ' Cette situation favorable permet de négocier des conditions avantageuses avec les fournisseurs.';
+            }
+        } else {
+            assessment = 'Pouvoir des fournisseurs standard';
+        }
+
         return {
             score,
             level,
-            assessment: assessment || 'Pouvoir des fournisseurs standard',
+            assessment,
             factors
         };
     }
@@ -648,23 +1051,29 @@ class PorterFiveForcesAnalysis extends Analysis {
         };
 
         let score = 0;
-        let assessment = '';
+        const assessmentPoints = [];
 
         // Concentration des acheteurs
         if (factors.concentration > 0.7) {
             score += 30;
-            assessment += 'Acheteurs très concentrés. ';
+            assessmentPoints.push(`clientèle très concentrée (${(factors.concentration * 100).toFixed(0)}% des achats)`);
         } else if (factors.concentration > 0.4) {
             score += 20;
-            assessment += 'Acheteurs concentrés. ';
+            assessmentPoints.push(`clientèle concentrée (${(factors.concentration * 100).toFixed(0)}%)`);
         } else if (factors.concentration < 0.2) {
             score += 5;
+            assessmentPoints.push(`base de clients large et dispersée`);
+        } else {
+            score += 10;
         }
 
         // Volume d'achat
-        if (factors.volume === 'large') {
+        if (factors.volume === 'very_large') {
+            score += 30;
+            assessmentPoints.push(`volumes d'achat très importants`);
+        } else if (factors.volume === 'large') {
             score += 25;
-            assessment += 'Volumes d\'achat importants. ';
+            assessmentPoints.push(`volumes d'achat importants`);
         } else if (factors.volume === 'medium') {
             score += 15;
         } else {
@@ -672,9 +1081,12 @@ class PorterFiveForcesAnalysis extends Analysis {
         }
 
         // Coûts de changement
-        if (factors.switchingCosts === 'low') {
+        if (factors.switchingCosts === 'very_low') {
+            score += 30;
+            assessmentPoints.push(`coûts de changement de fournisseur très faibles`);
+        } else if (factors.switchingCosts === 'low') {
             score += 25;
-            assessment += 'Coûts de changement de fournisseur faibles. ';
+            assessmentPoints.push(`coûts de changement de fournisseur faibles`);
         } else if (factors.switchingCosts === 'medium') {
             score += 15;
         } else {
@@ -682,17 +1094,23 @@ class PorterFiveForcesAnalysis extends Analysis {
         }
 
         // Disponibilité de l'information
-        if (factors.informationAvailability === 'high') {
+        if (factors.informationAvailability === 'very_high') {
+            score += 15;
+            assessmentPoints.push(`accès facile et complet à l'information sur les produits`);
+        } else if (factors.informationAvailability === 'high') {
             score += 10;
-            assessment += 'Information facilement disponible. ';
+            assessmentPoints.push(`information facilement disponible`);
         } else {
             score += 5;
         }
 
         // Sensibilité au prix
-        if (factors.priceSensitivity === 'high') {
+        if (factors.priceSensitivity === 'very_high') {
+            score += 10;
+            assessmentPoints.push(`sensibilité au prix très élevée`);
+        } else if (factors.priceSensitivity === 'high') {
             score += 5;
-            assessment += 'Sensibilité au prix élevée. ';
+            assessmentPoints.push(`sensibilité au prix élevée`);
         }
 
         score = Math.min(100, score);
@@ -704,10 +1122,25 @@ class PorterFiveForcesAnalysis extends Analysis {
         else if (score >= 20) level = 'Faible';
         else level = 'Très faible';
 
+        // Générer un assessment détaillé
+        let assessment = '';
+        if (assessmentPoints.length > 0) {
+            assessment = `Le pouvoir des acheteurs est ${level.toLowerCase()} en raison de : ${assessmentPoints.join(', ')}.`;
+            
+            // Ajouter une recommandation spécifique
+            if (score >= 70) {
+                assessment += ' Il est conseillé d\'améliorer la différenciation des produits et de développer des relations à long terme avec les clients clés.';
+            } else if (score < 30) {
+                assessment += ' Cette position favorable permet de maintenir une bonne marge tout en satisfaisant les clients.';
+            }
+        } else {
+            assessment = 'Pouvoir des acheteurs standard';
+        }
+
         return {
             score,
             level,
-            assessment: assessment || 'Pouvoir des acheteurs standard',
+            assessment,
             factors
         };
     }
@@ -2081,14 +2514,19 @@ class CompetitiveAnalysis extends Analysis {
         }
 
         let assessment = '';
-        if (companyMarketShare > 0.4) {
-            assessment = 'Position de leader sur le marché avec une part de marché dominante.';
+        const marketSharePct = (companyMarketShare * 100).toFixed(1);
+        if (companyMarketShare > 0.5) {
+            assessment = `Position de leader incontesté sur le marché avec ${marketSharePct}% de part de marché, dominant largement la concurrence.`;
+        } else if (companyMarketShare > 0.4) {
+            assessment = `Position de leader sur le marché avec ${marketSharePct}% de parts, en tête du secteur.`;
         } else if (companyMarketShare > 0.25) {
-            assessment = 'Position forte sur le marché avec une part de marché significative.';
-        } else if (companyMarketShare > 0.1) {
-            assessment = 'Position compétitive avec une part de marché modérée.';
+            assessment = `Position forte sur le marché avec ${marketSharePct}% de parts, dans le peloton de tête.`;
+        } else if (companyMarketShare > 0.15) {
+            assessment = `Position compétitive solide avec ${marketSharePct}% du marché, bien positionné face aux principaux concurrents.`;
+        } else if (companyMarketShare > 0.05) {
+            assessment = `Position de challenger avec ${marketSharePct}% de part de marché, en croissance ou avec un potentiel dexpansion.`;
         } else {
-            assessment = 'Position de challenger ou de suiveur sur le marché.';
+            assessment = `Position de suiveur ou de nouveau entrant avec ${marketSharePct}% du marché, nécessitant une stratégie agressive pour gagner des parts.`;
         }
 
         return {
@@ -2918,46 +3356,165 @@ async function executeAnalysis(type, name, description, companyData) {
 }
 
 // Générer des résultats mock pour la compatibilité avec l'existant
-function generateMockResults(type) {
+function generateMockResults(type, companyName = 'votre entreprise') {
+    // Générer un score aléatoire réaliste
+    const randomScore = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+    
+    // Sélectionner des éléments aléatoires pour plus de variété
+    const randomFrom = (arr, count) => {
+        const shuffled = [...arr].sort(() => 0.5 - Math.random());
+        return shuffled.slice(0, count);
+    };
+
     const mockResults = {
         swot: {
-            strengths: ['Forte notoriété de la marque', 'Équipe expérimentée', 'Technologie avancée', 'Position financière solide'],
-            weaknesses: ['Dépendance à un client principal', 'Coûts opérationnels élevés', 'Manque de diversification'],
-            opportunities: ['Nouveaux marchés en expansion', 'Partenariats stratégiques', 'Technologies émergentes'],
-            threats: ['Concurrence accrue', 'Changements réglementaires', 'Fluctuations économiques'],
+            strengths: randomFrom([
+                `Marque reconnue dans le secteur de ${companyName}`,
+                `Équipe expérimentée avec une expertise métiers solide`,
+                `Technologie moderne et adaptée aux besoins clients`,
+                `Position financière saine permettant des investissements`,
+                `Réseau de distribution efficace couvrant les zones clés`,
+                `Portfeuille clients diversifié et fidèle`,
+                `Processus opérationnels optimisés et performants`,
+                `Innovation continue avec des produits compétitifs`
+            ], 4),
+            weaknesses: randomFrom([
+                `Dépendance modérée à quelques clients principaux`,
+                `Coûts opérationnels nécessitant une optimisation`,
+                `Présence géographique encore limitée à certaines régions`,
+                `Capacité de production à renforcer pour répondre à la demande`,
+                `Besoins en talents spécialisés dans certains domaines`,
+                `Délais de mise sur le marché parfois trop longs`
+            ], 3),
+            opportunities: randomFrom([
+                `Nouveaux segments de marché en forte croissance`,
+                `Partenariats stratégiques avec des acteurs complémentaires`,
+                `Adoption de technologies émergentes pour gagner en efficacité`,
+                `Demande croissante pour des solutions innovantes`,
+                `Expansion géographique vers de nouvelles zones`,
+                `Diversification de la gamme produits/services`,
+                `Acquisitions ciblées pour renforcer la position`
+            ], 3),
+            threats: randomFrom([
+                `Concurrence accrue avec l'arrivée de nouveaux acteurs`,
+                `Changements réglementaires à surveiller de près`,
+                `Fluctuations économiques impactant la demande`,
+                `Risque de disruption technologique dans le secteur`,
+                `Pression sur les marges due à la concurrence`,
+                `Évolution des attentes et préférences clients`
+            ], 3),
             strategicInsights: {
-                SO: ['Exploiter la forte notoriété pour pénétrer de nouveaux marchés'],
-                ST: ['Utiliser la technologie avancée pour contrer la concurrence'],
-                WO: ['Réduire la dépendance client pour profiter des partenariats'],
-                WT: ['Diversifier les revenus pour limiter l\'impact des fluctuations économiques']
+                SO: [
+                    `Exploiter la notoriété de la marque pour conquérir de nouveaux segments clients`,
+                    `Capitaliser sur l'expertise de l'équipe pour développer des solutions innovantes`
+                ],
+                ST: [
+                    `Utiliser la position technologique pour contrer l'arrivée de nouveaux concurrents`,
+                    `Renforcer la relation client pour limiter l'impact des fluctuations économiques`
+                ],
+                WO: [
+                    `Améliorer la couverture géographique pour saisir les opportunités de croissance`,
+                    `Optimiser les coûts opérationnels pour financer l'innovation`
+                ],
+                WT: [
+                    `Diversifier le portefeuille clients pour réduire la dépendance aux principaux clients`,
+                    `Anticiper les changements réglementaires pour éviter les risques`
+                ]
             }
         },
         porter: {
-            supplierPower: { score: 65, level: 'Élevé', assessment: 'Pouvoir des fournisseurs élevé avec concentration modérée' },
-            buyerPower: { score: 70, level: 'Élevé', assessment: 'Pouvoir des acheteurs élevé avec sensibilité au prix' },
-            newEntrants: { score: 45, level: 'Moyenne', assessment: 'Menace modérée des nouveaux entrants' },
-            substitutes: { score: 55, level: 'Moyenne', assessment: 'Menace modérée des substituts' },
-            rivalry: { score: 75, level: 'Intense', assessment: 'Rivalité concurrentielle intense' },
-            industryAttractiveness: { score: 55, level: 'Moyennement attractive' }
+            supplierPower: { 
+                score: randomScore(50, 80), 
+                level: randomScore(50, 80) > 70 ? 'Élevé' : 'Moyen', 
+                assessment: `Pouvoir des fournisseurs ${randomScore(50, 80) > 70 ? 'élevé' : 'modéré'} avec des facteurs de concentration et de spécialisation à considérer`,
+                factors: { concentration: 0.5, switchingCosts: 'medium', uniqueness: 'medium' }
+            },
+            buyerPower: { 
+                score: randomScore(60, 85), 
+                level: randomScore(60, 85) > 75 ? 'Élevé' : 'Moyen', 
+                assessment: `Pouvoir des acheteurs ${randomScore(60, 85) > 75 ? 'élevé' : 'modéré'} influencé par la disponibilité de l'information et la sensibilité aux prix`,
+                factors: { concentration: 0.3, volume: 'large', switchingCosts: 'low' }
+            },
+            newEntrants: { 
+                score: randomScore(30, 60), 
+                level: randomScore(30, 60) > 50 ? 'Moyenne' : 'Faible', 
+                assessment: `Menace des nouveaux entrants ${randomScore(30, 60) > 50 ? 'modérée' : 'faible'} grâce aux barrières à l'entrée existantes`,
+                factors: { economiesOfScale: 'high', capitalRequirements: 'high' }
+            },
+            substitutes: { 
+                score: randomScore(40, 70), 
+                level: randomScore(40, 70) > 60 ? 'Élevée' : 'Moyenne', 
+                assessment: `Menace des substituts ${randomScore(40, 70) > 60 ? 'significative' : 'modérée'} selon les alternatives disponibles`,
+                factors: { availability: 'medium', pricePerformance: 'better' }
+            },
+            rivalry: { 
+                score: randomScore(65, 85), 
+                level: randomScore(65, 85) > 80 ? 'Intense' : 'Modérée', 
+                assessment: `Rivalité concurrentielle ${randomScore(65, 85) > 80 ? 'intense' : 'modérée'} dans un marché dynamique`,
+                factors: { competitorCount: randomScore(5, 15) }
+            },
+            industryAttractiveness: { 
+                score: randomScore(45, 75), 
+                level: randomScore(45, 75) > 65 ? 'Attractive' : 'Moyennement attractive'
+            }
         },
         pestel: {
-            political: { score: 70, level: 'Favorable', impact: 'positive', assessment: 'Environnement politique stable' },
-            economic: { score: 65, level: 'Favorable', impact: 'positive', assessment: 'Croissance économique modérée' },
-            social: { score: 75, level: 'Favorable', impact: 'positive', assessment: 'Tendances sociales favorables' },
-            technological: { score: 80, level: 'Très favorable', impact: 'positive', assessment: 'Environnement technologique très favorable' },
-            environmental: { score: 60, level: 'Neutre', impact: 'neutral', assessment: 'Pression environnementale modérée' },
-            legal: { score: 55, level: 'Neutre', impact: 'neutral', assessment: 'Cadre légal standard' }
+            political: { 
+                score: randomScore(60, 85), 
+                level: randomScore(60, 85) > 75 ? 'Favorable' : 'Modérément favorable', 
+                impact: 'positive', 
+                assessment: `Environnement politique ${randomScore(60, 85) > 75 ? 'stable et favorable' : 'relativement stable'}`
+            },
+            economic: { 
+                score: randomScore(55, 75), 
+                level: randomScore(55, 75) > 70 ? 'Favorable' : 'Modéré', 
+                impact: randomScore(55, 75) > 70 ? 'positive' : 'neutral', 
+                assessment: `Contexte économique ${randomScore(55, 75) > 70 ? 'porteur' : 'stable'}`
+            },
+            social: { 
+                score: randomScore(65, 85), 
+                level: randomScore(65, 85) > 80 ? 'Très favorable' : 'Favorable', 
+                impact: 'positive', 
+                assessment: `Tendances socioculturelles ${randomScore(65, 85) > 80 ? 'très favorables' : 'favorables'}`
+            },
+            technological: { 
+                score: randomScore(70, 90), 
+                level: randomScore(70, 90) > 85 ? 'Très favorable' : 'Favorable', 
+                impact: 'positive', 
+                assessment: `Environnement technologique ${randomScore(70, 90) > 85 ? 'très dynamique' : 'favorable'}`
+            },
+            environmental: { 
+                score: randomScore(50, 75), 
+                level: randomScore(50, 75) > 65 ? 'Favorable' : 'Neutre', 
+                impact: randomScore(50, 75) > 65 ? 'positive' : 'neutral', 
+                assessment: `Pression environnementale ${randomScore(50, 75) > 65 ? 'maîtrisée' : 'modérée'}`
+            },
+            legal: { 
+                score: randomScore(50, 70), 
+                level: randomScore(50, 70) > 60 ? 'Favorable' : 'Neutre', 
+                impact: randomScore(50, 70) > 60 ? 'positive' : 'neutral', 
+                assessment: `Cadre légal ${randomScore(50, 70) > 60 ? 'clair et favorable' : 'standard'}`
+            }
         },
         competitive: {
-            marketShare: { companyMarketShare: 0.15, assessment: 'Part de marché de 15%' },
-            competitivePosition: { position: 'strong', assessment: 'Position compétitive forte' },
-            competitorBenchmark: {
-                priceComparison: 'average',
-                qualityComparison: 'above_average',
-                featureComparison: 'average',
-                assessment: 'Qualité supérieure à la moyenne'
+            marketShare: { 
+                companyMarketShare: Math.random() * 0.15 + 0.10,
+                assessment: `Part de marché de ${(Math.random() * 0.15 + 0.10 * 100).toFixed(1)}% dans un marché concurrentiel`
             },
-            competitiveAdvantage: { score: 70, level: 'Fort' }
+            competitivePosition: { 
+                position: Math.random() > 0.5 ? 'strong' : 'solid',
+                assessment: `Position compétitive ${Math.random() > 0.5 ? 'forte' : 'solide'} avec des atouts différenciateurs`
+            },
+            competitorBenchmark: {
+                priceComparison: Math.random() > 0.7 ? 'competitive' : Math.random() > 0.5 ? 'average' : 'premium',
+                qualityComparison: Math.random() > 0.7 ? 'superior' : Math.random() > 0.5 ? 'above_average' : 'average',
+                featureComparison: Math.random() > 0.7 ? 'rich' : Math.random() > 0.5 ? 'average' : 'basic',
+                assessment: `Positionnement produit ${Math.random() > 0.7 ? 'supérieur' : 'équivalent'} par rapport aux principaux concurrents`
+            },
+            competitiveAdvantage: { 
+                score: randomScore(60, 85), 
+                level: randomScore(60, 85) > 75 ? 'Fort' : 'Modéré'
+            }
         }
     };
 
