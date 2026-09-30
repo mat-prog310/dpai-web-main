@@ -22,8 +22,9 @@ function getDB() {
 // Configuration des plans (TOUS LES UTILISATEURS ONT UN PLAN GRATUIT AVEC 500 TOKENS)
 // Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à window.CONTACT_EMAIL
 const TokenConfig = {
+  tokenPriceEUR: 0.25,  // Prix par token en euros
   baseTokenLimits: {
-    free: 500    // 500 tokens gratuits pour tous les utilisateurs
+    free: 500    // 500 tokens gratuits pour tous les utilisateurs (valeur: 125 €)
   },
   
   tokenBonuses: {
