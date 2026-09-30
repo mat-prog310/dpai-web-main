@@ -4775,3 +4775,203 @@
         justify-content: center;
     }
 }
+
+/* =============================================================================
+   FREE PLAN SECTION (Pricing Page) - Plan Gratuit
+   ============================================================================= */
+
+.pricing-cards-grid.single-plan {
+    max-width: 900px;
+    margin: 0 auto var(--spacing-3xl);
+}
+
+.pricing-cards-grid.single-plan .pricing-card {
+    border: 3px solid var(--primary);
+    background: var(--white);
+    box-shadow: 0 10px 40px rgba(37, 99, 235, 0.15);
+    position: relative;
+    overflow: hidden;
+}
+
+.pricing-cards-grid.single-plan .pricing-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, var(--primary), var(--primary-light), var(--primary));
+}
+
+.pricing-cards-grid.single-plan .pricing-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 50px rgba(37, 99, 235, 0.25);
+    border-color: var(--primary-dark);
+}
+
+.free-badge {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    color: var(--white);
+    font-weight: 800;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-sm) var(--spacing-xl);
+    border-radius: var(--border-radius-full);
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.pricing-cards-grid.single-plan .pricing-card-header {
+    flex-direction: column;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-xl);
+}
+
+.pricing-cards-grid.single-plan .pricing-card-header h2 {
+    font-size: clamp(var(--font-size-2xl), 5vw, var(--font-size-4xl));
+    font-weight: 800;
+    color: var(--gray-900);
+    margin: 0;
+}
+
+.pricing-cards-grid.single-plan .pricing-card-header .pricing-subtitle {
+    color: var(--gray-600);
+    font-size: var(--font-size-lg);
+    max-width: 600px;
+    margin: 0 auto;
+    line-height: 1.7;
+}
+
+.pricing-amount {
+    margin-bottom: var(--spacing-xl);
+    padding: var(--spacing-lg);
+    background: var(--primary-bg);
+    border-radius: var(--border-radius-lg);
+    margin: 0 auto var(--spacing-xl);
+    max-width: 300px;
+}
+
+.pricing-amount .amount {
+    display: block;
+    font-size: clamp(var(--font-size-3xl), 8vw, var(--font-size-5xl));
+    font-weight: 900;
+    color: var(--primary-dark);
+    line-height: 1.1;
+}
+
+.pricing-amount .period {
+    display: block;
+    font-size: var(--font-size-lg);
+    color: var(--primary);
+    font-weight: 600;
+    margin-top: var(--spacing-xs);
+}
+
+.pricing-cards-grid.single-plan .pricing-features {
+    padding: 0 var(--spacing-lg);
+}
+
+.pricing-cards-grid.single-plan .pricing-feature {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md) 0;
+    border-bottom: 1px solid var(--primary-bg);
+    transition: all var(--transition-fast);
+}
+
+.pricing-cards-grid.single-plan .pricing-feature:last-child {
+    border-bottom: none;
+}
+
+.pricing-cards-grid.single-plan .pricing-feature:hover {
+    background: var(--primary-bg);
+    padding-left: var(--spacing-md);
+    border-radius: var(--border-radius-md);
+}
+
+.pricing-cards-grid.single-plan .pricing-feature i {
+    color: var(--primary);
+    font-size: var(--font-size-lg);
+    min-width: 24px;
+}
+
+.pricing-cards-grid.single-plan .pricing-feature span {
+    font-size: var(--font-size-base);
+    color: var(--gray-700);
+    font-weight: 500;
+}
+
+.pricing-cards-grid.single-plan .pricing-cta {
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-lg) 0;
+}
+
+.pricing-cards-grid.single-plan .pricing-cta .btn-primary {
+    background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+    border: none;
+    padding: var(--spacing-lg) var(--spacing-3xl);
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+    transition: all var(--transition-base);
+}
+
+.pricing-cards-grid.single-plan .pricing-cta .btn-primary:hover {
+    background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    transform: translateY(-3px);
+    box-shadow: 0 10px 30px rgba(37, 99, 235, 0.5);
+}
+
+.pricing-cards-grid.single-plan .pricing-cta .btn-primary i {
+    color: var(--white);
+}
+
+/* =============================================================================
+   RESPONSIVE - Free Plan Section
+   ============================================================================= */
+
+@media (max-width: 768px) {
+    .pricing-cards-grid.single-plan {
+        margin: 0 auto var(--spacing-xl);
+    }
+    
+    .pricing-amount {
+        padding: var(--spacing-md);
+        margin: 0 auto var(--spacing-lg);
+    }
+    
+    .pricing-amount .amount {
+        font-size: var(--font-size-3xl);
+    }
+    
+    .pricing-cards-grid.single-plan .pricing-feature {
+        padding: var(--spacing-sm) 0;
+    }
+    
+    .pricing-cards-grid.single-plan .pricing-cta .btn-primary {
+        padding: var(--spacing-md) var(--spacing-xl);
+        font-size: var(--font-size-base);
+    }
+}
+
+@media (max-width: 480px) {
+    .pricing-cards-grid.single-plan .pricing-card {
+        border-width: 2px;
+    }
+    
+    .free-badge {
+        padding: var(--spacing-xs) var(--spacing-md);
+        font-size: var(--font-size-xs);
+    }
+    
+    .pricing-amount .amount {
+        font-size: var(--font-size-2xl);
+    }
+    
+    .pricing-cards-grid.single-plan .pricing-cta .btn-primary {
+        width: 100%;
+        justify-content: center;
+        padding: var(--spacing-md) var(--spacing-lg);
+    }
+}
