@@ -778,6 +778,7 @@ const quickServices = {
     maturity_score: { id: 'maturity_score', name: 'Score de maturité', icon: 'fa-chart-line', tokens: 50, requiredPlan: 'blocked' },
     integration_matrix: { id: 'integration_matrix', name: 'Matrice intégration', icon: 'fa-th', tokens: 180, requiredPlan: 'blocked' },
     valuation_simulator: { id: 'valuation_simulator', name: 'Simulateur valorisation', icon: 'fa-euro-sign', tokens: 320, requiredPlan: 'blocked' }
+};
 
 // Initialiser les actions rapides
 function initQuickActions() {
