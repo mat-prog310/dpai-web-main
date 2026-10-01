@@ -97,6 +97,77 @@ async function loadAnalysisHistory(userId) {
     snapshot.forEach(doc => {
         analysisHistory.push({ id: doc.id, ...doc.data() });
     });
+    
+    // Mettre à jour l'affichage
+    updateAnalysisList();
+}
+
+// Mettre à jour la liste des analyses récentes
+function updateAnalysisList() {
+    const container = document.getElementById('recentAnalyses');
+    if (!container) return;
+    
+    if (analysisHistory.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state small">
+                <div class="empty-state-icon">
+                    <i class="fas fa-chart-bar"></i>
+                </div>
+                <p>Vous n'avez pas encore réalisé d'analyse.</p>
+                <p class="empty-state-message">Commencez par lancer votre première analyse !</p>
+            </div>
+        `;
+        return;
+    }
+    
+    container.innerHTML = analysisHistory.slice(0, 5).map(analysis => `
+        <div class="analysis-item">
+            <div class="analysis-icon">
+                <i class="fas fa-${getAnalysisIcon(analysis.type)}"></i>
+            </div>
+            <div class="analysis-info">
+                <h4>${getAnalysisName(analysis.type)}</h4>
+                <p class="analysis-date">${formatDate(analysis.createdAt)}</p>
+            </div>
+            <div class="analysis-tokens">
+                ${analysis.tokensUsed || 0} tokens
+            </div>
+        </div>
+    `).join('');
+}
+
+// Obtenir l'icône d'une analyse
+function getAnalysisIcon(type) {
+    const icons = {
+        swot: 'swimming-pool',
+        porter: 'project-diagram',
+        pestel: 'globe-americas',
+        competitive: 'users',
+        reports: 'file-alt',
+        benchmark: 'chart-bar',
+        modeling: 'cubes',
+        due_diligence: 'check-square',
+        valuation: 'euro-sign',
+        synergy: 'link'
+    };
+    return icons[type] || 'chart-line';
+}
+
+// Obtenir le nom d'une analyse
+function getAnalysisName(type) {
+    const names = {
+        swot: 'Analyse SWOT',
+        porter: 'Porter 5 Forces',
+        pestel: 'Analyse PESTEL',
+        competitive: 'Analyse Concurrentielle',
+        reports: 'Rapports Détaillés',
+        benchmark: 'Benchmarking',
+        modeling: 'Modélisation',
+        due_diligence: 'Due Diligence',
+        valuation: 'Valorisation',
+        synergy: 'Analyse des Synergies'
+    };
+    return names[type] || type;
 }
 
 // Charger les actions utilisateur
@@ -787,6 +858,9 @@ function initQuickActions() {
         console.warn('[DASHBOARD] Conteneur .quick-actions non trouvé');
         return;
     }
+    
+    // Vider le conteneur avant d'ajouter les boutons (évite les doublons)
+    container.innerHTML = '';
     
     // Obtenir le plan de l'utilisateur
     const userPlan = (typeof authService !== 'undefined' && authService.userData) ? authService.userData.plan : 'free';
