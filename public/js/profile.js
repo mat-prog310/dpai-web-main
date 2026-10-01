@@ -50,7 +50,7 @@ function checkProfileAuthStatus(user, userData) {
     const userFinal = user || (authServiceExists ? authService.currentUser : null);
     const userDataFinal = userData || (authServiceExists ? authService.userData : null);
     
-    const unauthenticatedView = document.getElementById('unauthenticatedProfileView');
+    const unauthenticatedView = document.getElementById('unauthenticatedView');
     const profileContent = document.getElementById('profileContent');
     const loadingView = document.getElementById('loadingView');
     

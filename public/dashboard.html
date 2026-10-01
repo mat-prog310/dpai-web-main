@@ -916,27 +916,9 @@
         </div>
     </div>
 
+    <script src="/js/main.js"></script>
     <script src="/js/dashboard.js"></script>
     <script>
-        // Initialize authentication
-        document.addEventListener('DOMContentLoaded', function() {
-            initAuth();
-            
-            // Show dashboard content when authenticated
-            firebase.auth().onAuthStateChanged(function(user) {
-                if (user) {
-                    document.getElementById('unauthenticatedView').style.display = 'none';
-                    document.getElementById('dashboardContent').style.display = 'block';
-                    document.getElementById('dashboardHeader').style.display = 'block';
-                    loadDashboardData();
-                } else {
-                    document.getElementById('unauthenticatedView').style.display = 'block';
-                    document.getElementById('dashboardContent').style.display = 'none';
-                    document.getElementById('dashboardHeader').style.display = 'none';
-                }
-            });
-        });
-        
         // Load dashboard data (defined in dashboard.js)
         async function loadDashboardData() {
             // This function is defined in dashboard.js
@@ -944,6 +926,14 @@
                 window.loadDashboard();
             }
         }
+        
+        // Initialize when auth state changes
+        window.addEventListener('authStateChanged', function(event) {
+            const { user, userData } = event.detail;
+            if (user && userData) {
+                loadDashboardData();
+            }
+        });
     </script>
 </body>
 </html>
