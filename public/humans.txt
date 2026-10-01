@@ -1,0 +1,46 @@
+# humans.txt pour DPAI Strategy
+# https://dpai-strategy.com/humans.txt
+
+# L'ÉQUIPE
+
+DPAI Strategy est développé par une équipe passionnée par l'analyse stratégique
+et la croissance externe. Nous croyons que chaque entreprise mérite d'avoir
+accès à des outils d'analyse professionnels pour prendre des décisions éclairées.
+
+# CONTACT
+
+Site web: https://dpai-strategy.com
+Email: contact@dpai-strategy.com
+
+# TECHNOLOGIES
+
+Frontend: HTML5, CSS3, JavaScript (ES6+)
+Framework: Vanilla JS avec architecture modulaire
+Design: Responsive, Mobile-First
+Icons: Font Awesome 6
+Polices: Inter (Google Fonts)
+
+Backend: Firebase (Authentication, Firestore, Functions)
+Hébergement: Firebase Hosting
+
+# CRÉDITS
+
+Conception et développement: Équipe DPAI Strategy
+Design UI/UX: Inspiré par les meilleures pratiques du secteur
+Analyse stratégique: Méthodologies éprouvées (SWOT, Porter, PESTEL, etc.)
+
+# STANDARDS
+
+Doctype: HTML5
+Charset: UTF-8
+Viewport: Responsive
+SEO: Optimisé pour les moteurs de recherche
+Accessibilité: Conforme WCAG 2.1 AA
+
+# LICENCE
+
+© 2026 DPAI Strategy. Tous droits réservés.
+
+# DERNIÈRE MISE À JOUR
+
+2026-10-01

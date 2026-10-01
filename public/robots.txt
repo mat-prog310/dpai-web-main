@@ -1,0 +1,37 @@
+# robots.txt pour DPAI Strategy
+# https://dpai-strategy.com/robots.txt
+
+User-agent: *
+
+# Autoriser l'indexation de toutes les pages principales
+Allow: /
+
+# Sitemap
+Sitemap: https://dpai-strategy.com/sitemap.xml
+
+# Bloquer l'indexation des pages sensibles
+Disallow: /dashboard.html
+Disallow: /profile.html
+Disallow: /analysis-results.html
+
+# Bloquer l'indexation des répertoires techniques
+Disallow: /js/
+Disallow: /css/
+Disallow: /images/
+
+# Autoriser explicitement les pages importantes
+Allow: /index.html
+Allow: /services.html
+Allow: /pricing.html
+Allow: /register.html
+Allow: /login.html
+Allow: /plus-de-tokens.html
+Allow: /terms.html
+Allow: /privacy.html
+Allow: /cookies.html
+
+# Crawl-delay pour éviter de surcharger le serveur
+Crawl-delay: 2
+
+# Host pour indiquer le domaine préféré
+Host: https://dpai-strategy.com/

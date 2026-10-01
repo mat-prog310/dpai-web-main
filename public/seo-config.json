@@ -1,0 +1,83 @@
+{
+  "site": {
+    "name": "DPAI Strategy",
+    "url": "https://dpai-strategy.com",
+    "defaultTitle": "DPAI Strategy | Analyse Stratégique Gratuite - 500 Tokens Offerts (125€)",
+    "defaultDescription": "DPAI Strategy : Plateforme N°1 d'analyse stratégique pour la croissance externe. 500 tokens GRATUITS (valeur 125€) pour démarrer. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle.",
+    "defaultKeywords": "analyse stratégique, croissance externe, fusion acquisition, SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, conseil stratégie, tokens gratuits, M&A, due diligence",
+    "author": "DPAI Strategy",
+    "language": "fr",
+    "locale": "fr_FR",
+    "currency": "EUR",
+    "pricePerToken": 0.25,
+    "freeTokens": 500,
+    "freeTokensValue": 125
+  },
+  "social": {
+    "twitterHandle": "@DPAIStrategy",
+    "linkedInUrl": "https://www.linkedin.com/company/dpai-strategy",
+    "facebookUrl": "https://www.facebook.com/DPAIStrategy"
+  },
+  "pages": {
+    "index": {
+      "title": "DPAI Strategy | Analyse Stratégique Gratuite - 500 Tokens Offerts (125€)",
+      "description": "DPAI Strategy : Plateforme N°1 d'analyse stratégique pour la croissance externe. 500 tokens GRATUITS (valeur 125€) pour démarrer. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle. Tous les services sont gratuits avec un système de tokens.",
+      "priority": 1.0,
+      "changefreq": "daily",
+      "ogImage": "/images/og-image.jpg"
+    },
+    "services": {
+      "title": "Services Stratégiques GRATUITS | DPAI Strategy - Analyse SWOT, Porter, PESTEL",
+      "description": "Découvrez tous nos services d'analyse stratégique GRATUITS avec vos 500 tokens (125€). SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence, benchmark, valuation.",
+      "priority": 0.9,
+      "changefreq": "weekly",
+      "ogImage": "/images/services-og.jpg"
+    },
+    "pricing": {
+      "title": "Tarifs & Tokens | DPAI Strategy - 500 Tokens GRATUITS (125€) - Prix par Token 0,25€",
+      "description": "Tarification transparente : 500 tokens GRATUITS (valeur 125€) pour démarrer. Prix par token : 0,25€. Tous les services Phases 1 & 2 gratuits.",
+      "priority": 0.9,
+      "changefreq": "weekly",
+      "ogImage": "/images/pricing-og.jpg"
+    },
+    "register": {
+      "title": "Inscription GRATUITE | DPAI Strategy - 500 Tokens Offerts (125€) - Démarrez Immédiatement",
+      "description": "Inscription gratuite en 30 secondes ! Recevez 500 tokens d'une valeur de 125€ pour accéder immédiatement à tous les services Phases 1 & 2.",
+      "priority": 0.9,
+      "changefreq": "daily",
+      "ogImage": "/images/register-og.jpg"
+    },
+    "login": {
+      "title": "Connexion | DPAI Strategy - Accédez à vos 500 Tokens Gratuits (125€)",
+      "description": "Connectez-vous à votre compte DPAI pour accéder à vos analyses stratégiques et gérer vos 500 tokens gratuits (valeur 125€).",
+      "priority": 0.8,
+      "changefreq": "weekly",
+      "ogImage": "/images/login-og.jpg"
+    }
+  },
+  "schemaTypes": {
+    "WebApplication": {
+      "@type": "WebApplication",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR",
+        "description": "500 tokens gratuits pour accéder à tous les services Phases 1 & 2",
+        "name": "Offre de bienvenue - 500 Tokens Gratuits (125€)"
+      }
+    },
+    "Organization": {
+      "@type": "Organization",
+      "name": "DPAI Strategy",
+      "url": "https://dpai-strategy.com/",
+      "logo": "/images/logo-dpai.png",
+      "description": "Conseil en croissance externe et analyse stratégique avancée pour les entreprises.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "FR"
+      }
+    }
+  }
+}
