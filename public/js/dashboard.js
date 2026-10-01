@@ -64,8 +64,10 @@ async function loadUserData(userId) {
         
         // Mettre à jour l'UI utilisateur
         const userName = userData.displayName || userData.email || 'Utilisateur';
-        document.getElementById('welcomeUserName').textContent = userName;
-        document.getElementById('dashboardUserName').textContent = userName;
+        const welcomeEl = document.getElementById('welcomeUserName');
+        const dashboardEl = document.getElementById('dashboardUserName');
+        if (welcomeEl) welcomeEl.textContent = userName;
+        if (dashboardEl) dashboardEl.textContent = userName;
         
         // Charger les données de l'entreprise
         if (userData.companyInfo) {
@@ -708,6 +710,9 @@ document.addEventListener('DOMContentLoaded', function() {
             tab.classList.add('active');
         });
     });
+    
+    // Initialiser les actions rapides
+    initQuickActions();
 });
 
 // Sauvegarder une nouvelle action
@@ -739,9 +744,75 @@ async function saveNewAction(userId) {
 }
 
 // =============================================================================
+// ACTIONS RAPIDES
+// =============================================================================
+
+// Services disponibles pour les actions rapides
+const quickServices = {
+    swot: { id: 'swot', name: 'Analyse SWOT', icon: 'fa-swimming-pool', tokens: 40, accessible: true },
+    porter: { id: 'porter', name: 'Porter 5 Forces', icon: 'fa-project-diagram', tokens: 120, accessible: true },
+    pestel: { id: 'pestel', name: 'Analyse PESTEL', icon: 'fa-globe-americas', tokens: 80, accessible: true },
+    competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: 120, accessible: true },
+    reports: { id: 'reports', name: 'Rapports Détaillés', icon: 'fa-file-alt', tokens: 160, accessible: true },
+    benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: 160, accessible: true },
+    modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: 240, accessible: true },
+    due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: 280, accessible: true },
+    valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: 320, accessible: true },
+    synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: 200, accessible: true }
+};
+
+// Initialiser les actions rapides
+function initQuickActions() {
+    const container = document.querySelector('.quick-actions');
+    if (!container) {
+        console.warn('[DASHBOARD] Conteneur .quick-actions non trouvé');
+        return;
+    }
+    
+    // Générer les boutons
+    const servicesOrder = ['swot', 'porter', 'pestel', 'competitive', 'reports', 'benchmark', 'modeling', 'due_diligence', 'valuation', 'synergy'];
+    
+    servicesOrder.forEach(serviceId => {
+        const service = quickServices[serviceId];
+        if (service) {
+            const btn = document.createElement('button');
+            btn.className = 'quick-action-btn';
+            btn.onclick = () => startQuickAnalysis(serviceId);
+            
+            btn.innerHTML = `
+                <div class="quick-action-icon">
+                    <i class="fas ${service.icon}"></i>
+                </div>
+                <span>${service.name}</span>
+                <span class="quick-action-tokens">${service.tokens} tokens</span>
+            `;
+            
+            container.appendChild(btn);
+        }
+    });
+}
+
+// Démarrer une analyse rapide
+function startQuickAnalysis(type) {
+    const modal = document.getElementById('analysisModal');
+    const analysisTypeInput = document.getElementById('analysisType');
+    
+    if (modal && analysisTypeInput) {
+        analysisTypeInput.value = type;
+        modal.classList.add('visible');
+    } else {
+        console.warn('[DASHBOARD] Modal ou input analysisType non trouvé');
+        // Fallback: rediriger vers services.html avec paramètre
+        window.location.href = `services.html?type=${type}`;
+    }
+}
+
+// =============================================================================
 // EXPORT POUR L'INTÉGRATION
 // =============================================================================
 
 window.loadDashboard = loadDashboard;
 window.saveCompanyInfo = saveCompanyInfo;
 window.changeActionStatus = changeActionStatus;
+window.initQuickActions = initQuickActions;
+window.startQuickAnalysis = startQuickAnalysis;
