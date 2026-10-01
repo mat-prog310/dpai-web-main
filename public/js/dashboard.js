@@ -833,20 +833,20 @@ async function saveNewAction(userId) {
 
 // Services disponibles pour les actions rapides
 const quickServices = {
-    // PHASE 1 & 2 - GRATUITS (plan free) - PAS DE CADENAS
+    // PLAN FREE - PAS DE CADENAS
     swot: { id: 'swot', name: 'Analyse SWOT', icon: 'fa-swimming-pool', tokens: 40, requiredPlan: 'free' },
     porter: { id: 'porter', name: 'Porter 5 Forces', icon: 'fa-project-diagram', tokens: 120, requiredPlan: 'free' },
     pestel: { id: 'pestel', name: 'Analyse PESTEL', icon: 'fa-globe-americas', tokens: 80, requiredPlan: 'free' },
-    competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: 120, requiredPlan: 'free' },
     reports: { id: 'reports', name: 'Rapports Détaillés', icon: 'fa-file-alt', tokens: 160, requiredPlan: 'free' },
-    // PHASE 3 & 4 - BLOQUÉS (nécessitent contact) - AVEC CADENAS
+    ideal_sector: { id: 'ideal_sector', name: 'Secteur idéal', icon: 'fa-globe', tokens: 35, requiredPlan: 'free' },
+    maturity_score: { id: 'maturity_score', name: 'Score de maturité', icon: 'fa-chart-line', tokens: 50, requiredPlan: 'free' },
+    // BLOQUÉS - AVEC CADENAS
+    competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: 120, requiredPlan: 'blocked' },
     benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: 160, requiredPlan: 'blocked' },
     modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: 240, requiredPlan: 'blocked' },
     due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: 280, requiredPlan: 'blocked' },
     valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: 320, requiredPlan: 'blocked' },
     synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: 200, requiredPlan: 'blocked' },
-    ideal_sector: { id: 'ideal_sector', name: 'Secteur idéal', icon: 'fa-globe', tokens: 35, requiredPlan: 'blocked' },
-    maturity_score: { id: 'maturity_score', name: 'Score de maturité', icon: 'fa-chart-line', tokens: 50, requiredPlan: 'blocked' },
     integration_matrix: { id: 'integration_matrix', name: 'Matrice intégration', icon: 'fa-th', tokens: 180, requiredPlan: 'blocked' },
     valuation_simulator: { id: 'valuation_simulator', name: 'Simulateur valorisation', icon: 'fa-euro-sign', tokens: 320, requiredPlan: 'blocked' }
 };
