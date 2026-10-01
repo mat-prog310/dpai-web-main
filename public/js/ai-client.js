@@ -52,18 +52,23 @@ async function callAIAnalysis(type, data) {
             })
         });
 
+        const responseText = await response.text();
+        
         if (!response.ok) {
             try {
-                const error = await response.json();
+                const error = JSON.parse(responseText);
                 throw new Error(error.error || error.message || 'Erreur serveur');
             } catch (parseError) {
-                // Si la réponse n'est pas du JSON, lire le texte
-                const errorText = await response.text();
-                throw new Error(errorText || 'Erreur serveur');
+                // Si la réponse n'est pas du JSON, utiliser le texte brut
+                throw new Error(responseText || 'Erreur serveur');
             }
         }
 
-        return await response.json();
+        try {
+            return JSON.parse(responseText);
+        } catch (parseError) {
+            throw new Error(responseText || 'Réponse serveur invalide');
+        }
     } catch (error) {
         console.error('❌ Erreur appel IA (analyses):', error);
         throw error;
@@ -95,25 +100,30 @@ async function callAdvisorChat(message, conversationId = null) {
             })
         });
 
+        const responseText = await response.text();
+        
         if (!response.ok) {
             try {
-                const error = await response.json();
+                const error = JSON.parse(responseText);
                 if (error.error && error.error.includes('Abonnement Conseiller IA')) {
                     // Rediriger vers la page de pricing
                     window.location.href = '/pricing.html#advisor';
                 }
                 throw new Error(error.error || error.message || 'Erreur serveur local');
             } catch (parseError) {
-                // Si la réponse n'est pas du JSON, lire le texte
-                const errorText = await response.text();
-                if (errorText && errorText.includes('Abonnement Conseiller IA')) {
+                // Si la réponse n'est pas du JSON, utiliser le texte brut
+                if (responseText && responseText.includes('Abonnement Conseiller IA')) {
                     window.location.href = '/pricing.html#advisor';
                 }
-                throw new Error(errorText || 'Erreur serveur local');
+                throw new Error(responseText || 'Erreur serveur local');
             }
         }
 
-        return await response.json();
+        try {
+            return JSON.parse(responseText);
+        } catch (parseError) {
+            throw new Error(responseText || 'Réponse serveur invalide');
+        }
     } catch (error) {
         console.error('❌ Erreur Conseiller IA:', error);
         throw error;
@@ -137,17 +147,22 @@ async function getAdvisorConversations() {
             }
         });
 
+        const responseText = await response.text();
+        
         if (!response.ok) {
             try {
-                const error = await response.json();
+                const error = JSON.parse(responseText);
                 throw new Error(error.error || error.message || 'Erreur serveur');
             } catch (parseError) {
-                const errorText = await response.text();
-                throw new Error(errorText || 'Erreur serveur');
+                throw new Error(responseText || 'Erreur serveur');
             }
         }
 
-        const data = await response.json();
+        try {
+            return JSON.parse(responseText);
+        } catch (parseError) {
+            throw new Error(responseText || 'Réponse serveur invalide');
+        }
         return data.conversations || [];
     } catch (error) {
         console.error('❌ Erreur récupération conversations:', error);
@@ -173,17 +188,22 @@ async function deleteAdvisorConversation(conversationId) {
             }
         });
 
+        const responseText = await response.text();
+        
         if (!response.ok) {
             try {
-                const error = await response.json();
+                const error = JSON.parse(responseText);
                 throw new Error(error.error || error.message || 'Erreur serveur');
             } catch (parseError) {
-                const errorText = await response.text();
-                throw new Error(errorText || 'Erreur serveur');
+                throw new Error(responseText || 'Erreur serveur');
             }
         }
 
-        return await response.json();
+        try {
+            return JSON.parse(responseText);
+        } catch (parseError) {
+            throw new Error(responseText || 'Réponse serveur invalide');
+        }
     } catch (error) {
         console.error('❌ Erreur suppression conversation:', error);
         throw error;
@@ -212,17 +232,22 @@ async function setUserPlan(plan) {
             })
         });
 
+        const responseText = await response.text();
+        
         if (!response.ok) {
             try {
-                const error = await response.json();
+                const error = JSON.parse(responseText);
                 throw new Error(error.error || error.message || 'Erreur serveur');
             } catch (parseError) {
-                const errorText = await response.text();
-                throw new Error(errorText || 'Erreur serveur');
+                throw new Error(responseText || 'Erreur serveur');
             }
         }
 
-        return await response.json();
+        try {
+            return JSON.parse(responseText);
+        } catch (parseError) {
+            throw new Error(responseText || 'Réponse serveur invalide');
+        }
     } catch (error) {
         console.error('❌ Erreur changement de plan:', error);
         throw error;
