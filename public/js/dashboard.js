@@ -711,8 +711,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Initialiser les actions rapides
+    // Initialiser les actions rapides (sera aussi appelée via authStateChanged)
     initQuickActions();
+    
+    // Ré-initialiser quand l'utilisateur se connecte (au cas où dashboardContent était masqué)
+    window.addEventListener('authStateChanged', function(event) {
+        const { user, userData } = event.detail;
+        if (user && userData) {
+            setTimeout(initQuickActions, 100); // Petit délai pour laisser le temps au DOM de s'afficher
+        }
+    });
 });
 
 // Sauvegarder une nouvelle action
