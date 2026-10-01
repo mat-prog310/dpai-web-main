@@ -53,8 +53,14 @@ async function callAIAnalysis(type, data) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Erreur serveur');
+            try {
+                const error = await response.json();
+                throw new Error(error.error || error.message || 'Erreur serveur');
+            } catch (parseError) {
+                // Si la réponse n'est pas du JSON, lire le texte
+                const errorText = await response.text();
+                throw new Error(errorText || 'Erreur serveur');
+            }
         }
 
         return await response.json();
@@ -90,12 +96,21 @@ async function callAdvisorChat(message, conversationId = null) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            if (error.error && error.error.includes('Abonnement Conseiller IA')) {
-                // Rediriger vers la page de pricing
-                window.location.href = '/pricing.html#advisor';
+            try {
+                const error = await response.json();
+                if (error.error && error.error.includes('Abonnement Conseiller IA')) {
+                    // Rediriger vers la page de pricing
+                    window.location.href = '/pricing.html#advisor';
+                }
+                throw new Error(error.error || error.message || 'Erreur serveur local');
+            } catch (parseError) {
+                // Si la réponse n'est pas du JSON, lire le texte
+                const errorText = await response.text();
+                if (errorText && errorText.includes('Abonnement Conseiller IA')) {
+                    window.location.href = '/pricing.html#advisor';
+                }
+                throw new Error(errorText || 'Erreur serveur local');
             }
-            throw new Error(error.error || 'Erreur serveur local');
         }
 
         return await response.json();
@@ -123,8 +138,13 @@ async function getAdvisorConversations() {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Erreur serveur');
+            try {
+                const error = await response.json();
+                throw new Error(error.error || error.message || 'Erreur serveur');
+            } catch (parseError) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Erreur serveur');
+            }
         }
 
         const data = await response.json();
@@ -154,8 +174,13 @@ async function deleteAdvisorConversation(conversationId) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Erreur serveur');
+            try {
+                const error = await response.json();
+                throw new Error(error.error || error.message || 'Erreur serveur');
+            } catch (parseError) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Erreur serveur');
+            }
         }
 
         return await response.json();
@@ -188,8 +213,13 @@ async function setUserPlan(plan) {
         });
 
         if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.error || 'Erreur serveur');
+            try {
+                const error = await response.json();
+                throw new Error(error.error || error.message || 'Erreur serveur');
+            } catch (parseError) {
+                const errorText = await response.text();
+                throw new Error(errorText || 'Erreur serveur');
+            }
         }
 
         return await response.json();
