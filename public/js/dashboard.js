@@ -762,17 +762,22 @@ async function saveNewAction(userId) {
 
 // Services disponibles pour les actions rapides
 const quickServices = {
-    swot: { id: 'swot', name: 'Analyse SWOT', icon: 'fa-swimming-pool', tokens: 40, accessible: true },
-    porter: { id: 'porter', name: 'Porter 5 Forces', icon: 'fa-project-diagram', tokens: 120, accessible: true },
-    pestel: { id: 'pestel', name: 'Analyse PESTEL', icon: 'fa-globe-americas', tokens: 80, accessible: true },
-    competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: 120, accessible: true },
-    reports: { id: 'reports', name: 'Rapports Détaillés', icon: 'fa-file-alt', tokens: 160, accessible: true },
-    benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: 160, accessible: true },
-    modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: 240, accessible: true },
-    due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: 280, accessible: true },
-    valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: 320, accessible: true },
-    synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: 200, accessible: true }
-};
+    // PHASE 1 & 2 - TOUS GRATUITS (plan free)
+    swot: { id: 'swot', name: 'Analyse SWOT', icon: 'fa-swimming-pool', tokens: 40, requiredPlan: 'free' },
+    porter: { id: 'porter', name: 'Porter 5 Forces', icon: 'fa-project-diagram', tokens: 120, requiredPlan: 'free' },
+    pestel: { id: 'pestel', name: 'Analyse PESTEL', icon: 'fa-globe-americas', tokens: 80, requiredPlan: 'free' },
+    competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: 120, requiredPlan: 'free' },
+    reports: { id: 'reports', name: 'Rapports Détaillés', icon: 'fa-file-alt', tokens: 160, requiredPlan: 'free' },
+    benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: 160, requiredPlan: 'free' },
+    modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: 240, requiredPlan: 'free' },
+    due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: 280, requiredPlan: 'free' },
+    valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: 320, requiredPlan: 'free' },
+    synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: 200, requiredPlan: 'free' },
+    // PHASE 3 & 4 - BLOQUÉS (nécessitent contact par mail)
+    ideal_sector: { id: 'ideal_sector', name: 'Secteur idéal', icon: 'fa-globe', tokens: 35, requiredPlan: 'blocked' },
+    maturity_score: { id: 'maturity_score', name: 'Score de maturité', icon: 'fa-chart-line', tokens: 50, requiredPlan: 'blocked' },
+    integration_matrix: { id: 'integration_matrix', name: 'Matrice intégration', icon: 'fa-th', tokens: 180, requiredPlan: 'blocked' },
+    valuation_simulator: { id: 'valuation_simulator', name: 'Simulateur valorisation', icon: 'fa-euro-sign', tokens: 320, requiredPlan: 'blocked' }
 
 // Initialiser les actions rapides
 function initQuickActions() {
@@ -782,27 +787,62 @@ function initQuickActions() {
         return;
     }
     
+    // Obtenir le plan de l'utilisateur
+    const userPlan = (typeof authService !== 'undefined' && authService.userData) ? authService.userData.plan : 'free';
+    
     // Générer les boutons
-    const servicesOrder = ['swot', 'porter', 'pestel', 'competitive', 'reports', 'benchmark', 'modeling', 'due_diligence', 'valuation', 'synergy'];
+    const servicesOrder = ['swot', 'porter', 'pestel', 'competitive', 'reports', 'benchmark', 'modeling', 'due_diligence', 'valuation', 'synergy', 'ideal_sector', 'maturity_score', 'integration_matrix', 'valuation_simulator'];
     
     servicesOrder.forEach(serviceId => {
         const service = quickServices[serviceId];
         if (service) {
             const btn = document.createElement('button');
-            btn.className = 'quick-action-btn';
-            btn.onclick = () => startQuickAnalysis(serviceId);
+            
+            // Vérifier si le service est accessible
+            const isAccessible = !service.requiredPlan || service.requiredPlan === 'free';
+            
+            btn.className = 'quick-action-btn' + (isAccessible ? '' : ' locked');
+            
+            if (!isAccessible) {
+                // Service bloqué : désactiver le clic et ajouter message
+                btn.onclick = (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    showPlanUpgradeMessage(service);
+                };
+                btn.setAttribute('title', 'Contactez-nous pour accéder à ce service (Phases 3 & 4)');
+            } else {
+                // Service accessible
+                btn.onclick = () => startQuickAnalysis(serviceId);
+            }
+            
+            // Ajouter l'icône de cadenas si verrouillé
+            const lockIcon = isAccessible ? '' : '<div class="quick-action-lock"><i class="fas fa-lock"></i></div>';
+            
+            // Formater les tokens pour l'affichage
+            let tokensDisplay = service.tokens + ' tokens';
+            if (service.requiredPlan === 'blocked') {
+                tokensDisplay = 'Sur devis';
+            }
             
             btn.innerHTML = `
                 <div class="quick-action-icon">
                     <i class="fas ${service.icon}"></i>
                 </div>
                 <span>${service.name}</span>
-                <span class="quick-action-tokens">${service.tokens} tokens</span>
+                <span class="quick-action-tokens">${tokensDisplay}</span>
+                ${lockIcon}
             `;
             
             container.appendChild(btn);
         }
     });
+}
+
+// Afficher un message pour inviter à contacter pour les services bloqués
+function showPlanUpgradeMessage(service) {
+    const message = `Ce service fait partie des Phases 3 & 4. Contactez duprey.conseil@gmail.com pour un devis personnalisé.`;
+    alert(message);
 }
 
 // Démarrer une analyse rapide
