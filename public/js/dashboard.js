@@ -177,14 +177,19 @@ function updateTokenDisplay(tokenState) {
     const total = tokenState.totalTokens !== -1 ? tokenState.totalTokens : 'Illimité';
     const used = tokenState.usedTokens || 0;
     
-    document.getElementById('availableTokens').textContent = available;
-    document.getElementById('totalTokens').textContent = total;
-    document.getElementById('usedTokens').textContent = used;
+    const availableEl = document.getElementById('availableTokens');
+    const totalEl = document.getElementById('totalTokens');
+    const usedEl = document.getElementById('usedTokens');
+    const progressEl = document.getElementById('tokenProgress');
+    
+    if (availableEl) availableEl.textContent = available;
+    if (totalEl) totalEl.textContent = total;
+    if (usedEl) usedEl.textContent = used;
     
     // Mettre à jour la barre de progression
-    if (tokenState.availableTokens !== -1 && tokenState.totalTokens > 0) {
+    if (tokenState.availableTokens !== -1 && tokenState.totalTokens > 0 && progressEl) {
         const percentage = ((tokenState.totalTokens - tokenState.availableTokens) / tokenState.totalTokens) * 100;
-        document.getElementById('tokenProgress').style.width = `${percentage}%`;
+        progressEl.style.width = `${percentage}%`;
     }
 }
 
