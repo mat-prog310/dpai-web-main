@@ -3149,9 +3149,11 @@ class AnalysisManager {
             throw new Error(`Type d'analyse inconnu: ${type}`);
         }
 
-        // Vérifier que l'utilisateur a assez de tokens
+        // Vérifier que l'utilisateur a assez de tokens (sauf si advisor avec tokens illimités)
         const availableTokens = TokenManager.availableTokens || 0;
-        if (availableTokens < cost) {
+        const isAdvisor = plan === 'advisor';
+        
+        if (!isAdvisor && availableTokens < cost) {
             throw new Error(`Pas assez de tokens. Nécessaire: ${cost}, Disponible: ${availableTokens}`);
         }
 
@@ -3164,18 +3166,48 @@ class AnalysisManager {
         const analysis = new AnalysisClass(name, description, companyData);
         const result = await analysis.execute();
 
-        // Sauvegarder l'analyse dans Firestore
+        // =============================================================================
+        // INTÉGRATION IA : Améliorer les résultats avec Mistral si l'utilisateur a accès
+        // =============================================================================
+        let enhancedResult = result;
         const user = authService.currentUser;
+        
+        if (user && TokenManager.isAIAllowed()) {
+            try {
+                // Appeler l'IA pour enrichir les résultats
+              const aiEnhancement = await this.enhanceWithAI(type, result, companyData);
+              
+              // Fusionner les résultats
+              enhancedResult = {
+                ...result,
+                results: {
+                  ...result.results,
+                  aiEnhancement: aiEnhancement,
+                  isAIEnhanced: true
+                }
+              };
+              
+              console.log('✅ Résultats enrichis par IA');
+            } catch (aiError) {
+              console.error('⚠️ Erreur IA (analyse continue sans IA):', aiError);
+              // Continuer sans IA si erreur
+            }
+        }
+
+        // Sauvegarder l'analyse dans Firestore
         if (user) {
             await db.collection('users').doc(user.uid).collection('analyses').add({
-                ...result.toJSON(),
+                ...enhancedResult.toJSON(),
                 cost: cost,
                 createdAt: new Date().toISOString(),
-                userId: user.uid
+                userId: user.uid,
+                isAIEnhanced: TokenManager.isAIAllowed()
             });
 
-            // Mettre à jour les tokens
-            await TokenManager.useTokens(cost, type);
+            // Mettre à jour les tokens (sauf pour advisor avec tokens illimités)
+            if (!TokenManager.isTokensUnlimited()) {
+                await TokenManager.useTokens(cost, type);
+            }
 
             // Mettre à jour les stats utilisateur
             const FieldValue = (window.firebaseDB || firebase.firestore()).FieldValue;
@@ -3185,7 +3217,180 @@ class AnalysisManager {
             });
         }
 
-        return result;
+        return enhancedResult;
+    }
+
+    // =============================================================================
+    // AMÉLIORATION DES RÉSULTATS AVEC IA MISTRAL
+    // =============================================================================
+    static async enhanceWithAI(type, analysisResult, companyData) {
+        try {
+            // Créer un prompt pour améliorer les résultats
+            const prompt = this.createEnhancementPrompt(type, analysisResult, companyData);
+            
+            // Appeler Mistral via TokenManager
+            const aiResponse = await TokenManager.callMistral(prompt);
+            
+            // Parser la réponse
+            return {
+                prompt: prompt,
+                response: aiResponse,
+                timestamp: new Date().toISOString()
+            };
+        } catch (error) {
+            console.error('❌ Erreur enhanceWithAI:', error);
+            throw error;
+        }
+    }
+
+    static createEnhancementPrompt(type, analysisResult, companyData) {
+        // Utiliser le contexte DPAI
+        const context = window.DPAI_CONTEXT || `
+Tu es **DPAI Strategy**, un cabinet français spécialisé dans la croissance externe.
+Nos analyses sont basées sur notre expertise en M&A avec des données marché françaises/européennes.
+Toujours personnaliser, utiliser des chiffres concrets, et proposer des recommandations actionnables.
+Structure : Contexte → Analyse → Recommandations → Prochaines étapes
+Toujours en français, ton professionnel.
+`;
+
+        // Formater les données de l'entreprise
+        const companyInfo = companyData ? `
+Données entreprise:
+- Nom: ${companyData.name || 'Non spécifié'}
+- Secteur: ${companyData.sector || 'Non spécifié'}
+- CA: ${companyData.revenue || 'Non spécifié'}
+- EBITDA: ${companyData.ebitda || 'Non spécifié'}
+- Effectifs: ${companyData.employees || 'Non spécifié'}
+` : '';
+
+        // Formater les résultats de l'analyse existante
+        let existingResults = '';
+        if (analysisResult.results) {
+            if (analysisResult.results.strengths) {
+                existingResults += `\nForces identifiées:\n${analysisResult.results.strengths.map((s, i) => `${i+1}. ${s}`).join('\n')}`;
+            }
+            if (analysisResult.results.weaknesses) {
+                existingResults += `\nFaiblesses identifiées:\n${analysisResult.results.weaknesses.map((w, i) => `${i+1}. ${w}`).join('\n')}`;
+            }
+            if (analysisResult.results.opportunities) {
+                existingResults += `\nOpportunités identifiées:\n${analysisResult.results.opportunities.map((o, i) => `${i+1}. ${o}`).join('\n')}`;
+            }
+            if (analysisResult.results.threats) {
+                existingResults += `\nMenaces identifiées:\n${analysisResult.results.threats.map((t, i) => `${i+1}. ${t}`).join('\n')}`;
+            }
+        }
+
+        // Créer le prompt selon le type d'analyse
+        switch (type) {
+            case 'swot':
+                return `${context}
+
+Mission: **PERSONNALISER ET AMÉLIORER** cette analyse SWOT pour la rendre plus spécifique, plus précise et plus actionnable. NE PAS simplement répéter ce qui existe déjà.
+
+${companyInfo}
+
+Analyse existante à améliorer:
+${existingResults}
+
+Instructions:
+1. **Analyse critique** : Identifie ce qui manque ou ce qui est trop générique dans l'analyse existante
+2. **Ajoute des éléments spécifiques** : Utilise des benchmarks sectoriels français, des exemples concrets DPAI, des chiffres
+3. **Structure améliorée** :
+   - **Contexte** (1-2 phrases maximum)
+   - **Forces** (min 3, max 5) → avec impact chiffré si possible
+   - **Faiblesses** (min 3, max 5) → avec risque chiffré si possible
+   - **Opportunités** (min 3, max 5) → avec potentiel chiffré
+   - **Menaces** (min 3, max 5) → avec impact + solution DPAI
+   - **Recommandations Stratégiques DPAI** (3-5) → avec ROI estimé
+   - **Prochaines étapes** (2-3 actions immédiates)
+4. **Ne jamais dire** : "En tant qu'IA", "Généralement", "Typiquement"
+5. **Toujours inclure** : Des exemples concrets de cas traités par DPAI
+
+Format attendu : Markdown bien structuré avec des titres clairs`;
+
+            case 'porter':
+                return `${context}
+
+Mission: **PERSONNALISER ET APPROFONDIR** cette analyse Porter 5 Forces avec des données sectorielles françaises spécifiques.
+
+${companyInfo}
+
+Analyse existante à améliorer:
+${existingResults}
+
+Instructions:
+1. **Ne pas répéter** l'analyse existante
+2. **Ajouter des benchmarks sectoriels** : "Dans le secteur X en France, le multiple moyen est de Yx EBITDA"
+3. **Structure complète** :
+   - Contexte sectoriel français
+   - 5 Forces analysées avec scores (1-10) et benchmarks
+   - Synthèse avec attractivité du secteur
+   - Recommandations DPAI (2-3)
+   - Prochaines étapes
+4. **Utiliser des exemples DPAI** : "Chez DPAI, nous avons observé que..."
+
+Format attendu : Analyse professionnelle avec chiffres et exemples concrets`;
+
+            case 'pestel':
+                return `${context}
+
+Mission: **ENRICHIR** cette analyse PESTEL avec des données macro-économiques françaises et européennes.
+
+${companyInfo}
+
+Analyse existante à améliorer:
+${existingResults}
+
+Instructions:
+1. **Ajouter des données spécifiques** : INSEE, Banque de France, Xerfi
+2. **Structure** :
+   - Politique (score 1-10, impact, évaluation)
+   - Économique (score 1-10, impact, évaluation)
+   - Social (score 1-10, impact, évaluation)
+   - Technologique (score 1-10, impact, évaluation)
+   - Environnemental (score 1-10, impact, évaluation)
+   - Légal (score 1-10, impact, évaluation)
+   - Synthèse globale
+3. **Inclure des tendances 2026** pour la France
+
+Format attendu : Analyse macro-économique précise et actionnable`;
+
+            case 'competitive':
+                return `${context}
+
+Mission: **APPROFONDIR** cette analyse concurrentielle avec des comparaisons précises et des recommandations stratégiques.
+
+${companyInfo}
+
+Analyse existante à améliorer:
+${existingResults}
+
+Instructions:
+1. **Ajouter des comparaisons** : positionnement prix, qualité, fonctionnalités
+2. **Analyse des parts de marché** avec données françaises
+3. **Avantage concurrentiel** : identifier et quantifier
+4. **Recommandations** : comment se différencier
+
+Format attendu : Analyse concurrentielle détaillée avec actions concrètes`;
+
+            default:
+                return `${context}
+
+Mission: **AMÉLIORER** cette analyse ${type} pour la rendre plus spécifique et actionnable.
+
+${companyInfo}
+
+Analyse existante:
+${existingResults}
+
+Instructions:
+1. Personnaliser pour cette entreprise et ce secteur
+2. Ajouter des chiffres et des exemples concrets
+3. Proposer des recommandations actionnables
+4. Utiliser la méthodologie DPAI
+
+Format attendu : Analyse professionnelle et précise`;
+        }
     }
 
     static getCost(type, plan = 'free') {
@@ -3521,7 +3726,361 @@ function generateMockResults(type, companyName = 'votre entreprise') {
     return mockResults[type] || {};
 }
 
+// =============================================================================
+// INTÉGRATION IA AVEC MISTRAL
+// =============================================================================
+
+// Stocker le DPAI_CONTEXT et les prompts au niveau global
+const DPAI_CONTEXT_AI = `
+Tu es **DPAI Strategy**, un cabinet français spécialisé dans la **croissance externe** (fusions, acquisitions, rachats) pour les **PME et ETI françaises**.
+**Notre méthodologie propriétaire :**
+- Nous utilisons des **données marché françaises/européennes** (INSEE, Banque de France, Xerfi).
+- Nos analyses sont **basées sur notre expertise** en M&A.
+- Nous priorisons les **stratégies actionnables** (pas de théorie vide).
+
+**Règles strictes :**
+1. **Toujours personnaliser** : Adapte tes réponses au secteur, taille, et contexte du client.
+2. **Chiffres concrets** : Utilise des **benchmarks sectoriels** (ex : "Dans la tech française, le multiple moyen est de 8-12x EBITDA").
+3. **Exemples DPAI** : Si tu cites un exemple, utilise un **cas réel traité par DPAI** (à inventer si nécessaire).
+4. **Structure claire** : Utilise **toujours** cette structure :
+   - **Contexte** (1 phrase)
+   - **Analyse** (3-5 points clés)
+   - **Recommandations** (2-3 actions concrètes)
+   - **Prochaines étapes** (1-2 actions immédiates)
+5. **Langage** : **Toujours en français**, avec un ton **professionnel mais accessible**.
+6. **Ne JAMAIS dire** : "En tant qu'IA...", "Je suis un modèle de langage...", "Généralement...".
+`;
+
+// Définir les prompts pour chaque type d'analyse
+const ANALYSIS_PROMPTS = {
+    swot: (companyData) => `
+        ${DPAI_CONTEXT_AI}
+
+        **Mission :**
+        Réalise une **analyse SWOT ultra-personnalisée** pour cette entreprise, en utilisant **uniquement** les données fournies et notre méthodologie DPAI.
+
+        **Données de l'entreprise :**
+        - **Nom** : ${companyData.name || 'Non spécifié'}
+        - **Secteur** : ${companyData.sector || 'Non spécifié'} (en France)
+        - **Chiffre d'affaires** : ${companyData.revenue || 'Non spécifié'} €
+        - **EBITDA** : ${companyData.ebitda || 'Non spécifié'} €
+        - **Nombre d'employés** : ${companyData.employees || 'Non spécifié'}
+        - **Marché cible** : ${companyData.targetMarket || 'Non spécifié'}
+        - **Objectifs** : ${companyData.goals || 'Croissance externe'}
+        - **Contraintes** : ${companyData.constraints || 'Aucune'}
+
+        **Format attendu :**
+        ## 📊 Analyse SWOT pour [Nom de l'entreprise] (Secteur : [Secteur])
+        **Contexte :** [1 phrase résumant la situation]
+
+        ### 🔵 **Forces** (min 3 points)
+        1. [Force 1] → **Impact** : [Explication concrète avec chiffres]
+        2. [Force 2] → **Impact** : [Explication concrète avec chiffres]
+        3. [Force 3] → **Impact** : [Explication concrète avec chiffres]
+
+        ### 🟠 **Faiblesses** (min 3 points)
+        1. [Faiblesse 1] → **Risque** : [Explication concrète]
+        2. [Faiblesse 2] → **Risque** : [Explication concrète]
+        3. [Faiblesse 3] → **Risque** : [Explication concrète]
+
+        ### 🟢 **Opportunités** (min 3 points)
+        1. [Opportunité 1] → **Potentiel** : [Chiffre ou exemple concret]
+        2. [Opportunité 2] → **Potentiel** : [Chiffre ou exemple concret]
+        3. [Opportunité 3] → **Potentiel** : [Chiffre ou exemple concret]
+
+        ### 🔴 **Menaces** (min 3 points)
+        1. [Menace 1] → **Impact** : [Explication + solution DPAI]
+        2. [Menace 2] → **Impact** : [Explication + solution DPAI]
+        3. [Menace 3] → **Impact** : [Explication + solution DPAI]
+
+        ### 💡 **Recommandations Stratégiques (DPAI)**
+        1. [Recommandation 1] → **Action** : [Étapes concrètes] → **ROI estimé** : [Chiffre si possible]
+        2. [Recommandation 2] → **Action** : [Étapes concrètes] → **ROI estimé** : [Chiffre si possible]
+        3. [Recommandation 3] → **Action** : [Étapes concrètes] → **ROI estimé** : [Chiffre si possible]
+
+        **Prochaines étapes :**
+        - [Étape 1]
+        - [Étape 2]
+
+        **⚠️ Important :**
+        - **Ne pas utiliser de placeholders** comme "[Nom de l'entreprise]".
+        - **Toujours inclure des chiffres** (même estimés).
+        - **Proposer des solutions DPAI**.`,
+
+    porter: (companyData) => `
+        ${DPAI_CONTEXT_AI}
+
+        **Mission :**
+        Analyse les **5 Forces de Porter** pour cette entreprise, en utilisant **nos données sectorielles DPAI**.
+
+        **Données :**
+        - **Secteur** : ${companyData.sector || 'Non spécifié'} (France)
+        - **Positionnement** : ${companyData.positioning || 'Leader local'}
+        - **Part de marché** : ${companyData.marketShare || 'Non spécifié'}%
+        - **Prix moyen** : ${companyData.avgPrice || 'Non spécifié'} €
+        - **Coûts fixes** : ${companyData.fixedCosts || 'Élevés/Modérés/Faibles'}
+
+        **Format attendu :**
+        ## 📊 Analyse Porter 5 Forces pour [Nom] (Secteur : [Secteur])
+
+        ### 1️⃣ **Pouvoir de négociation des clients**
+        - **Niveau** : [Élevé/Modéré/Faible]
+        - **Explication** : [Analyse + exemple concret avec chiffres]
+        - **Impact sur [Nom]** : [Conséquences]
+        - **Recommandation DPAI** : [Solution concrète]
+
+        ### 2️⃣ **Pouvoir de négociation des fournisseurs**
+        - **Niveau** : [Élevé/Modéré/Faible]
+        - **Explication** : [Analyse + exemple concret]
+        - **Impact sur [Nom]** : [Conséquences]
+        - **Recommandation DPAI** : [Solution]
+
+        ### 3️⃣ **Menace des nouveaux entrants**
+        - **Niveau** : [Élevé/Modéré/Faible]
+        - **Barrières** : [Liste des barrières (brevets, capital, etc.)]
+        - **Risque pour [Nom]** : [Analyse]
+        - **Recommandation DPAI** : [Solution]
+
+        ### 4️⃣ **Menace des produits de substitution**
+        - **Niveau** : [Élevé/Modéré/Faible]
+        - **Alternatives** : [Liste]
+        - **Impact** : [Analyse]
+        - **Recommandation DPAI** : [Solution]
+
+        ### 5️⃣ **Intensité de la rivalité**
+        - **Niveau** : [Élevé/Modéré/Faible]
+        - **Concurrence directe** : [Liste des principaux concurrents]
+        - **Facteurs de différenciation** : [Pour [Nom]]
+        - **Recommandation DPAI** : [Solution]
+
+        **Synthèse :**
+        - **Force concurrentielle globale** : [Élevée/Modérée/Faible]
+        - **Atouts de [Nom]** : [Top 3]
+        - **Risques majeurs** : [Top 3]
+
+        **Prochaines étapes :**
+        - [Action 1]
+        - [Action 2]`,
+
+    pestel: (companyData) => `
+        ${DPAI_CONTEXT_AI}
+
+        **Mission :**
+        Analyse **PESTEL** pour cette entreprise, en identifiant les facteurs politiques, économiques, socioculturels, technologiques, environnementaux et légaux.
+
+        **Données :**
+        - **Secteur** : ${companyData.sector || 'Non spécifié'}
+        - **Pays** : France
+        - **Contexte** : ${companyData.context || 'Analyse stratégique'}
+
+        **Format attendu :**
+        ## 📊 Analyse PESTEL pour [Nom] (Secteur : [Secteur])
+
+        ### 🏛️ **Politique**
+        - **Impact** : [Favorable/Neutre/Négatif]
+        - **Analyse** : [Détails avec exemples français]
+        - **Recommandation** : [Action concrète]
+
+        ### 💰 **Économique**
+        - **Impact** : [Favorable/Neutre/Négatif]
+        - **Analyse** : [Détails avec chiffres du marché français]
+        - **Recommandation** : [Action concrète]
+
+        ### 👥 **Socioculturel**
+        - **Impact** : [Favorable/Neutre/Négatif]
+        - **Analyse** : [Détails avec tendances françaises]
+        - **Recommandation** : [Action concrète]
+
+        ### 💻 **Technologique**
+        - **Impact** : [Favorable/Neutre/Négatif]
+        - **Analyse** : [Détails avec innovations sectorielles]
+        - **Recommandation** : [Action concrète]
+
+        ### 🌍 **Environnemental**
+        - **Impact** : [Favorable/Neutre/Négatif]
+        - **Analyse** : [Détails avec réglementations françaises/EU]
+        - **Recommandation** : [Action concrète]
+
+        ### ⚖️ **Légal**
+        - **Impact** : [Favorable/Neutre/Négatif]
+        - **Analyse** : [Détails avec cadre légal français/EU]
+        - **Recommandation** : [Action concrète]
+
+        **Synthèse :**
+        - **Opportunités majeures** : [Top 3]
+        - **Risques majeurs** : [Top 3]
+
+        **Prochaines étapes :**
+        - [Action 1]
+        - [Action 2]`,
+
+    competitive: (companyData) => `
+        ${DPAI_CONTEXT_AI}
+
+        **Mission :**
+        Analyse concurrentielle détaillée pour cette entreprise.
+
+        **Données :**
+        - **Entreprise** : ${companyData.name || 'Non spécifié'}
+        - **Secteur** : ${companyData.sector || 'Non spécifié'}
+        - **Principaux concurrents** : ${companyData.competitors || 'Non spécifiés'}
+
+        **Format attendu :**
+        ## 📊 Analyse Concurrentielle pour [Nom]
+
+        ### 🎯 **Positionnement Concurrentiel**
+        - **Part de marché** : [Chiffre estimé]
+        - **Avantages concurrentiels** : [Liste avec détails]
+        - **Points faibles vs concurrents** : [Liste avec détails]
+
+        ### 📊 **Benchmark**
+        | Critère | [Nom] | Concurrent 1 | Concurrent 2 | Concurrent 3 |
+        |---------|-------|-------------|-------------|-------------|
+        | Prix | [Valeur] | [Valeur] | [Valeur] | [Valeur] |
+        | Qualité | [Valeur] | [Valeur] | [Valeur] | [Valeur] |
+        | Fonctionnalités | [Valeur] | [Valeur] | [Valeur] | [Valeur] |
+
+        ### 💡 **Recommandations DPAI**
+        1. [Recommandation 1] → **Action** : [Détails]
+        2. [Recommandation 2] → **Action** : [Détails]
+        3. [Recommandation 3] → **Action** : [Détails]
+
+        **Prochaines étapes :**
+        - [Action 1]
+        - [Action 2]`
+};
+
+// Classe pour gérer les analyses avec IA
+class AIAnalysisManager {
+    
+    static MISTRAL_API_KEY = typeof MISTRAL_API_KEY !== 'undefined' ? MISTRAL_API_KEY : (typeof window !== 'undefined' && window.MISTRAL_API_KEY) || "mstrl_OUgXuc71KYyO2QoWZ8h0okTn14wCYUnG_20gLSU";
+    static MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
+    
+    // Vérifier si l'utilisateur a accès à l'IA
+    static canUseAI() {
+        if (typeof TokenManager === 'undefined' || !TokenManager.tokenState) {
+            return false;
+        }
+        const plan = TokenManager.tokenState.plan || 'free';
+        return plan === 'api_monthly' || plan === 'advisor';
+    }
+    
+    // Vérifier si l'utilisateur a des tokens illimités
+    static hasUnlimitedTokens() {
+        if (typeof TokenManager === 'undefined' || !TokenManager.tokenState) {
+            return false;
+        }
+        return TokenManager.isTokensUnlimited && TokenManager.isTokensUnlimited();
+    }
+    
+    // Appeler Mistral API
+    static async callMistral(prompt, model = "mistral-large") {
+        try {
+            const response = await fetch(this.MISTRAL_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${this.MISTRAL_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: model,
+                    messages: [{ role: 'user', content: prompt }],
+                    temperature: 0.3,
+                    max_tokens: 2000
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Erreur Mistral API');
+            }
+
+            const data = await response.json();
+            return data.choices[0].message.content;
+        } catch (error) {
+            console.error('❌ Erreur Mistral:', error);
+            throw error;
+        }
+    }
+    
+    // Exécuter une analyse avec IA
+    static async executeWithAI(type, companyData) {
+        // Vérifier si l'utilisateur a accès à l'IA
+        if (!this.canUseAI()) {
+            console.log('[AIAnalysis] Utilisateur n\'a pas accès à l\'IA, utilisation de l\'analyse classique');
+            return null; // Signale que l'IA n'est pas disponible
+        }
+        
+        // Vérifier si l'abonnement est expiré
+        if (TokenManager.isExpired && TokenManager.isExpired()) {
+            throw new Error('Votre abonnement a expiré. Veuillez le renouveler.');
+        }
+        
+        // Récupérer le prompt pour ce type d'analyse
+        const promptFunction = ANALYSIS_PROMPTS[type];
+        if (!promptFunction) {
+            console.warn(`[AIAnalysis] Aucun prompt défini pour le type: ${type}`);
+            return null;
+        }
+        
+        // Générer le prompt
+        const prompt = promptFunction(companyData);
+        
+        // Appeler Mistral
+        const response = await this.callMistral(prompt);
+        
+        // Déduire les tokens si l'utilisateur n'a pas des tokens illimités (seul advisor a illimité)
+        if (!this.hasUnlimitedTokens() && typeof TokenManager !== 'undefined') {
+            const tokenCost = AnalysisCosts[`ai_${type}`] || 100;
+            try {
+                await TokenManager.useTokens(tokenCost, `ai_${type}`);
+            } catch (error) {
+                console.warn('[AIAnalysis] Impossible de déduire les tokens:', error.message);
+                // Continuer quand même, l'analyse est déjà faite
+            }
+        }
+        
+        return response;
+    }
+}
+
+// Modifier la classe Analysis pour intégrer l'IA
+const originalExecute = Analysis.prototype.execute;
+Analysis.prototype.execute = async function() {
+    // Vérifier si on peut utiliser l'IA pour cette analyse
+    if (AIAnalysisManager.canUseAI() && ANALYSIS_PROMPTS[this.type]) {
+        try {
+            const aiResult = await AIAnalysisManager.executeWithAI(this.type, this.companyData);
+            if (aiResult) {
+                // Si l'IA a retourné un résultat, l'utiliser
+                this.results = this.parseAIResult(aiResult);
+                this.status = 'completed';
+                this.generateRecommendations();
+                this.calculateScore();
+                return this;
+            }
+        } catch (error) {
+            console.warn('[Analysis] IA non disponible, utilisation de l\'analyse classique:', error.message);
+        }
+    }
+    
+    // Si IA pas disponible ou erreur, utiliser l'analyse classique
+    return originalExecute.call(this);
+};
+
+// Méthode pour parser le résultat de l'IA
+Analysis.prototype.parseAIResult = function(aiText) {
+    // Par défaut, retourner le texte brut
+    // Les classes spécifiques peuvent override cette méthode
+    return {
+        aiAnalysis: aiText,
+        source: 'ai'
+    };
+};
+
 // Rendre les fonctions disponibles globalement
 window.AnalysisManager = AnalysisManager;
 window.executeAnalysis = executeAnalysis;
+window.AIAnalysisManager = AIAnalysisManager;
+window.ANALYSIS_PROMPTS = ANALYSIS_PROMPTS;
 window.generateMockResults = generateMockResults;
