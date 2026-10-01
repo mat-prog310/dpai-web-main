@@ -1,3083 +1,747 @@
 // =============================================================================
-// DASHBOARD.JS - Gestion du tableau de bord avec analyses avancées
+// DASHBOARD.JS - Tableau de bord stratégique DPAI
 // =============================================================================
 
-// Références Firebase (exposées par firebase-config.js)
-// db est défini globalement dans firebase-config.js
+// Données de l'entreprise (stockées dans Firestore)
+let companyData = {
+    name: '',
+    sector: '',
+    revenue: 0,
+    employees: 0,
+    ebitda: 0,
+    margin: 0,
+    history: []
+};
 
-// Ne PAS créer de mock authService car il est déjà initialisé dans auth.js
-// auth.js définit window.authService = null au début, puis le remplace par une instance quand Firebase est prêt
-// Si authService est null, c'est que Firebase est en train de se charger
-// On attendra donc qu'il soit initialisé correctement
+// Actions recommandées
+let userActions = [];
 
-// Configuration de TokenManager pour éviter les erreurs
-// Suppression du mode démo qui forçait 9999 tokens - Utiliser les vraies valeurs
-if (typeof window.TokenManager === 'undefined') {
-    console.warn('[DPAI] TokenManager non défini, création d\'un mock avec 500 tokens par défaut');
-    window.TokenManager = {
-        tokenState: {
-            availableTokens: 500,
-            usedTokens: 0,
-            totalTokens: 500
-        },
-        getCost: (type) => {
-            const costs = { 
-                swot: 40, porter: 120, pestel: 80, competitive: 120,
-                basic: 40, advanced: 80, detailed_report: 160, synergy: 200,
-                modeling: 240, benchmark: 160, due_diligence: 280, valuation: 320,
-                mergers_acquisitions: 400, strategic_audit: 240, risk_assessment: 200
-            };
-            return costs[type] || 10;
-        },
-        get availableTokens() {
-            return this.tokenState ? this.tokenState.availableTokens : 500;
-        }
-    };
-}
+// Historique des analyses
+let analysisHistory = [];
 
-// Configurer TokenConfig si non défini
-if (typeof window.TokenConfig === 'undefined') {
-    window.TokenConfig = {
-        baseTokenLimits: { free: 500 },
-        tokenBonuses: { free: 0.0204 },
-        welcomeBonus: 0,
-        firstAnalysisBonus: 0
-    };
-}
+// Alertes
+let userAlerts = [];
 
-// Helper pour obtenir db (Firestore) avec fallback mock si Firebase non disponible
-function getDB() {
-    if (typeof db !== 'undefined') {
-        return db;
-    }
-    if (typeof window.firebaseDB !== 'undefined') {
-        return window.firebaseDB;
-    }
-    if (typeof firebase !== 'undefined' && firebase.firestore) {
-        return firebase.firestore();
-    }
-    // Firebase non disponible - retourner null
-    console.warn('[Dashboard] Firebase Firestore non disponible, retour null');
-    return null;
-}
+// =============================================================================
+// FONCTIONS DE CHARGEMENT
+// =============================================================================
 
-// Synchronisation automatique entre availableTokens (dashboard) et userAvailableTokens (modal)
-function setupTokenSynchronization() {
-    const availableTokensEl = document.getElementById('availableTokens');
-    const userAvailableTokensEl = document.getElementById('userAvailableTokens');
-    
-    if (availableTokensEl && userAvailableTokensEl) {
-        // Synchroniser immédiatement
-        userAvailableTokensEl.textContent = availableTokensEl.textContent;
-        
-        // Observer les changements futurs
-        const observer = new MutationObserver((mutations) => {
-            mutations.forEach((mutation) => {
-                if (mutation.type === 'characterData' || mutation.type === 'childList') {
-                    userAvailableTokensEl.textContent = availableTokensEl.textContent;
-                    console.log('[Dashboard] Mutation détectée, userAvailableTokens synchronisé:', availableTokensEl.textContent);
-                }
-            });
-        });
-        
-        observer.observe(availableTokensEl, {
-            characterData: true,
-            childList: true,
-            subtree: true
-        });
-        
-        // Vérification périodique toutes les 500ms (fallback si MutationObserver échoue)
-        const syncInterval = setInterval(() => {
-            if (availableTokensEl.textContent !== userAvailableTokensEl.textContent) {
-                userAvailableTokensEl.textContent = availableTokensEl.textContent;
-                console.log('[Dashboard] Sync périodique: userAvailableTokens =', availableTokensEl.textContent);
-            }
-        }, 500);
-        
-        // Arrêter le fallback après 30 secondes (quand tout devrait être stable)
-        setTimeout(() => {
-            clearInterval(syncInterval);
-            console.log('[Dashboard] Arrêt du sync périodique (fallback)');
-        }, 30000);
-        
-        console.log('[Dashboard] Synchronisation automatique tokens → modal activée');
-    } else {
-        // Essayer plus tard si les éléments n'existent pas encore
-        setTimeout(setupTokenSynchronization, 500);
-    }
-}
+// Charger toutes les données du dashboard
+async function loadDashboard() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
 
-// Initialiser la synchronisation dès que possible
-if (document.readyState === 'complete' || document.readyState === 'interactive') {
-    setTimeout(setupTokenSynchronization, 100);
-} else {
-    document.addEventListener('DOMContentLoaded', setupTokenSynchronization);
-}
-
-// Attendre que le DOM soit chargé
-// Si le DOM est déjà chargé (script chargé à la fin du body), exécuter immédiatement
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        // Attendre que authService soit disponible
-        const authCheck = setInterval(() => {
-            if (typeof window.authService !== 'undefined' && window.authService) {
-                clearInterval(authCheck);
-                initDashboard();
-                loadUserData();
-            }
-        }, 100);
-        
-        // Timeout de sécurité - initialiser avec données mock si authService pas disponible
-        setTimeout(() => {
-            clearInterval(authCheck);
-            console.warn('[Dashboard] authService non disponible après 5s, initialisation avec données mock');
-            // Créer un authService mock avec données par défaut
-            if (typeof window.authService === 'undefined') {
-                window.authService = {
-                    currentUser: null,
-                    userData: null,
-                    loadUserData: async () => null
-                };
-            }
-            initDashboard();
-            loadUserData();
-        }, 5000);
-    });
-} else {
-    // DOM déjà chargé, exécuter immédiatement
-    // Attendre que authService soit disponible
-    const authCheck = setInterval(() => {
-        if (typeof window.authService !== 'undefined' && window.authService) {
-            clearInterval(authCheck);
-            initDashboard();
-            loadUserData();
-        }
-    }, 100);
-    
-    // Timeout de sécurité - initialiser avec données mock si authService pas disponible
-    setTimeout(() => {
-        clearInterval(authCheck);
-        console.warn('[Dashboard] authService non disponible après 5s, initialisation avec données mock');
-        // Créer un authService mock avec données par défaut
-        if (typeof window.authService === 'undefined') {
-            window.authService = {
-                currentUser: null,
-                userData: null,
-                loadUserData: async () => null
-            };
-        }
-        initDashboard();
-        loadUserData();
-    }, 5000);
-}
-
-// Initialiser le dashboard
-function initDashboard() {
-    // Gérer les boutons d'action rapide (avec délai pour s'assurer que servicesData est chargé)
-    setTimeout(initQuickActions, 200);
-    
-    // Charger l'historique des analyses
-    loadAnalysisHistory();
-    
-    // Charger l'historique des tokens
-    loadTokenHistory();
-    
-    // Initialiser le formulaire d'analyse
-    initAnalysisForm();
-    
-    // Initialiser les tabs d'analyses
-    initAnalysisTabs();
-    
-    // Charger les analyses récentes
-    loadRecentAnalyses();
-    
-    // Initialiser le bouton "Toutes les analyses"
-    const showAllBtn = document.getElementById('showAllAnalyses');
-    if (showAllBtn) {
-        showAllBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            showAllAnalyses();
-        });
-    }
-    
-    // NE PAS appeler updateDashboardStats() ici - elle est appelée dans loadUserData()
-}
-
-// Charger les données utilisateur
-async function loadUserData() {
-    const user = authService.currentUser;
-    
-    if (!user) {
-        // Pas d'utilisateur connecté - utiliser des données par défaut
-        console.log('[Dashboard] Pas d\'utilisateur connecté, initialisation avec données par défaut');
-        const defaultUserData = {
-            id: 'demo',
-            name: 'Utilisateur',
-            plan: 'free',
-            availableTokens: 500,
-            tokensUsed: 0,
-            totalTokens: 500,
-            totalAnalyses: 0,
-            monthlyAnalyses: 0,
-            tokenState: {
-                userId: 'demo',
-                plan: 'free',
-                baseTokens: 500,
-                bonusTokens: 0,
-                totalTokens: 500,
-                usedTokens: 0,
-                availableTokens: 500,
-                lastTokenUpdate: new Date().toISOString(),
-                firstAnalysisDone: false,
-                monthlyTokensUsed: 0,
-                lastMonthlyReset: new Date().toISOString()
-            },
-            loyaltyInfo: {
-                userId: 'demo',
-                totalAnalyses: 0,
-                monthlyAnalyses: 0,
-                monthlyLoyaltyTokens: 0,
-                lastAnalysisDate: null,
-                lastMonthlyReset: new Date().toISOString()
-            }
-        };
-        authService.userData = defaultUserData;
-        TokenManager.init(defaultUserData);
-        updateAuthUI(null, defaultUserData);
-        updateDashboardStats(defaultUserData);
-        return;
-    }
-    
     try {
-        const userData = await authService.loadUserData(user.uid);
+        // Charger les données de l'utilisateur
+        await loadUserData(user.uid);
         
-        if (!userData) {
-            // Firebase non disponible ou utilisateur non trouvé - utiliser données par défaut
-            console.warn('[Dashboard] userData null, utilisation de données par défaut pour utilisateur connecté');
-            const defaultUserData = {
-                id: user.uid,
-                name: user.displayName || user.email || 'Utilisateur',
-                email: user.email || '',
-                plan: 'free',
-                availableTokens: 500,
-                tokensUsed: 0,
-                totalTokens: 500,
-                totalAnalyses: 0,
-                monthlyAnalyses: 0,
-                tokenState: {
-                    userId: user.uid,
-                    plan: 'free',
-                    baseTokens: 500,
-                    bonusTokens: 0,
-                    totalTokens: 500,
-                    usedTokens: 0,
-                    availableTokens: 500,
-                    lastTokenUpdate: new Date().toISOString(),
-                    firstAnalysisDone: false,
-                    monthlyTokensUsed: 0,
-                    lastMonthlyReset: new Date().toISOString()
-                },
-                loyaltyInfo: {
-                    userId: user.uid,
-                    totalAnalyses: 0,
-                    monthlyAnalyses: 0,
-                    monthlyLoyaltyTokens: 0,
-                    lastAnalysisDate: null,
-                    lastMonthlyReset: new Date().toISOString()
-                }
-            };
-            authService.userData = defaultUserData;
-            TokenManager.init(defaultUserData);
-            updateAuthUI(user, defaultUserData);
-            updateDashboardStats(defaultUserData);
-            return;
-        }
+        // Charger l'historique des analyses
+        await loadAnalysisHistory(user.uid);
         
-        authService.userData = userData;
-        TokenManager.init(userData);
+        // Charger les actions
+        await loadUserActions(user.uid);
         
-        // Mettre à jour l'UI
-        updateAuthUI(user, userData);
-        updateDashboardStats(userData);
+        // Mettre à jour l'interface
+        updateDashboardUI();
+        
+        // Vérifier l'expiration
+        checkExpiration();
+        
     } catch (error) {
-        console.error('Erreur chargement données utilisateur:', error);
-        // En cas d'erreur, utiliser données par défaut
-        const defaultUserData = {
-            id: user.uid,
-            name: user.displayName || user.email || 'Utilisateur',
-            email: user.email || '',
-            plan: 'free',
-            availableTokens: 500,
-            tokensUsed: 0,
-            totalTokens: 500,
-            totalAnalyses: 0,
-            monthlyAnalyses: 0,
-            tokenState: {
-                userId: user.uid,
-                plan: 'free',
-                baseTokens: 500,
-                bonusTokens: 0,
-                totalTokens: 500,
-                usedTokens: 0,
-                availableTokens: 500,
-                lastTokenUpdate: new Date().toISOString(),
-                firstAnalysisDone: false,
-                monthlyTokensUsed: 0,
-                lastMonthlyReset: new Date().toISOString()
-            },
-            loyaltyInfo: {
-                userId: user.uid,
-                totalAnalyses: 0,
-                monthlyAnalyses: 0,
-                monthlyLoyaltyTokens: 0,
-                lastAnalysisDate: null,
-                lastMonthlyReset: new Date().toISOString()
-            }
-        };
-        authService.userData = defaultUserData;
-        TokenManager.init(defaultUserData);
-        updateAuthUI(user, defaultUserData);
-        updateDashboardStats(defaultUserData);
+        console.error('Erreur chargement dashboard:', error);
+        showError('Impossible de charger les données du tableau de bord');
     }
 }
 
-
-// Initialiser les actions rapides
-function initQuickActions() {
-    const quickActionsContainer = document.querySelector('.quick-actions');
+// Charger les données utilisateur et entreprise
+async function loadUserData(userId) {
+    const db = firebase.firestore();
     
-    if (!quickActionsContainer) {
-        console.warn('[DASHBOARD] Conteneur .quick-actions non trouvé');
-        return;
-    }
-    
-    // Fonction pour essayer de rendre les actions rapides
-    function tryRenderQuickActions() {
-        // Si servicesData existe (depuis service-modal.js), l'utiliser
-        let services = typeof window.servicesData !== 'undefined' ? window.servicesData : null;
+    // Charger l'utilisateur
+    const userDoc = await db.collection('users').doc(userId).get();
+    if (userDoc.exists) {
+        const userData = userDoc.data();
         
-        // Vérifier que servicesData est complet (contient les services de base)
-        const requiredServices = ['swot', 'porter', 'pestel', 'competitive'];
-        let servicesComplete = true;
+        // Mettre à jour l'UI utilisateur
+        const userName = userData.displayName || userData.email || 'Utilisateur';
+        document.getElementById('welcomeUserName').textContent = userName;
+        document.getElementById('dashboardUserName').textContent = userName;
         
-        if (services) {
-            requiredServices.forEach(serviceId => {
-                if (!services[serviceId]) {
-                    servicesComplete = false;
-                }
-            });
-        } else {
-            servicesComplete = false;
+        // Charger les données de l'entreprise
+        if (userData.companyInfo) {
+            companyData = { ...companyData, ...userData.companyInfo };
         }
         
-        // Fallback COMPLET : si servicesData n'est pas disponible ou incomplet, créer TOUS les services
-        if (!servicesComplete) {
-            console.warn('[DASHBOARD] servicesData non disponible ou incomplet, utilisation du fallback COMPLET');
-            services = {
-                // PHASE 1 & 2 - TOUS GRATUITS
-                swot: { id: 'swot', name: 'Analyse SWOT', icon: 'fa-swimming-pool', tokens: 40, requiredPlan: 'free' },
-                porter: { id: 'porter', name: 'Porter 5 Forces', icon: 'fa-project-diagram', tokens: 120, requiredPlan: 'free' },
-                pestel: { id: 'pestel', name: 'Analyse PESTEL', icon: 'fa-globe-americas', tokens: 80, requiredPlan: 'free' },
-                competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: 120, requiredPlan: 'free' },
-                reports: { id: 'reports', name: 'Rapports Détaillés', icon: 'fa-file-alt', tokens: 160, requiredPlan: 'free' },
-                benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: 160, requiredPlan: 'free' },
-                modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: 240, requiredPlan: 'free' },
-                due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: 280, requiredPlan: 'free' },
-                valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: 320, requiredPlan: 'free' },
-                synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: 200, requiredPlan: 'free' },
-                ideal_sector: { id: 'ideal_sector', name: 'Secteur d\'activité idéal', icon: 'fa-globe', tokens: 35, requiredPlan: 'free' },
-                maturity_score: { id: 'maturity_score', name: 'Score de maturité', icon: 'fa-chart-line', tokens: 50, requiredPlan: 'free' },
-                integration_matrix: { id: 'integration_matrix', name: 'Matrice d\'intégration', icon: 'fa-th', tokens: 180, requiredPlan: 'blocked' },
-                valuation_simulator: { id: 'valuation_simulator', name: 'Simulateur de valorisation', icon: 'fa-euro-sign', tokens: 320, requiredPlan: 'blocked' },
-                // PHASE 3 & 4 - BLOQUÉS (contact par mail)
-                loi_generator: { id: 'loi_generator', name: 'Générateur de LOI', icon: 'fa-file-contract', tokens: 999999, requiredPlan: 'blocked' },
-                negotiation_simulator: { id: 'negotiation_simulator', name: 'Simulateur de négociation', icon: 'fa-handshake', tokens: 999999, requiredPlan: 'blocked' },
-                action_plan_100_days: { id: 'action_plan_100_days', name: 'Plan 100 jours', icon: 'fa-route', tokens: 999999, requiredPlan: 'blocked' },
-                post_acquisition_dashboard: { id: 'post_acquisition_dashboard', name: 'Dashboard Post-Acquisition', icon: 'fa-chart-area', tokens: 999999, requiredPlan: 'blocked' }
-            };
-        }
-        
-        // Générer les boutons
-        renderQuickActions(services);
-        return true;
-    }
-    
-    // Fonction pour essayer de rendre quand tout est prêt
-    function tryRenderWhenReady() {
-        // Si servicesData est disponible, on peut afficher les services
-        // (même sans userData, on affichera tout comme accessible en mode démo)
-        if (typeof window.servicesData !== 'undefined') {
-            tryRenderQuickActions();
-            return;
-        }
-        
-        console.log('[DASHBOARD] En attente: servicesData non disponible');
-        
-        // Afficher un message de chargement
-        quickActionsContainer.innerHTML = '<p style="text-align: center; color: #666;"><i class="fas fa-spinner fa-spin"></i> Chargement...</p>';
-    }
-    
-    // Fonction pour gérer la disponibilité de servicesData
-    function handleServicesDataReady() {
-        console.log('[DASHBOARD] Événement servicesDataReady reçu');
-        tryRenderQuickActions();
-    }
-    
-    // Fonction pour gérer les changements d'état d'authentification
-    function handleAuthStateChanged(event) {
-        console.log('[DASHBOARD] Événement authStateChanged reçu, userData disponible:', !!event.detail.userData);
-        if (typeof window.servicesData !== 'undefined') {
-            tryRenderQuickActions();
+        // Charger les tokens
+        if (userData.tokenState) {
+            updateTokenDisplay(userData.tokenState);
         }
     }
     
-    // Écouter l'événement servicesDataReady (déclenché par service-modal.js)
-    window.addEventListener('servicesDataReady', handleServicesDataReady);
-    
-    // Écouter l'événement authStateChanged (déclenché par auth.js)
-    window.addEventListener('authStateChanged', handleAuthStateChanged);
-    
-    // Vérifier si servicesData est déjà disponible (au cas où l'événement aurait été manqué)
-    if (typeof window.servicesData !== 'undefined') {
-        console.log('[DASHBOARD] servicesData déjà disponible, vérification de userData');
-        handleServicesDataReady();
+    // Charger les données de l'entreprise (si collection séparée)
+    const companyDoc = await db.collection('companies').doc(userId).get();
+    if (companyDoc.exists) {
+        companyData = { ...companyData, ...companyDoc.data() };
     }
-    
-    // Essayer immédiatement
-    tryRenderWhenReady();
-    
-    // Réessayer toutes les 300ms jusqu'à ce que tout soit prêt
-    const checkReady = setInterval(tryRenderWhenReady, 300);
-    
-    // Timeout après 10 secondes
-    setTimeout(() => {
-        clearInterval(checkReady);
-        console.warn('[DASHBOARD] Impossible de charger les services après 10 secondes');
-        tryRenderWhenReady();
-    }, 10000);
-}
-
-// Générer dynamiquement les boutons d'actions rapide
-function renderQuickActions(services) {
-    const container = document.querySelector('.quick-actions');
-    if (!container) {
-        console.warn('[DASHBOARD] Conteneur .quick-actions non trouvé');
-        return;
-    }
-    
-    // Effacer le contenu existant
-    container.innerHTML = '';
-    
-    // Vérifier qu'on a bien les données utilisateur
-    const userPlan = authService?.userData?.plan || 'free';
-    
-    // Si on n'a pas userData, afficher tous les services comme accessibles (mode démo)
-    const hasUserData = !!authService?.userData;
-    
-    // Liste de TOUS les services à afficher (par ordre de priorité)
-    // Tous les services seront visibles, mais certains seront verrouillés selon le plan
-    const allServicesOrder = ['swot', 'porter', 'pestel', 'competitive', 'reports', 'ideal_sector', 'maturity_score', 'integration_matrix', 'valuation_simulator', 'due_diligence', 'loi_generator', 'negotiation_simulator', 'action_plan_100_days', 'post_acquisition_dashboard'];
-    
-    // Créer un bouton pour chaque service
-    allServicesOrder.forEach(serviceId => {
-        const service = services[serviceId];
-        if (service) {
-            const btn = document.createElement('button');
-            
-            // Vérifier si le service est accessible
-            // Tous les services avec requiredPlan === 'free' ou non défini sont accessibles
-            // Les services avec requiredPlan === 'blocked' nécessitent contact par mail
-            const isAccessible = !service.requiredPlan || service.requiredPlan === 'free';
-            
-            btn.className = 'quick-action-btn' + (isAccessible ? '' : ' locked');
-            
-            if (!isAccessible) {
-                // Ajouter un cadenas et désactiver le clic
-                btn.onclick = (e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    showPlanUpgradeMessage(service);
-                };
-                btn.setAttribute('title', 'Contactez-nous pour accéder à ce service');
-            } else {
-                btn.onclick = () => startAnalysis(serviceId);
-            }
-            
-            // Ajouter l'icône de cadenas si verrouillé
-            const lockIcon = isAccessible ? '' : '<div class="quick-action-lock"><i class="fas fa-lock"></i></div>';
-            
-            // Formater les tokens pour l'affichage
-            let tokensDisplay;
-            if (service.tokens === 999999 || service.requiredPlan === 'blocked') {
-                tokensDisplay = 'Sur devis';
-            } else {
-                tokensDisplay = (service.tokens || 0) + ' tokens';
-            }
-            
-            btn.innerHTML = `
-                <div class="quick-action-icon">
-                    <i class="fas ${service.icon || 'fa-chart-bar'}"></i>
-                </div>
-                <span>${service.name || serviceId}</span>
-                <span class="quick-action-tokens">${tokensDisplay}</span>
-                ${lockIcon}
-            `;
-            
-            container.appendChild(btn);
-        }
-    });
-    
-    // Si aucun bouton n'a été ajouté, afficher un message
-    if (container.innerHTML === '') {
-        container.innerHTML = '<p style="text-align: center; color: #666;">Aucun service disponible.</p>';
-    }
-}
-
-// Afficher un message pour inviter à contacter pour les services bloqués
-function showPlanUpgradeMessage(service) {
-    const message = `Ce service fait partie des Phases 3 & 4. Contactez ${typeof CONTACT_EMAIL !== 'undefined' ? CONTACT_EMAIL : 'duprey.conseil@gmail.com'} pour un devis personnalisé.`;
-    
-    // Afficher une notification
-    showNotification(message, 'warning');
-}
-
-// Fonction pour afficher une notification (si elle n'existe pas déjà)
-function showNotification(message, type = 'info') {
-    // Vérifier si une fonction de notification existe déjà
-    if (typeof window.showToast !== 'undefined') {
-        window.showToast(message, type);
-        return;
-    }
-    
-    // Créer une notification simple
-    const notification = document.createElement('div');
-    notification.className = `notification notification-${type}`;
-    notification.innerHTML = `
-        <i class="fas fa-exclamation-triangle"></i>
-        <span>${message}</span>
-        <button class="notification-close" onclick="this.parentElement.remove()">&times;</button>
-    `;
-    
-    // Ajouter des styles de base
-    notification.style.cssText = `
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        padding: 15px 20px;
-        background: ${type === 'warning' ? '#fef3c7' : '#d1fae5'};
-        border: 1px solid ${type === 'warning' ? '#f59e0b' : '#10b981'};
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-        z-index: 10000;
-        max-width: 400px;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 14px;
-        color: ${type === 'warning' ? '#92400e' : '#065f46'};
-    `;
-    
-    notification.querySelector('.notification-close').style.cssText = `
-        margin-left: auto;
-        background: none;
-        border: none;
-        font-size: 18px;
-        cursor: pointer;
-        opacity: 0.7;
-    `;
-    
-    document.body.appendChild(notification);
-    
-    // Retirer après 5 secondes
-    setTimeout(() => {
-        if (notification.parentElement) {
-            notification.remove();
-        }
-    }, 5000);
 }
 
 // Charger l'historique des analyses
-async function loadAnalysisHistory() {
-    const user = authService.currentUser;
-    const recentAnalysesEl = document.getElementById('recentAnalyses');
+async function loadAnalysisHistory(userId) {
+    const db = firebase.firestore();
+    const historyRef = db.collection('users').doc(userId).collection('analysisHistory');
+    const snapshot = await historyRef.orderBy('createdAt', 'desc').limit(50).get();
     
-    if (!recentAnalysesEl) return;
+    analysisHistory = [];
+    snapshot.forEach(doc => {
+        analysisHistory.push({ id: doc.id, ...doc.data() });
+    });
+}
+
+// Charger les actions utilisateur
+async function loadUserActions(userId) {
+    const db = firebase.firestore();
+    const actionsRef = db.collection('users').doc(userId).collection('actions');
+    const snapshot = await actionsRef.orderBy('createdAt', 'desc').get();
     
-    // Vérifier si on est en mode démo
-    const isFileProtocol = window.location.protocol === 'file:';
-    const isFirebaseAvailable = typeof window.firebase !== 'undefined' && window.firebase;
-    const isDemoMode = !isFirebaseAvailable || isFileProtocol;
+    userActions = [];
+    snapshot.forEach(doc => {
+        userActions.push({ id: doc.id, ...doc.data() });
+    });
     
-    try {
-        let analyses = [];
-        
-        if (!isDemoMode && user) {
-            // Mode normal : charger depuis Firestore
-            const firestoreDB = getDB();
-            if (!firestoreDB) {
-                console.warn('[Dashboard] Firestore non disponible, passage en mode démo');
-                isDemoMode = true;
-            } else {
-                const analysesSnapshot = await firestoreDB.collection('users')
-                    .doc(user.uid)
-                    .collection('analyses')
-                    .orderBy('createdAt', 'desc')
-                    .limit(5)
-                    .get();
-                
-                if (analysesSnapshot.empty) {
-                    recentAnalysesEl.innerHTML = `
-                    <div class="empty-state small">
-                        <div class="empty-state-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <p>Vous n'avez pas encore réalisé d'analyse.</p>
-                        <p class="empty-state-message">Commencez par lancer votre première analyse !</p>
-                    </div>
-                `;
-                    return;
-                }
-                
-                analysesSnapshot.forEach(doc => {
-                    analyses.push({ id: doc.id, ...doc.data() });
-                });
-            }
-        } else if (isDemoMode) {
-            // Mode démo : charger depuis localStorage
-            try {
-                const demoAnalyses = JSON.parse(localStorage.getItem('dpai_demo_analyses') || '[]');
-                console.log('[DPAI] Chargement historique démo:', demoAnalyses.length, 'analyses');
-            if (demoAnalyses.length === 0) {
-                console.warn('[DPAI] Aucune analyse trouvée dans localStorage. Lancez une nouvelle analyse pour voir l\'historique.');
-            }
-            analyses = demoAnalyses.slice(0, 5);
-            } catch (e) {
-                console.error('[DPAI] Erreur chargement historique démo:', e);
-                analyses = [];
-            }
-        }
-        
-        if (analyses.length === 0) {
-            recentAnalysesEl.innerHTML = `
-                <div class="empty-state small">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <p>Vous n'avez pas encore réalisé d'analyse.</p>
-                    <p class="empty-state-message">Commencez par lancer votre première analyse !</p>
-                </div>
-            `;
-            return;
-        }
-        
-        let html = '';
-        analyses.forEach(analysis => {
-            const date = formatDate(analysis.createdAt);
-            
-            // Déterminer l'icône et la classe en fonction du type
-            const analysisTypes = {
-                swot: { icon: 'fa-swimming-pool', name: 'SWOT' },
-                porter: { icon: 'fa-project-diagram', name: 'Porter 5 Forces' },
-                pestel: { icon: 'fa-globe-americas', name: 'PESTEL' },
-                competitive: { icon: 'fa-users', name: 'Analyse Concurrentielle' }
-            };
-            
-            const typeInfo = analysisTypes[analysis.type] || { icon: 'fa-chart-line', name: analysis.type };
-            
-            // Déterminer le statut
-            const statusClass = analysis.status === 'completed' ? 'success' : 
-                              analysis.status === 'processing' ? 'warning' : 'error';
-            const statusIcon = analysis.status === 'completed' ? 'fa-check-circle' : 
-                               analysis.status === 'processing' ? 'fa-spinner fa-pulse' : 'fa-exclamation-circle';
-            const statusText = analysis.status === 'completed' ? 'Complété' : 
-                               analysis.status === 'processing' ? 'En cours' : 'Échoué';
-            
-            // Générer le HTML pour chaque analyse
-            html += `
-                <div class="analysis-card" data-id="${analysis.id}" data-type="${analysis.type}">
-                    <div class="analysis-card-header">
-                        <div class="analysis-card-type">
-                            <i class="fas ${typeInfo.icon}"></i>
-                            <span class="analysis-type-badge">${typeInfo.name}</span>
-                        </div>
-                        <div class="analysis-card-title-wrapper">
-                            <span class="analysis-card-title">${analysis.name || 'Analyse sans nom'}</span>
-                            <span class="analysis-card-date">${date}</span>
-                        </div>
-                    </div>
-                    <div class="analysis-card-meta">
-                        <div class="analysis-card-meta-item">
-                            <i class="fas fa-coins"></i>
-                            <span>${analysis.cost || 0} tokens</span>
-                        </div>
-                        <div class="analysis-card-meta-item">
-                            <i class="fas fa-chart-line"></i>
-                            <span>${analysis.type || 'Inconnu'}</span>
-                        </div>
-                        <div class="analysis-card-meta-item">
-                            <i class="fas fa-${statusIcon}"></i>
-                            <span class="status-${statusClass}">${statusText}</span>
-                        </div>
-                    </div>
-                    <div class="analysis-card-preview">
-                        ${truncateText(analysis.description || 'Aucune description', 100)}
-                    </div>
-                    <div class="analysis-card-score">
-                        <div class="score-bar">
-                            <div class="score-bar-fill" style="width: ${analysis.score || 0}%;"></div>
-                        </div>
-                        <span class="score-value">Score: ${analysis.score || 0}/100</span>
-                    </div>
-                    <div class="analysis-card-actions">
-                        <button class="btn btn-sm btn-outline view-analysis-btn" 
-                                onclick="viewAnalysis('${analysis.id}', '${analysis.type}')">
-                            <i class="fas fa-eye"></i> Voir
-                        </button>
-                        <button class="btn btn-sm btn-ghost" onclick="exportAnalysis('${analysis.id}')">
-                            <i class="fas fa-download"></i> Exporter
-                        </button>
-                        <button class="btn btn-sm btn-ghost delete-analysis-btn" 
-                                onclick="deleteAnalysis('${analysis.id}')":
-                            <i class="fas fa-trash"></i> Supprimer
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-        
-        recentAnalysesEl.innerHTML = html;
-        
-        // Initialiser les boutons de vue d'analyse
-        initViewAnalysisButtons();
-        
-    } catch (error) {
-        console.error('Erreur chargement historique des analyses:', error);
-        recentAnalysesEl.innerHTML = `
-            <div class="empty-state small">
-                <div class="empty-state-icon">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <p>Erreur lors du chargement des analyses.</p>
-            </div>
-        `;
+    // Générer des actions par défaut si aucune action
+    if (userActions.length === 0) {
+        generateDefaultActions(userId);
     }
 }
 
-// Charger l'historique des tokens
-async function loadTokenHistory() {
-    const user = authService.currentUser;
-    const tokenHistoryEl = document.getElementById('tokenHistory');
-    
-    if (!user || !tokenHistoryEl) return;
-    
-    try {
-        // Charger l'historique des transactions depuis Firestore
-        const firestoreDB = getDB();
-        if (!firestoreDB) {
-            console.warn('[Dashboard] Firestore non disponible pour tokenHistory');
-            return;
+// Générer des actions par défaut basées sur les analyses
+function generateDefaultActions(userId) {
+    const defaultActions = [
+        {
+            title: 'Compléter les informations de votre entreprise',
+            description: 'Renseignez le chiffre d\'affaires, le nombre d\'employés et l\'EBITDA pour des analyses personnalisées.',
+            priority: 'high',
+            impact: 0,
+            status: 'pending',
+            deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            createdAt: new Date().toISOString(),
+            type: 'system'
+        },
+        {
+            title: 'Réaliser une analyse SWOT',
+            description: 'Identifiez les forces, faiblesses, opportunités et menaces de votre entreprise.',
+            priority: 'high',
+            impact: 0,
+            status: 'pending',
+            deadline: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            createdAt: new Date().toISOString(),
+            type: 'analysis'
+        },
+        {
+            title: 'Analyser vos concurrents',
+            description: 'Utilisez l\'analyse concurrentielle pour comprendre votre positionnement.',
+            priority: 'medium',
+            impact: 0,
+            status: 'pending',
+            deadline: new Date(Date.now() + 21 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+            createdAt: new Date().toISOString(),
+            type: 'analysis'
         }
-        const transactionsSnapshot = await firestoreDB.collection('users')
-            .doc(user.uid)
-            .collection('tokenTransactions')
-            .orderBy('createdAt', 'desc')
-            .limit(10)
-            .get();
-        
-        if (transactionsSnapshot.empty) {
-            // Afficher un historique par défaut
-            const html = `
-                <div class="token-history-item">
-                    <span class="token-history-date">${formatDate(new Date().toISOString())}</span>
-                    <span class="token-history-description">Inscription - 50 tokens offerts</span>
-                    <span class="token-history-amount positive">+50</span>
-                </div>
-                <div class="token-history-item">
-                    <span class="token-history-date">${formatDate(new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())}</span>
-                    <span class="token-history-description">Bonus quotidien</span>
-                    <span class="token-history-amount positive">+1</span>
-                </div>
-            `;
-            tokenHistoryEl.innerHTML = html;
-            return;
-        }
-        
-        let html = '';
-        transactionsSnapshot.forEach(doc => {
-            const transaction = doc.data();
-            const amount = transaction.amount || 0;
-            const type = transaction.type || 'unknown';
-            const isPositive = amount > 0;
-            
-            const descriptions = {
-                analysis: 'Utilisation pour analyse',
-                bonus: 'Bonus quotidien',
-                referral: 'Parrainage',
-                welcome: 'Inscription - Tokens offerts'
-            };
-            
-            const icons = {
-                purchase: 'fa-shopping-cart',
-                subscription: 'fa-credit-card',
-                analysis: 'fa-chart-line',
-                bonus: 'fa-gift',
-                referral: 'fa-users',
-                welcome: 'fa-star'
-            };
-            
-            const description = descriptions[type] || transaction.description || type;
-            const icon = icons[type] || 'fa-coins';
-            
-            html += `
-                <div class="token-history-item">
-                    <span class="token-history-date">${formatDate(transaction.createdAt)}</span>
-                    <span class="token-history-description"><i class="fas ${icon}"></i> ${description}</span>
-                    <span class="token-history-amount ${isPositive ? 'positive' : 'negative'}">
-                        ${isPositive ? '+' : ''}${amount}
-                    </span>
-                </div>
-            `;
-        });
-        
-        tokenHistoryEl.innerHTML = html;
-        
-    } catch (error) {
-        console.error('Erreur chargement historique des tokens:', error);
+    ];
+    
+    userActions = defaultActions;
+    
+    // Sauvegarder dans Firestore
+    const db = firebase.firestore();
+    const batch = db.batch();
+    defaultActions.forEach(action => {
+        const actionRef = db.collection('users').doc(userId).collection('actions').doc();
+        batch.set(actionRef, action);
+    });
+    batch.commit().catch(err => {
+        console.error('Erreur sauvegarde actions par défaut:', err);
+    });
+}
+
+// =============================================================================
+// MISE À JOUR DE L'INTERFACE
+// =============================================================================
+
+// Mettre à jour l'affichage des tokens
+function updateTokenDisplay(tokenState) {
+    if (!tokenState) return;
+    
+    const available = tokenState.availableTokens !== -1 ? tokenState.availableTokens : 'Illimité';
+    const total = tokenState.totalTokens !== -1 ? tokenState.totalTokens : 'Illimité';
+    const used = tokenState.usedTokens || 0;
+    
+    document.getElementById('availableTokens').textContent = available;
+    document.getElementById('totalTokens').textContent = total;
+    document.getElementById('usedTokens').textContent = used;
+    
+    // Mettre à jour la barre de progression
+    if (tokenState.availableTokens !== -1 && tokenState.totalTokens > 0) {
+        const percentage = ((tokenState.totalTokens - tokenState.availableTokens) / tokenState.totalTokens) * 100;
+        document.getElementById('tokenProgress').style.width = `${percentage}%`;
     }
 }
+
+// Mettre à jour l'interface complète du dashboard
+function updateDashboardUI() {
+    // Mettre à jour la carte entreprise
+    updateCompanyCard();
+    
+    // Mettre à jour les KPIs
+    updateKPIs();
+    
+    // Mettre à jour le tableau des actions
+    updateActionsTable();
+    
+    // Mettre à jour les projections
+    updateProjections();
+    
+    // Mettre à jour les alertes
+    updateAlerts();
+    
+    // Mettre à jour les graphiques
+    updateCharts();
+}
+
+// Mettre à jour la carte entreprise
+function updateCompanyCard() {
+    document.getElementById('companyName').textContent = companyData.name || 'Nom de l\'entreprise';
+    document.getElementById('companySector').textContent = companyData.sector || 'Secteur d\'activité';
+    document.getElementById('companyRevenue').textContent = formatCurrency(companyData.revenue);
+    document.getElementById('companyEmployees').textContent = companyData.employees || '-';
+    document.getElementById('companyEbitda').textContent = formatCurrency(companyData.ebitda);
+    document.getElementById('companyMargin').textContent = (companyData.margin || 0) + '%';
+}
+
+// Mettre à jour les KPIs
+function updateKPIs() {
+    // CA
+    const revenue = companyData.revenue || 0;
+    const revenueChange = calculateRevenueChange();
+    document.getElementById('kpiRevenue').textContent = formatCurrency(revenue);
+    updateTrendElement('kpiRevenueTrend', revenueChange, 'CA');
+    
+    // Employés
+    const employees = companyData.employees || 0;
+    const employeesChange = 0; // À calculer depuis l'historique
+    document.getElementById('kpiEmployees').textContent = employees;
+    updateTrendElement('kpiEmployeesTrend', employeesChange, 'Employés');
+    
+    // EBITDA
+    const ebitda = companyData.ebitda || 0;
+    const ebitdaChange = 0; // À calculer
+    document.getElementById('kpiEbitda').textContent = formatCurrency(ebitda);
+    updateTrendElement('kpiEbitdaTrend', ebitdaChange, 'EBITDA');
+    
+    // Marge
+    const margin = companyData.margin || 0;
+    const marginChange = 0; // À calculer
+    document.getElementById('kpiMargin').textContent = margin + '%';
+    updateTrendElement('kpiMarginTrend', marginChange, 'Marge');
+    
+    // Croissance CA
+    document.getElementById('kpiGrowth').textContent = (revenueChange > 0 ? '+' + revenueChange : revenueChange) + '%';
+}
+
+// Calculer le changement du CA (simulé pour l'instant)
+function calculateRevenueChange() {
+    // Si on a de l'historique, calculer le vrai changement
+    if (companyData.history && companyData.history.length >= 2) {
+        const latest = companyData.history[0].revenue || companyData.revenue || 0;
+        const previous = companyData.history[1].revenue || companyData.revenue || 0;
+        if (previous > 0) {
+            return Math.round(((latest - previous) / previous) * 100);
+        }
+    }
+    return 0; // Par défaut
+}
+
+// Mettre à jour un élément de tendance
+function updateTrendElement(elementId, value, label) {
+    const element = document.getElementById(elementId);
+    if (!element) return;
+    
+    let trendClass = 'stable';
+    let icon = 'fa-minus';
+    let text = '0%';
+    
+    if (value > 0) {
+        trendClass = 'up';
+        icon = 'fa-arrow-up';
+        text = `+${value}%`;
+    } else if (value < 0) {
+        trendClass = 'down';
+        icon = 'fa-arrow-down';
+        text = `${value}%`;
+    }
+    
+    element.className = `kpi-trend ${trendClass}`;
+    element.innerHTML = `<i class="fas ${icon}"></i><span>${text}</span>`;
+}
+
+// Mettre à jour le tableau des actions
+function updateActionsTable() {
+    const tableBody = document.getElementById('actionsTableBody');
+    if (!tableBody) return;
+    
+    if (userActions.length === 0) {
+        tableBody.innerHTML = `
+            <tr class="no-actions">
+                <td colspan="5" style="text-align: center; color: #718096; padding: 2rem;">
+                    <i class="fas fa-info-circle"></i> Aucune action recommandée pour le moment
+                </td>
+            </tr>
+        `;
+        return;
+    }
+    
+    let html = '';
+    const completedCount = userActions.filter(a => a.status === 'completed').length;
+    const progress = userActions.length > 0 ? Math.round((completedCount / userActions.length) * 100) : 0;
+    
+    document.getElementById('actionsCompletedCount').textContent = completedCount;
+    document.getElementById('actionsTotalCount').textContent = userActions.length;
+    document.getElementById('actionsProgress').innerHTML = `
+        <i class="fas fa-check-circle"></i>
+        <span>${progress}%</span>
+    `;
+    
+    userActions.forEach(action => {
+        const priorityColor = getPriorityColor(action.priority);
+        const statusClass = action.status || 'pending';
+        const statusText = getStatusText(action.status);
+        const impact = formatCurrency(action.impact || 0);
+        const deadline = action.deadline ? formatDate(action.deadline) : 'Non définie';
+        
+        html += `
+            <tr>
+                <td>
+                    <div style="font-weight: 600; color: #1a202c; margin-bottom: 0.25rem;">${escapeHtml(action.title)}</div>
+                    <div style="font-size: 0.875rem; color: #718096;">${escapeHtml(action.description || '')}</div>
+                </td>
+                <td>
+                    <span class="action-priority ${action.priority}" style="background: ${priorityColor};"></span>
+                </td>
+                <td>
+                    <span class="action-status ${statusClass}">${statusText}</span>
+                </td>
+                <td>
+                    <div class="action-impact">
+                        <i class="fas fa-arrow-up" style="color: #38a169;"></i>
+                        <span>${impact}</span>
+                    </div>
+                </td>
+                <td>${deadline}</td>
+            </tr>
+        `;
+    });
+    
+    tableBody.innerHTML = html;
+    
+    // Ajouter des événements de clic pour changer le statut
+    document.querySelectorAll('#actionsTableBody tr').forEach((row, index) => {
+        row.addEventListener('click', () => {
+            const action = userActions[index];
+            showActionDetails(action, index);
+        });
+    });
+}
+
+// Obtenir la couleur de priorité
+function getPriorityColor(priority) {
+    const colors = {
+        high: '#e53e3e',
+        medium: '#dd6b20',
+        low: '#38a169'
+    };
+    return colors[priority] || '#4a5568';
+}
+
+// Obtenir le texte de statut
+function getStatusText(status) {
+    const texts = {
+        completed: 'Terminée',
+        'in-progress': 'En cours',
+        pending: 'À démarrer',
+        cancelled: 'Annulée'
+    };
+    return texts[status] || 'Inconnu';
+}
+
+// Mettre à jour les projections
+function updateProjections() {
+    // Calculer les projections basées sur les actions en cours
+    const revenue = companyData.revenue || 0;
+    const ebitda = companyData.ebitda || 0;
+    const margin = companyData.margin || 0;
+    
+    // Calculer l'impact potentiel des actions en cours
+    const inProgressActions = userActions.filter(a => a.status === 'in-progress');
+    const pendingActions = userActions.filter(a => a.status === 'pending');
+    const potentialImpact = [...inProgressActions, ...pendingActions]
+        .reduce((sum, action) => sum + (action.impact || 0), 0);
+    
+    // Projection CA (simulée : +10% si actions en cours)
+    const projectedRevenue = inProgressActions.length > 0 ? revenue + (revenue * 0.10) : revenue;
+    const revenueChange = inProgressActions.length > 0 ? Math.round(((projectedRevenue - revenue) / revenue) * 100) : 0;
+    const revenueBarWidth = Math.min((revenueChange + 100), 100);
+    
+    document.getElementById('projectedRevenue').textContent = formatCurrency(projectedRevenue);
+    document.getElementById('projectedRevenueChange').innerHTML = `
+        <i class="fas fa-arrow-up"></i> +${revenueChange}%
+    `;
+    document.getElementById('projectedRevenueBar').style.width = `${revenueBarWidth}%`;
+    
+    // Projection EBITDA
+    const projectedEbitda = inProgressActions.length > 0 ? ebitda + (ebitda * 0.15) : ebitda;
+    const ebitdaChange = inProgressActions.length > 0 ? Math.round(((projectedEbitda - ebitda) / (ebitda || 1)) * 100) : 0;
+    const ebitdaBarWidth = Math.min((ebitdaChange + 100), 100);
+    
+    document.getElementById('projectedEbitda').textContent = formatCurrency(projectedEbitda);
+    document.getElementById('projectedEbitdaChange').innerHTML = `
+        <i class="fas fa-arrow-up"></i> +${ebitdaChange}%
+    `;
+    document.getElementById('projectedEbitdaBar').style.width = `${ebitdaBarWidth}%`;
+    
+    // Projection Marge
+    const projectedMargin = inProgressActions.length > 0 ? margin + 2 : margin;
+    const marginChange = inProgressActions.length > 0 ? 2 : 0;
+    const marginBarWidth = Math.min(margin + marginChange, 100);
+    
+    document.getElementById('projectedMargin').textContent = projectedMargin + '%';
+    document.getElementById('projectedMarginChange').innerHTML = `
+        <i class="fas fa-arrow-up"></i> +${marginChange}%
+    `;
+    document.getElementById('projectedMarginBar').style.width = `${marginBarWidth}%`;
+    
+    // Impact total
+    document.getElementById('totalImpact').textContent = formatCurrency(potentialImpact);
+}
+
+// Mettre à jour les alertes
+function updateAlerts() {
+    const alertsList = document.getElementById('alertsList');
+    if (!alertsList) return;
+    
+    const pendingCount = userActions.filter(a => a.status === 'pending').length;
+    document.getElementById('pendingActionsCount').textContent = pendingCount;
+    
+    // Les alertes sont déjà dans le HTML, on les met à jour si nécessaire
+}
+
+// Mettre à jour les graphiques (simulé pour l'instant)
+function updateCharts() {
+    // Les graphiques seront implémentés avec Chart.js ou similaires plus tard
+    // Pour l'instant, on affiche un message
+}
+
+// =============================================================================
+// GESTION DES ACTIONS
+// =============================================================================
+
+// Changer le statut d'une action
+async function changeActionStatus(userId, actionId, newStatus) {
+    const db = firebase.firestore();
+    const actionRef = db.collection('users').doc(userId).collection('actions').doc(actionId);
+    
+    await actionRef.update({ status: newStatus, updatedAt: new Date().toISOString() });
+    
+    // Recharger les actions
+    await loadUserActions(userId);
+    updateActionsTable();
+    updateProjections();
+}
+
+// Afficher les détails d'une action
+function showActionDetails(action, index) {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+    
+    const newStatus = action.status === 'pending' ? 'in-progress' : 
+                     action.status === 'in-progress' ? 'completed' : 'pending';
+    
+    // Demander confirmation
+    if (window.confirm(`Changer le statut de "${action.title}" en "${getStatusText(newStatus)}" ?`)) {
+        changeActionStatus(user.uid, action.id || `action_${index}`, newStatus);
+    }
+}
+
+// =============================================================================
+// GESTION DE L'ENTREPRISE
+// =============================================================================
+
+// Sauvegarder les informations de l'entreprise
+async function saveCompanyInfo(userId) {
+    const db = firebase.firestore();
+    
+    const info = {
+        name: document.getElementById('editCompanyName').value,
+        sector: document.getElementById('editCompanySector').value,
+        revenue: parseFloat(document.getElementById('editCompanyRevenue').value) || 0,
+        employees: parseInt(document.getElementById('editCompanyEmployees').value) || 0,
+        ebitda: parseFloat(document.getElementById('editCompanyEbitda').value) || 0,
+        margin: parseFloat(document.getElementById('editCompanyMargin').value) || 0,
+        updatedAt: new Date().toISOString()
+    };
+    
+    // Sauvegarder dans Firestore
+    await db.collection('users').doc(userId).update({
+        companyInfo: info,
+        lastCompanyUpdate: new Date().toISOString()
+    });
+    
+    // Mettre à jour localement
+    companyData = { ...companyData, ...info };
+    
+    // Mettre à jour l'UI
+    updateCompanyCard();
+    updateKPIs();
+    updateProjections();
+    
+    // Fermer le modal
+    document.getElementById('editCompanyModal').classList.remove('visible');
+    
+    showSuccess('Informations de l\'entreprise sauvegardées');
+}
+
+// =============================================================================
+// GESTION DE L'EXPIRATION
+// =============================================================================
+
+// Vérifier si l'abonnement est expiré
+function checkExpiration() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+    
+    // Récupérer les données utilisateur
+    const db = firebase.firestore();
+    db.collection('users').doc(user.uid).get().then(doc => {
+        if (doc.exists) {
+            const userData = doc.data();
+            const tokenState = userData.tokenState || {};
+            const subscription = userData.subscription || {};
+            
+            // Vérifier l'expiration des tokens
+            if (tokenState.expiresAt) {
+                const expiryDate = new Date(tokenState.expiresAt);
+                const now = new Date();
+                
+                if (expiryDate < now) {
+                    showExpirationWarning('Votre abonnement a expiré. Veuillez le renouveler pour continuer à utiliser les services.');
+                }
+            }
+            
+            // Vérifier l'expiration de l'abonnement
+            if (subscription.expiresAt) {
+                const expiryDate = new Date(subscription.expiresAt);
+                const now = new Date();
+                const daysLeft = Math.ceil((expiryDate - now) / (1000 * 60 * 60 * 24));
+                
+                if (daysLeft <= 7 && daysLeft > 0) {
+                    showAlert(`Votre abonnement expire dans ${daysLeft} jour(s). Pensez à le renouveler.`);
+                } else if (daysLeft <= 0) {
+                    showExpirationWarning('Votre abonnement a expiré. Veuillez le renouveler.');
+                }
+            }
+        }
+    });
+}
+
+// Afficher un avertissement d'expiration
+function showExpirationWarning(message) {
+    const alertHtml = `
+        <div class="alert-item urgent" style="margin-bottom: 1rem;">
+            <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <div class="alert-content">
+                <div class="alert-title">Abonnement expiré</div>
+                <div class="alert-message">${message}</div>
+            </div>
+            <div class="alert-time">Maintenant</div>
+        </div>
+    `;
+    document.getElementById('alertsList').innerHTML = alertHtml + document.getElementById('alertsList').innerHTML;
+}
+
+// =============================================================================
+// UTILITAIRES
+// =============================================================================
 
 // Formater une date
 function formatDate(dateString) {
-    if (!dateString) return '-';
-    
+    if (!dateString) return 'Non définie';
     const date = new Date(dateString);
-    const now = new Date();
-    const diff = now - date;
-    
-    // Moins d'une heure
-    if (diff < 3600000) {
-        const minutes = Math.floor(diff / 60000);
-        return `Il y a ${minutes} min`;
-    }
-    
-    // Moins d'un jour
-    if (diff < 86400000) {
-        const hours = Math.floor(diff / 3600000);
-        return `Il y a ${hours}h`;
-    }
-    
-    // Moins d'une semaine
-    if (diff < 604800000) {
-        const days = Math.floor(diff / 86400000);
-        return `Il y a ${days} jours`;
-    }
-    
-    // Format date complète
-    return date.toLocaleDateString('fr-FR', {
-        day: 'numeric',
-        month: 'short',
-        year: 'numeric'
-    });
+    return date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
-// Tronquer un texte
-function truncateText(text, length) {
-    if (!text) return 'Aucune description';
-    if (text.length <= length) return text;
-    return text.substring(0, length) + '...';
+// Formater une monnaie
+function formatCurrency(amount) {
+    if (amount === 0 || !amount) return '0 €';
+    return new Intl.NumberFormat('fr-FR', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
 }
 
-// Mettre à jour les statistiques du dashboard
-function updateDashboardStats(userData) {
-    if (!userData) {
-        // Si pas de données, essayer de les récupérer
-        const user = authService.currentUser;
-        if (user) {
-            setTimeout(() => updateDashboardStats(authService.userData), 1000);
-        }
-        return;
-    }
-    
-    const planNames = {
-        free: 'Gratuit'
-    };
-    
-    // Mettre à jour les tokens
-    const availableTokensEl = document.getElementById('availableTokens');
-    const usedTokensEl = document.getElementById('usedTokens');
-    const totalTokensEl = document.getElementById('totalTokens');
-    const tokenProgressEl = document.getElementById('tokenProgress');
-    const userPlanEl = document.getElementById('userPlan');
-    
-    const availableTokens = userData.availableTokens || 
-                          (userData.tokenState ? userData.tokenState.availableTokens : 0) || 0;
-    const usedTokens = userData.tokensUsed || 
-                      (userData.tokenState ? userData.tokenState.usedTokens : 0) || 0;
-    const totalTokens = userData.totalTokens || 
-                       (userData.tokenState ? userData.tokenState.totalTokens : 0) || 0;
-    
-    // Fallback: si availableTokens est 0 et qu'il n'y a pas d'historique d'utilisation, donner 500 tokens
-    // Cela corrige les utilisateurs existants avec 0 tokens
-    if (availableTokens === 0 && usedTokens === 0 && totalTokens === 0) {
-        availableTokens = 500;
-        totalTokens = 500;
-    }
-    const tokenLimit = userData.tokenLimit || 
-                       (userData.tokenState ? userData.tokenState.baseTokens : TokenConfig.baseTokenLimits.free) || 
-                       TokenConfig.baseTokenLimits.free;
-    
-    if (availableTokensEl) {
-        availableTokensEl.textContent = TokenUtils.formatTokens(availableTokens);
-    }
-    if (usedTokensEl) {
-        usedTokensEl.textContent = TokenUtils.formatTokens(usedTokens);
-    }
-    if (totalTokensEl) {
-        totalTokensEl.textContent = TokenUtils.formatTokens(totalTokens);
-    }
-    if (tokenProgressEl) {
-        const percentage = Math.min(100, (usedTokens / tokenLimit) * 100);
-        tokenProgressEl.style.width = `${percentage}%`;
-        
-        // Changer la couleur selon le pourcentage
-        if (percentage > 80) {
-            tokenProgressEl.classList.add('error');
-            tokenProgressEl.classList.remove('warning');
-        } else if (percentage > 50) {
-            tokenProgressEl.classList.add('warning');
-            tokenProgressEl.classList.remove('error');
-        } else {
-            tokenProgressEl.classList.remove('warning', 'error');
-        }
-    }
-    if (userPlanEl) {
-        userPlanEl.textContent = planNames[userData.plan] || userData.plan || 'Gratuit';
-    }
-    
-    // Mettre à jour userAvailableTokens dans la modal (doit être synchro avec availableTokens)
-    const userAvailableTokensEl = document.getElementById('userAvailableTokens');
-    if (userAvailableTokensEl) {
-        userAvailableTokensEl.textContent = TokenUtils.formatTokens(availableTokens);
-    }
-    
-    // Mettre à jour les analyses
-    const totalAnalysesEl = document.getElementById('totalAnalyses');
-    const monthlyAnalysesEl = document.getElementById('monthlyAnalyses');
-    
-    const totalAnalyses = userData.totalAnalyses || 
-                         (userData.loyaltyInfo ? userData.loyaltyInfo.totalAnalyses : 0) || 0;
-    const monthlyAnalyses = userData.monthlyAnalyses || 
-                           (userData.loyaltyInfo ? userData.loyaltyInfo.monthlyAnalyses : 0) || 0;
-    
-    if (totalAnalysesEl) {
-        totalAnalysesEl.textContent = TokenUtils.formatTokens(totalAnalyses);
-    }
-    if (monthlyAnalysesEl) {
-        monthlyAnalysesEl.textContent = TokenUtils.formatTokens(monthlyAnalyses);
-    }
-    
-    // Mettre à jour le résumé des tokens
-    const tokenAvailableEl = document.getElementById('tokenAvailable');
-    const tokenUsedMonthlyEl = document.getElementById('tokenUsedMonthly');
-    const tokenMonthlyLimitEl = document.getElementById('tokenMonthlyLimit');
-    
-    if (tokenAvailableEl) {
-        tokenAvailableEl.textContent = TokenUtils.formatTokens(availableTokens);
-    }
-    if (tokenUsedMonthlyEl) {
-        tokenUsedMonthlyEl.textContent = TokenUtils.formatTokens(usedTokens);
-    }
-    if (tokenMonthlyLimitEl) {
-        tokenMonthlyLimitEl.textContent = TokenUtils.formatTokens(tokenLimit);
-    }
-    
-    // Mettre à jour la fidélité
-    const loyaltyTokensEl = document.getElementById('loyaltyTokens');
-    const loyaltyTotalAnalysesEl = document.getElementById('loyaltyTotalAnalyses');
-    const loyaltyMonthlyAnalysesEl = document.getElementById('loyaltyMonthlyAnalyses');
-    
-    if (loyaltyTokensEl && userData.loyaltyInfo) {
-        loyaltyTokensEl.textContent = TokenUtils.formatTokens(userData.loyaltyInfo.monthlyLoyaltyTokens || 0);
-    }
-    if (loyaltyTotalAnalysesEl && userData.loyaltyInfo) {
-        loyaltyTotalAnalysesEl.textContent = userData.loyaltyInfo.totalAnalyses || 0;
-    }
-    if (loyaltyMonthlyAnalysesEl && userData.loyaltyInfo) {
-        loyaltyMonthlyAnalysesEl.textContent = userData.loyaltyInfo.monthlyAnalyses || 0;
-    }
-    
-    // Synchroniser userAvailableTokens dans la modal si elle est ouverte
-    const analysisModal = document.getElementById('analysisModal');
-    if (analysisModal && analysisModal.classList.contains('visible')) {
-        const analysisTypeSelect = document.getElementById('analysisType');
-        if (analysisTypeSelect && analysisTypeSelect.value) {
-            updateAnalysisEstimation(analysisTypeSelect.value);
-        }
-    }
+// Afficher une erreur
+function showError(message) {
+    // Implémentation simple pour l'instant
+    console.error('Erreur:', message);
+    alert(message);
 }
 
-// Mettre à jour les champs spécifiques selon le type d'analyse
-function updateSpecificFields(type, container) {
-    if (!container) return;
-    
-    // Vider le conteneur
-    container.innerHTML = '';
-    
-    // Ajouter une section pour les champs spécifiques
-    const section = document.createElement('div');
-    section.className = 'analysis-specific-section';
-    
-    let html = '<h4>Données spécifiques pour l\'analyse</h4>';
-    
-    switch (type) {
-        case 'swot':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nom de l'entreprise</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur d'activité</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Retail, etc.">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Chiffre d'affaires (€)</label>
-                        <input type="number" class="form-input" id="companyRevenue" placeholder="0" min="0" step="1000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Nombre d'employés</label>
-                        <input type="number" class="form-input" id="companyEmployees" placeholder="0" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Part de marché (%)</label>
-                        <input type="number" class="form-input" id="companyMarketShare" placeholder="0" min="0" max="100" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Niveau de technologie</label>
-                        <select class="form-select" id="companyTechnology">
-                            <option value="">Sélectionnez...</option>
-                            <option value="innovant">Innovant</option>
-                            <option value="moderne">Moderne</option>
-                            <option value="standard">Standard</option>
-                            <option value="vieillissant">Vieillissant</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Satisfaction client (1-10)</label>
-                        <input type="number" class="form-input" id="companyCustomerSatisfaction" placeholder="0" min="1" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Notoriété de la marque (1-10)</label>
-                        <input type="number" class="form-input" id="companyBrandRecognition" placeholder="0" min="1" max="10">
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Plus vous fournissez d'informations, plus l'analyse sera précise et personnalisée.</p>
-            `;
-            break;
-            
-        case 'porter':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nom de l'entreprise</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur d'activité</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Retail, etc.">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Stratégie principale</label>
-                        <select class="form-select" id="companyStrategy">
-                            <option value="">Sélectionnez...</option>
-                            <option value="differentiation">Différenciation</option>
-                            <option value="cost_leadership">Leadership par les coûts</option>
-                            <option value="focus">Focus</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Différenciation produit</label>
-                        <select class="form-select" id="companyProductDifferentiation">
-                            <option value="">Sélectionnez...</option>
-                            <option value="high">Élevée</option>
-                            <option value="medium">Moyenne</option>
-                            <option value="low">Faible</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Nombre de concurrents</label>
-                        <input type="number" class="form-input" id="companyCompetitorCount" placeholder="0" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Barrières à l'entrée</label>
-                        <select class="form-select" id="companyEntryBarriers">
-                            <option value="">Sélectionnez...</option>
-                            <option value="high">Élevées</option>
-                            <option value="medium">Moyennes</option>
-                            <option value="low">Faibles</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Pouvoir des fournisseurs</label>
-                        <select class="form-select" id="companySupplierPower">
-                            <option value="">Sélectionnez...</option>
-                            <option value="high">Élevé</option>
-                            <option value="medium">Moyen</option>
-                            <option value="low">Faible</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Pouvoir des clients</label>
-                        <select class="form-select" id="companyBuyerPower">
-                            <option value="">Sélectionnez...</option>
-                            <option value="high">Élevé</option>
-                            <option value="medium">Moyen</option>
-                            <option value="low">Faible</option>
-                        </select>
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Décrivez votre position concurrentielle pour une analyse Porter précise.</p>
-            `;
-            break;
-            
-        case 'pestel':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nom de l'entreprise</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur d'activité</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Retail, etc.">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Marché géo. principal</label>
-                        <input type="text" class="form-input" id="companyGeographicCoverage" placeholder="Ex: Europe, France, International">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Croissance du marché</label>
-                        <select class="form-select" id="companyMarketGrowth">
-                            <option value="">Sélectionnez...</option>
-                            <option value="high">Élevée</option>
-                            <option value="medium">Moyenne</option>
-                            <option value="low">Faible</option>
-                            <option value="negative">Négative</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Stabilité politique</label>
-                        <select class="form-select" id="companyPoliticalStability">
-                            <option value="">Sélectionnez...</option>
-                            <option value="stable">Stable</option>
-                            <option value="moderate">Modérée</option>
-                            <option value="unstable">Instable</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Croissance économique</label>
-                        <select class="form-select" id="companyEconomicGrowth">
-                            <option value="">Sélectionnez...</option>
-                            <option value="expansion">Expansion</option>
-                            <option value="stable">Stable</option>
-                            <option value="recession">Récession</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Impact technologique</label>
-                        <select class="form-select" id="companyTechImpact">
-                            <option value="">Sélectionnez...</option>
-                            <option value="high">Élevé</option>
-                            <option value="medium">Moyen</option>
-                            <option value="low">Faible</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Impact environnemental</label>
-                        <select class="form-select" id="companyEnvironmentalImpact">
-                            <option value="">Sélectionnez...</option>
-                            <option value="high">Élevé</option>
-                            <option value="medium">Moyen</option>
-                            <option value="low">Faible</option>
-                        </select>
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Analysez l'environnement macro-économique de votre entreprise.</p>
-            `;
-            break;
-            
-        case 'competitive':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nom de l'entreprise</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur d'activité</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Retail, etc.">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Prix relatif (vs concurrents)</label>
-                        <select class="form-select" id="companyPrice">
-                            <option value="">Sélectionnez...</option>
-                            <option value="premium">Premium (+20%)</option>
-                            <option value="high">Élevé (+10%)</option>
-                            <option value="competitive">Compétitif (même niveau)</option>
-                            <option value="low">Bas (-10%)</option>
-                            <option value="very_low">Très bas (-20%)</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Qualité (1-10)</label>
-                        <input type="number" class="form-input" id="companyQuality" placeholder="0" min="1" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Innovation (1-10)</label>
-                        <input type="number" class="form-input" id="companyInnovation" placeholder="0" min="1" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Service client (1-10)</label>
-                        <input type="number" class="form-input" id="companyCustomerService" placeholder="0" min="1" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Forces de distribution</label>
-                        <select class="form-select" id="companyDistribution">
-                            <option value="">Sélectionnez...</option>
-                            <option value="strong">Forte</option>
-                            <option value="medium">Moyenne</option>
-                            <option value="weak">Faible</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Noms des concurrents (séparés par virgule)</label>
-                        <input type="text" class="form-input" id="companyCompetitors" placeholder="Ex: Concurrent A, Concurrent B">
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Comparez votre position par rapport à vos concurrents directs.</p>
-            `;
-            break;
-            
-        case 'reports':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nom de l'entreprise</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur d'activité</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Retail, etc.">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Type de rapport</label>
-                        <select class="form-select" id="reportType">
-                            <option value="">Sélectionnez...</option>
-                            <option value="financial">Financier</option>
-                            <option value="strategic">Stratégique</option>
-                            <option value="operational">Opérationnel</option>
-                            <option value="market">Marché</option>
-                            <option value="comprehensive">Complet</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Profondeur d'analyse</label>
-                        <select class="form-select" id="analysisDepth">
-                            <option value="">Sélectionnez...</option>
-                            <option value="surface">Surface</option>
-                            <option value="detailed">Détaillée</option>
-                            <option value="exhaustive">Exhaustive</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Période d'analyse</label>
-                        <select class="form-select" id="analysisPeriod">
-                            <option value="">Sélectionnez...</option>
-                            <option value="1year">1 an</option>
-                            <option value="3years">3 ans</option>
-                            <option value="5years">5 ans</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Focus particulier (optionnel)</label>
-                        <input type="text" class="form-input" id="reportFocus" placeholder="Ex: Croissance, Rentabilité, Risque">
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Plus votre demande est précise, plus le rapport sera utile.</p>
-            `;
-            break;
-            
-        case 'ideal_sector':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Votre entreprise actuelle</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur actuel</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Retail">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Chiffre d'affaires actuel (€)</label>
-                        <input type="number" class="form-input" id="currentRevenue" placeholder="0" min="0" step="1000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Objectif principal</label>
-                        <select class="form-select" id="mainObjective">
-                            <option value="">Sélectionnez...</option>
-                            <option value="growth">Croissance</option>
-                            <option value="profitability">Rentabilité</option>
-                            <option value="stability">Stabilité</option>
-                            <option value="innovation">Innovation</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Budget disponible (€)</label>
-                        <input type="number" class="form-input" id="availableBudget" placeholder="0" min="0" step="10000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Compétences clés</label>
-                        <input type="text" class="form-input" id="keySkills" placeholder="Ex: Tech, Ventes, Marketing">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Région cible</label>
-                        <input type="text" class="form-input" id="targetRegion" placeholder="Ex: Europe, Asie, Global">
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Nous identifierons le secteur le plus adapté à votre profil.</p>
-            `;
-            break;
-            
-        case 'maturity_score':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nom de l'entreprise</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur d'activité</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Industrie">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Année de création</label>
-                        <input type="number" class="form-input" id="foundingYear" placeholder="2020" min="1900" max="2026">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Chiffre d'affaires (€)</label>
-                        <input type="number" class="form-input" id="companyRevenue" placeholder="0" min="0" step="1000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Nombre d'employés</label>
-                        <input type="number" class="form-input" id="companyEmployees" placeholder="0" min="0">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Niveau de digitalisation (1-10)</label>
-                        <input type="number" class="form-input" id="digitalizationLevel" placeholder="0" min="1" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Maturité processus (1-10)</label>
-                        <input type="number" class="form-input" id="processMaturity" placeholder="0" min="1" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Culture d'innovation (1-10)</label>
-                        <input type="number" class="form-input" id="innovationCulture" placeholder="0" min="1" max="10">
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Évaluez la maturité globale de votre entreprise sur plusieurs dimensions.</p>
-            `;
-            break;
-            
-        case 'integration_matrix':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Entreprise cible</label>
-                        <input type="text" class="form-input" id="targetCompany" placeholder="Nom de l'entreprise cible">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur cible</label>
-                        <input type="text" class="form-input" id="targetIndustry" placeholder="Secteur de l'entreprise cible">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Votre secteur</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Votre secteur">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Type d'intégration</label>
-                        <select class="form-select" id="integrationType">
-                            <option value="">Sélectionnez...</option>
-                            <option value="acquisition">Acquisition</option>
-                            <option value="merger">Fusion</option>
-                            <option value="partnership">Partenariat</option>
-                            <option value="joint_venture">Coentreprise</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Compatibilité culturelle (1-10)</label>
-                        <input type="number" class="form-input" id="culturalFit" placeholder="0" min="1" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Synergies opérationnelles (1-10)</label>
-                        <input type="number" class="form-input" id="operationalSynergies" placeholder="0" min="1" max="10">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Valeur stratégique (1-10)</label>
-                        <input type="number" class="form-input" id="strategicValue" placeholder="0" min="1" max="10">
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Évaluez le potentiel d'intégration entre votre entreprise et la cible.</p>
-            `;
-            break;
-            
-        case 'valuation_simulator':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nom de l'entreprise</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de l'entreprise">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Industrie">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Chiffre d'affaires (€)</label>
-                        <input type="number" class="form-input" id="companyRevenue" placeholder="0" min="0" step="1000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">EBITDA (€)</label>
-                        <input type="number" class="form-input" id="companyEbitda" placeholder="0" min="0" step="1000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Croissance annuelle (%)</label>
-                        <input type="number" class="form-input" id="growthRate" placeholder="0" min="-100" max="100" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Dette (€)</label>
-                        <input type="number" class="form-input" id="companyDebt" placeholder="0" min="0" step="1000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Actifs (€)</label>
-                        <input type="number" class="form-input" id="companyAssets" placeholder="0" min="0" step="1000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Méthode de valorisation</label>
-                        <select class="form-select" id="valuationMethod">
-                            <option value="">Sélectionnez...</option>
-                            <option value="dcf">DCF (Flux de trésorerie)</option>
-                            <option value="comparables">Multiples</option>
-                            <option value="asset_based">Valeur d'actifs</option>
-                        </select>
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Simulez la valorisation de votre entreprise ou d'une cible.</p>
-            `;
-            break;
-            
-        case 'due_diligence':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Entreprise cible</label>
-                        <input type="text" class="form-input" id="targetCompany" placeholder="Nom de l'entreprise cible">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Secteur d'activité">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Type de due diligence</label>
-                        <select class="form-select" id="ddType">
-                            <option value="">Sélectionnez...</option>
-                            <option value="financial">Financière</option>
-                            <option value="legal">Juridique</option>
-                            <option value="commercial">Commerciale</option>
-                            <option value="operational">Opérationnelle</option>
-                            <option value="technical">Technique</option>
-                            <option value="comprehensive">Complète</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Priorité</label>
-                        <select class="form-select" id="ddPriority">
-                            <option value="">Sélectionnez...</option>
-                            <option value="critical">Critique</option>
-                            <option value="high">Élevée</option>
-                            <option value="medium">Moyenne</option>
-                            <option value="low">Faible</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Budget alloué (€)</label>
-                        <input type="number" class="form-input" id="ddBudget" placeholder="0" min="0" step="1000">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Échéance</label>
-                        <input type="date" class="form-input" id="ddDeadline">
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Identifiez les risques et opportunités avant la transaction.</p>
-            `;
-            break;
-            
-        case 'loi_generator':
-        case 'negotiation_simulator':
-        case 'action_plan_100_days':
-        case 'post_acquisition_dashboard':
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nom du projet</label>
-                        <input type="text" class="form-input" id="projectName" placeholder="Nom de votre projet">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Entreprise concernée</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de l'entreprise">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Secteur d'activité">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Contexte (optionnel)</label>
-                        <textarea class="form-textarea" id="projectContext" placeholder="Décrivez le contexte de votre projet..." rows="3"></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Objectifs principaux</label>
-                        <textarea class="form-textarea" id="mainObjectives" placeholder="Quels sont vos objectifs principaux ?" rows="3"></textarea>
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Ces services font partie des Phases 3 & 4. Contactez-nous pour un devis personnalisé.</p>
-            `;
-            break;
-            
-        default:
-            html += `
-                <div class="specific-fields-grid">
-                    <div class="form-group">
-                        <label class="form-label">Nom de l'entreprise / Projet</label>
-                        <input type="text" class="form-input" id="companyName" placeholder="Nom de votre entreprise ou projet">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Secteur d'activité</label>
-                        <input type="text" class="form-input" id="companyIndustry" placeholder="Ex: Technologie, Industrie">
-                    </div>
-                    <div class="form-group">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-textarea" id="analysisDescriptionExtra" placeholder="Décrivez ce que vous souhaitez analyser..." rows="3"></textarea>
-                    </div>
-                </div>
-                <p class="form-hint"><i class="fas fa-info-circle"></i> Plus vous fournissez d'informations, plus l'analyse sera précise et personnalisée.</p>
-            `;
-    }
-    
-    section.innerHTML = html;
-    container.appendChild(section);
-}
-
-// Collecter les données d'analyse selon le type
-function collectAnalysisData(type) {
-    const companyData = {
-        name: document.getElementById('companyName')?.value || 'Mon Entreprise',
-        industry: document.getElementById('companyIndustry')?.value || 'Non spécifié'
-    };
-    
-    // Charger les valeurs par défaut depuis mock data
-    const defaultData = AnalysisManager.generateMockCompanyData();
-    
-    switch (type) {
-        case 'swot':
-            // Récupérer les valeurs du formulaire SWOT
-            if (document.getElementById('companyRevenue')?.value) {
-                companyData.revenue = parseFloat(document.getElementById('companyRevenue').value) || defaultData.revenue;
-            }
-            if (document.getElementById('companyEmployees')?.value) {
-                companyData.employees = parseInt(document.getElementById('companyEmployees').value) || defaultData.employees;
-            }
-            if (document.getElementById('companyMarketShare')?.value) {
-                companyData.marketShare = parseFloat(document.getElementById('companyMarketShare').value / 100) || defaultData.marketShare;
-            }
-            if (document.getElementById('companyTechnology')?.value) {
-                companyData.technology = document.getElementById('companyTechnology').value || defaultData.technology;
-            }
-            if (document.getElementById('companyCustomerSatisfaction')?.value) {
-                companyData.customerSatisfaction = parseInt(document.getElementById('companyCustomerSatisfaction').value) || defaultData.customerSatisfaction;
-            }
-            if (document.getElementById('companyBrandRecognition')?.value) {
-                companyData.brandRecognition = parseInt(document.getElementById('companyBrandRecognition').value) || defaultData.brandRecognition;
-            }
-            // Ajouter d'autres champs par défaut pour SWOT
-            companyData.quality = defaultData.quality;
-            companyData.price = defaultData.price;
-            companyData.innovation = defaultData.innovation;
-            companyData.brandStrength = defaultData.brandStrength;
-            companyData.distribution = defaultData.distribution;
-            break;
-            
-        case 'porter':
-            // Récupérer les valeurs du formulaire Porter
-            if (document.getElementById('companyStrategy')?.value) {
-                companyData.strategy = document.getElementById('companyStrategy').value || defaultData.strategy;
-            }
-            if (document.getElementById('companyProductDifferentiation')?.value) {
-                companyData.productDifferentiation = document.getElementById('companyProductDifferentiation').value || defaultData.productDifferentiation;
-            }
-            if (document.getElementById('companyCompetitorCount')?.value) {
-                companyData.competitorCount = parseInt(document.getElementById('companyCompetitorCount').value) || defaultData.competitorCount;
-            }
-            if (document.getElementById('companyEntryBarriers')?.value) {
-                companyData.entryBarriers = document.getElementById('companyEntryBarriers').value || defaultData.entryBarriers;
-            }
-            if (document.getElementById('companySupplierPower')?.value) {
-                companyData.supplierPower = document.getElementById('companySupplierPower').value || defaultData.supplierPower;
-            }
-            if (document.getElementById('companyBuyerPower')?.value) {
-                companyData.buyerPower = document.getElementById('companyBuyerPower').value || defaultData.buyerPower;
-            }
-            // Ajouter d'autres champs par défaut pour Porter
-            companyData.revenue = defaultData.revenue;
-            companyData.employees = defaultData.employees;
-            companyData.marketShare = defaultData.marketShare;
-            companyData.quality = defaultData.quality;
-            companyData.price = defaultData.price;
-            companyData.innovation = defaultData.innovation;
-            companyData.customerService = defaultData.customerService;
-            companyData.brandStrength = defaultData.brandStrength;
-            companyData.distribution = defaultData.distribution;
-            companyData.economiesOfScale = defaultData.economiesOfScale;
-            companyData.capitalRequirements = defaultData.capitalRequirements;
-            companyData.brandLoyalty = defaultData.brandLoyalty;
-            companyData.entrySwitchingCosts = defaultData.entrySwitchingCosts;
-            companyData.accessToDistribution = defaultData.accessToDistribution;
-            companyData.regulatoryBarriers = defaultData.regulatoryBarriers;
-            companyData.substituteAvailability = defaultData.substituteAvailability;
-            companyData.competitors = defaultData.competitors;
-            break;
-            
-        case 'pestel':
-            // Récupérer les valeurs du formulaire PESTEL
-            if (document.getElementById('companyGeographicCoverage')?.value) {
-                companyData.geographicCoverage = document.getElementById('companyGeographicCoverage').value || defaultData.geographicCoverage;
-            }
-            if (document.getElementById('companyMarketGrowth')?.value) {
-                companyData.industryGrowth = document.getElementById('companyMarketGrowth').value || defaultData.industryGrowth;
-            }
-            if (document.getElementById('companyPoliticalStability')?.value) {
-                companyData.governmentStability = document.getElementById('companyPoliticalStability').value || defaultData.governmentStability;
-            }
-            if (document.getElementById('companyEconomicGrowth')?.value) {
-                companyData.economicTrends = document.getElementById('companyEconomicGrowth').value || defaultData.economicTrends;
-            }
-            if (document.getElementById('companyTechImpact')?.value) {
-                companyData.technologicalAdoption = document.getElementById('companyTechImpact').value || defaultData.technologicalAdoption;
-            }
-            if (document.getElementById('companyEnvironmentalImpact')?.value) {
-                companyData.climateChangeImpact = document.getElementById('companyEnvironmentalImpact').value || defaultData.climateChangeImpact;
-            }
-            // Ajouter d'autres champs par défaut pour PESTEL
-            companyData.revenue = defaultData.revenue;
-            companyData.employees = defaultData.employees;
-            companyData.marketShare = defaultData.marketShare;
-            companyData.taxationPolicy = defaultData.taxationPolicy;
-            companyData.tradeRegulations = defaultData.tradeRegulations;
-            companyData.foreignInvestmentPolicy = defaultData.foreignInvestmentPolicy;
-            companyData.subsidies = defaultData.subsidies;
-            companyData.politicalRisks = defaultData.politicalRisks;
-            companyData.gdpGrowth = defaultData.gdpGrowth;
-            companyData.inflationRate = defaultData.inflationRate;
-            companyData.interestRates = defaultData.interestRates;
-            companyData.unemploymentRate = defaultData.unemploymentRate;
-            companyData.exchangeRates = defaultData.exchangeRates;
-            companyData.consumerSpending = defaultData.consumerSpending;
-            companyData.populationGrowth = defaultData.populationGrowth;
-            companyData.educationLevel = defaultData.educationLevel;
-            companyData.culturalTrends = defaultData.culturalTrends;
-            companyData.lifestyleChanges = defaultData.lifestyleChanges;
-            companyData.rndInvestment = defaultData.rndInvestment;
-            companyData.digitalTransformation = defaultData.digitalTransformation;
-            companyData.sustainabilityTrends = defaultData.sustainabilityTrends;
-            companyData.environmentalRegulations = defaultData.environmentalRegulations;
-            companyData.laborLaws = defaultData.laborLaws;
-            companyData.consumerProtection = defaultData.consumerProtection;
-            companyData.dataProtection = defaultData.dataProtection;
-            companyData.industryRegulations = defaultData.industryRegulations;
-            break;
-            
-        case 'competitive':
-            // Récupérer les valeurs du formulaire Concurrentiel
-            if (document.getElementById('companyPrice')?.value) {
-                const priceMap = { premium: 1.2, high: 1.1, competitive: 1.0, low: 0.9, very_low: 0.8 };
-                companyData.price = priceMap[document.getElementById('companyPrice').value] || defaultData.price;
-            }
-            if (document.getElementById('companyQuality')?.value) {
-                companyData.quality = parseInt(document.getElementById('companyQuality').value) || defaultData.quality;
-            }
-            if (document.getElementById('companyInnovation')?.value) {
-                companyData.innovation = parseInt(document.getElementById('companyInnovation').value) || defaultData.innovation;
-            }
-            if (document.getElementById('companyCustomerService')?.value) {
-                companyData.customerService = parseInt(document.getElementById('companyCustomerService').value) || defaultData.customerService;
-            }
-            if (document.getElementById('companyDistribution')?.value) {
-                companyData.distribution = parseInt(document.getElementById('companyDistribution').value) || defaultData.distribution;
-            }
-            if (document.getElementById('companyCompetitors')?.value) {
-                const competitors = document.getElementById('companyCompetitors').value.split(',')
-                    .map(c => c.trim()).filter(c => c);
-                if (competitors.length > 0) {
-                    companyData.competitors = competitors.map((name, index) => ({
-                        name: name,
-                        marketShare: defaultData.competitors[index]?.marketShare || 0.15,
-                        qualityIndex: defaultData.competitors[index]?.qualityIndex || 7,
-                        priceIndex: defaultData.competitors[index]?.priceIndex || 1.0,
-                        featureScore: defaultData.competitors[index]?.featureScore || 6,
-                        innovationScore: defaultData.competitors[index]?.innovationScore || 5
-                    }));
-                }
-            }
-            // Ajouter d'autres champs par défaut pour Competitive
-            companyData.revenue = defaultData.revenue;
-            companyData.employees = defaultData.employees;
-            companyData.marketShare = defaultData.marketShare;
-            companyData.brandStrength = defaultData.brandStrength;
-            companyData.productDifferentiation = defaultData.productDifferentiation;
-            companyData.serviceDifferentiation = defaultData.serviceDifferentiation;
-            companyData.brandDifferentiation = defaultData.brandDifferentiation;
-            companyData.strategy = defaultData.strategy;
-            break;
-            
-        default:
-            // Utiliser les données par défaut
-            return defaultData;
-    }
-    
-    return { ...defaultData, ...companyData };
-}
-
-// Initialiser le formulaire d'analyse
-function initAnalysisForm() {
-    console.log('[DPAI] initAnalysisForm appelée');
-    const analysisForm = document.getElementById('analysisForm');
-    const analysisTypeSelect = document.getElementById('analysisType');
-    const specificFieldsContainer = document.getElementById('analysisSpecificFields');
-    
-    console.log('[DPAI] analysisForm:', analysisForm ? 'trouvé' : 'NON TROUVÉ');
-    console.log('[DPAI] analysisTypeSelect:', analysisTypeSelect ? 'trouvé' : 'NON TROUVÉ');
-    
-    if (analysisForm && analysisTypeSelect) {
-        console.log('[DPAI] Initialisation du formulaire...');
-        // Mettre à jour l'estimation et les champs spécifiques quand le type change
-        analysisTypeSelect.addEventListener('change', function() {
-            console.log('[DPAI] Type changé:', this.value);
-            updateAnalysisEstimation(this.value);
-            updateSpecificFields(this.value, specificFieldsContainer);
-        });
-        
-        // Initialiser avec le type actuel
-        console.log('[DPAI] Initialisation avec type:', analysisTypeSelect.value);
-        updateAnalysisEstimation(analysisTypeSelect.value);
-        updateSpecificFields(analysisTypeSelect.value, specificFieldsContainer);
-        
-        // Soumission du formulaire
-        analysisForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            console.log('[DPAI] Formulaire soumis !');
-            
-            const type = analysisTypeSelect.value;
-            const name = document.getElementById('analysisName').value;
-            const description = document.getElementById('analysisDescription').value;
-            console.log('[DPAI] Type:', type, 'Nom:', name, 'Description:', description);
-            
-            if (!type) {
-                showAlert('error', 'Erreur', 'Veuillez sélectionner un type d\'analyse.');
-                return;
-            }
-            
-            const plan = authService.userData?.plan || 'free';
-            const cost = (TokenManager && TokenManager.getCost) ? TokenManager.getCost(type, plan) : 40;
-            
-            // Calculer available avec la même logique que updateAnalysisEstimation
-            let available = 0;
-            if (TokenManager && TokenManager.tokenState) {
-                available = TokenManager.availableTokens || 0;
-            } else if (authService?.userData) {
-                available = authService.userData.availableTokens || 
-                            (authService.userData.tokenState?.availableTokens || 0) || 0;
-            } else {
-                available = 500; // Mode démo
-            }
-            
-            if (available < cost) {
-                showAlert('error', 'Erreur', `Vous n'avez pas assez de tokens pour cette analyse. Nécessaire: ${TokenUtils.formatTokens(cost)}, Disponible: ${TokenUtils.formatTokens(available)}`);
-                return;
-            }
-            
-            // Récupérer les données spécifiques selon le type
-            const companyData = collectAnalysisData(type);
-            
-            // Fermer le modal
-            const modal = document.getElementById('analysisModal');
-            if (modal) modal.classList.remove('visible');
-            
-            // Lancer l'analyse avec les données personnalisées
-            launchAnalysis(type, name, description, cost);
-        });
-        
-        // Gérer le bouton Annuler
-        const cancelBtn = document.getElementById('analysisModalCancel');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', function() {
-                const modal = document.getElementById('analysisModal');
-                if (modal) modal.classList.remove('visible');
-            });
-        }
-    }
-}
-
-// Initialiser les tabs d'analyses
-function initAnalysisTabs() {
-    const analysisTabBtns = document.querySelectorAll('.analysis-tab-btn');
-    
-    if (analysisTabBtns.length === 0) return;
-    
-    analysisTabBtns.forEach(btn => {
-        btn.addEventListener('click', function() {
-            const tabId = this.getAttribute('data-tab');
-            
-            // Retirer la classe active de tous les tabs
-            analysisTabBtns.forEach(b => b.classList.remove('active'));
-            
-            // Ajouter la classe active au tab cliqué
-            this.classList.add('active');
-            
-            // Afficher/masquer les contenus
-            const tabContents = document.querySelectorAll('.analysis-tab-content');
-            tabContents.forEach(content => {
-                content.style.display = 'none';
-            });
-            
-            const targetTab = document.getElementById(`analysis-${tabId}-content`);
-            if (targetTab) {
-                targetTab.style.display = 'block';
-            }
-        });
-    });
-}
-
-// Mettre à jour l'estimation des tokens
-function updateAnalysisEstimation(type) {
-    const analysisTypeSelect = document.getElementById('analysisType');
-    const estimatedAnalysisTypeEl = document.getElementById('estimatedAnalysisType');
-    const estimatedTokensEl = document.getElementById('estimatedTokens');
-    const userAvailableTokensEl = document.getElementById('userAvailableTokens');
-    const insufficientTokensAlert = document.getElementById('insufficientTokensAlert');
-    const startAnalysisBtn = document.getElementById('startAnalysisBtn');
-    
-    // Vérifier que TokenManager est initialisé
-    let available = 0;
-    let cost = 40;
-    
-    // Priority 1: TokenManager (le plus fiable si initialisé)
-    if (TokenManager && TokenManager.tokenState) {
-        available = TokenManager.availableTokens || 0;
-    }
-    // Priority 2: authService.userData
-    else if (authService?.userData) {
-        available = authService.userData.availableTokens || 
-                    (authService.userData.tokenState?.availableTokens || 0) || 0;
-    }
-    // Priority 3: Lire depuis le DOM
-    else {
-        const availableTokensEl = document.getElementById('availableTokens');
-        if (availableTokensEl) {
-            const domAvailable = parseInt(availableTokensEl.textContent.replace(/\s/g, '')) || 0;
-            available = domAvailable;
-        }
-    }
-    
-    // Priority 4: Valeur par défaut UNIQUEMENT si aucune source n'a donné de valeur
-    // Si available === 0 mais qu'on a trouvé une source (TokenManager, authService, ou DOM), 
-    // c'est que l'utilisateur a vraiment 0 tokens, on ne force pas à 500
-    if (available === 0 && !TokenManager?.tokenState && !authService?.userData) {
-        // Seulement en mode démo non authentifié
-        available = 500;
-    }
-    
-    // Calculer le coût
-    if (TokenManager && TokenManager.getCost) {
-        const plan = authService.userData?.plan || 'free';
-        cost = TokenManager.getCost(type, plan) || 40;
-    } else if (window.AnalysisCosts && AnalysisCosts[type]) {
-        cost = AnalysisCosts[type];
-    }
-    
-    const canAfford = available >= cost;
-    
-    if (estimatedAnalysisTypeEl) {
-        const analysisNames = {
-            swot: 'Analyse SWOT',
-            porter: 'Porter 5 Forces',
-            pestel: 'Analyse PESTEL',
-            competitive: 'Analyse Concurrentielle',
-            basic: 'Analyse de base',
-            advanced: 'Analyse avancée',
-            detailed_report: 'Rapport détaillé'
-        };
-        estimatedAnalysisTypeEl.textContent = analysisNames[type] || type;
-    }
-    
-    if (estimatedTokensEl) {
-        estimatedTokensEl.textContent = TokenUtils.formatTokens(cost);
-    }
-    
-    if (userAvailableTokensEl) {
-        userAvailableTokensEl.textContent = TokenUtils.formatTokens(available);
-    }
-    
-    if (insufficientTokensAlert) {
-        if (!canAfford) {
-            insufficientTokensAlert.style.display = 'flex';
-            if (startAnalysisBtn) startAnalysisBtn.disabled = true;
-        } else {
-            insufficientTokensAlert.style.display = 'none';
-            if (startAnalysisBtn) startAnalysisBtn.disabled = false;
-        }
-    }
-}
-
-// Mettre à jour l'interface après une analyse réussie
-async function updateAfterAnalysis(type, name, description, cost) {
-    try {
-        // Vérifier si on est en mode démo
-        const isFileProtocol = window.location.protocol === 'file:';
-        const isFirebaseAvailable = typeof window.firebase !== 'undefined' && window.firebase;
-        const isDemoMode = !isFirebaseAvailable || isFileProtocol;
-        
-        const user = authService.currentUser;
-        
-        // Mettre à jour les tokens affichés
-        const availableTokensEl = document.getElementById('availableTokens');
-        const usedTokensEl = document.getElementById('usedTokens');
-        const totalTokensEl = document.getElementById('totalTokens');
-        const tokenProgressEl = document.getElementById('tokenProgress');
-        const tokenAvailableEl = document.getElementById('tokenAvailable');
-        
-        let availableTokens, usedTokens, totalTokens, tokenLimit;
-        
-        if (user) {
-            // Mode normal : recharger les données utilisateur pour avoir les dernières valeurs
-            const userData = await authService.loadUserData(user.uid);
-            
-            if (userData) {
-                authService.userData = userData;
-                TokenManager.init(userData);
-                
-                availableTokens = userData.availableTokens || 
-                                      (userData.tokenState ? userData.tokenState.availableTokens : 0) || 0;
-                usedTokens = userData.tokensUsed || 
-                                  (userData.tokenState ? userData.tokenState.usedTokens : 0) || 0;
-                totalTokens = userData.totalTokens || 
-                                   (userData.tokenState ? userData.tokenState.totalTokens : 0) || 0;
-                tokenLimit = userData.tokenLimit || 
-                             (userData.tokenState ? userData.tokenState.baseTokens : TokenConfig.baseTokenLimits.free) || 
-                             TokenConfig.baseTokenLimits.free;
-            } else {
-                // Firestore non disponible, utiliser TokenManager local
-                availableTokens = TokenManager ? TokenManager.availableTokens : 500;
-                usedTokens = TokenManager?.tokenState ? TokenManager.tokenState.usedTokens : 0;
-                totalTokens = TokenManager?.tokenState ? TokenManager.tokenState.totalTokens : 500;
-                tokenLimit = TokenConfig.baseTokenLimits.free || 500;
-            }
-        } else {
-            // Mode non connecté : utiliser TokenManager ou valeurs par défaut
-            availableTokens = TokenManager ? TokenManager.availableTokens : 500;
-            usedTokens = 0;
-            totalTokens = TokenManager ? (TokenManager.tokenState ? TokenManager.tokenState.totalTokens : 500) : 500;
-            tokenLimit = TokenConfig.baseTokenLimits.free || 500;
-        }
-        
-        if (availableTokensEl) {
-            availableTokensEl.textContent = TokenUtils.formatTokens(availableTokens);
-        }
-        if (usedTokensEl) {
-            usedTokensEl.textContent = TokenUtils.formatTokens(usedTokens);
-        }
-        if (totalTokensEl) {
-            totalTokensEl.textContent = TokenUtils.formatTokens(totalTokens);
-        }
-        if (tokenProgressEl) {
-            const percentage = Math.min(100, (usedTokens / tokenLimit) * 100);
-            tokenProgressEl.style.width = `${percentage}%`;
-            
-            if (percentage > 80) {
-                tokenProgressEl.classList.add('error');
-                tokenProgressEl.classList.remove('warning');
-            } else if (percentage > 50) {
-                tokenProgressEl.classList.add('warning');
-                tokenProgressEl.classList.remove('error');
-            } else {
-                tokenProgressEl.classList.remove('warning', 'error');
-            }
-        }
-        if (tokenAvailableEl) {
-            tokenAvailableEl.textContent = TokenUtils.formatTokens(availableTokens);
-        }
-        
-        // Mettre à jour userAvailableTokens dans la modal
-        const userAvailableTokensEl = document.getElementById('userAvailableTokens');
-        if (userAvailableTokensEl) {
-            userAvailableTokensEl.textContent = TokenUtils.formatTokens(availableTokens);
-        }
-        
-        // Synchroniser la modal si elle est ouverte
-        const analysisModal = document.getElementById('analysisModal');
-        if (analysisModal && analysisModal.classList.contains('visible')) {
-            const analysisTypeSelect = document.getElementById('analysisType');
-            if (analysisTypeSelect && analysisTypeSelect.value) {
-                updateAnalysisEstimation(analysisTypeSelect.value);
-            }
-        }
-        
-        // Mettre à jour les stats d'analyses
-        const totalAnalysesEl = document.getElementById('totalAnalyses');
-        const monthlyAnalysesEl = document.getElementById('monthlyAnalyses');
-        
-        const totalAnalyses = userData.totalAnalyses || 
-                             (userData.loyaltyInfo ? userData.loyaltyInfo.totalAnalyses : 0) || 0;
-        const monthlyAnalyses = userData.monthlyAnalyses || 
-                               (userData.loyaltyInfo ? userData.loyaltyInfo.monthlyAnalyses : 0) || 0;
-        
-        if (totalAnalysesEl) {
-            totalAnalysesEl.textContent = TokenUtils.formatTokens(totalAnalyses);
-        }
-        if (monthlyAnalysesEl) {
-            monthlyAnalysesEl.textContent = TokenUtils.formatTokens(monthlyAnalyses);
-        }
-        
-        // Ajouter l'analyse à la liste des analyses récentes
-        await loadRecentAnalyses();
-        
-        // Mettre à jour l'historique des tokens
-        await loadTokenHistory();
-        
-        // Mettre à jour la fidélité
-        const loyaltyTokensEl = document.getElementById('loyaltyTokens');
-        const loyaltyTotalAnalysesEl = document.getElementById('loyaltyTotalAnalyses');
-        const loyaltyMonthlyAnalysesEl = document.getElementById('loyaltyMonthlyAnalyses');
-        
-        if (loyaltyTokensEl && userData.loyaltyInfo) {
-            loyaltyTokensEl.textContent = TokenUtils.formatTokens(userData.loyaltyInfo.monthlyLoyaltyTokens || 0);
-        }
-        if (loyaltyTotalAnalysesEl && userData.loyaltyInfo) {
-            loyaltyTotalAnalysesEl.textContent = userData.loyaltyInfo.totalAnalyses || 0;
-        }
-        if (loyaltyMonthlyAnalysesEl && userData.loyaltyInfo) {
-            loyaltyMonthlyAnalysesEl.textContent = userData.loyaltyInfo.monthlyAnalyses || 0;
-        }
-        
-    } catch (error) {
-        console.error('Erreur lors de la mise à jour après analyse:', error);
-        // Si erreur, recharger la page pour être sûr
-        setTimeout(() => {
-            window.location.reload();
-        }, 2000);
-    }
-}
-
-// Afficher les résultats de l'analyse dans une nouvelle fenêtre
-function showAnalysisResults(analysisData) {
-    console.log('[DPAI] showAnalysisResults appelé avec:', analysisData);
-    
-    // Stocker les données dans localStorage pour la nouvelle page
-    try {
-        localStorage.setItem('dpai_analysis_results', JSON.stringify(analysisData));
-        console.log('[DPAI] Données sauvegardées dans localStorage');
-        
-        // Essayer window.open d'abord (fonctionne si déclenché par click utilisateur)
-        let resultsWindow;
-        try {
-            resultsWindow = window.open('analysis-results.html', '_blank');
-        } catch (e) {
-            resultsWindow = null;
-        }
-        
-        if (!resultsWindow) {
-            console.error('[DPAI] window.open bloqué par le navigateur');
-            // Fallback: rediriger vers la page des résultats
-            window.location.href = 'analysis-results.html';
-        } else {
-            console.log('[DPAI] Nouvelle fenêtre ouverte avec succès');
-        }
-    } catch (error) {
-        console.error('[DPAI] Erreur lors de l\'ouverture des résultats:', error);
-        alert('Impossible d\'ouvrir les résultats. Veuillez réessayer.');
-    }
-}
-function initViewAnalysisButtons() {
-    const viewBtns = document.querySelectorAll('.view-analysis-btn');
-    
-    viewBtns.forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const analysisId = this.closest('.analysis-card').getAttribute('data-id');
-            const analysisType = this.closest('.analysis-card').getAttribute('data-type');
-            viewAnalysis(analysisId, analysisType);
-        });
-    });
-}
-
-// Voir une analyse
-async function viewAnalysis(analysisId, analysisType) {
-    const user = authService.currentUser;
-    if (!user) return;
-    
-    try {
-        const firestoreDB = getDB();
-        if (!firestoreDB) {
-            console.warn('[Dashboard] Firestore non disponible pour viewAnalysis');
-            return;
-        }
-        const analysisDoc = await firestoreDB.collection('users')
-            .doc(user.uid)
-            .collection('analyses')
-            .doc(analysisId)
-            .get();
-        
-        if (!analysisDoc.exists) {
-            showAlert('error', 'Erreur', 'Analyse introuvable.');
-            return;
-        }
-        
-        const analysis = analysisDoc.data();
-        
-        // Afficher le modal de visualisation
-        showAnalysisModal(analysis, analysisType);
-        
-    } catch (error) {
-        showAlert('error', 'Erreur', error.message || 'Une erreur est survenue.');
-    }
-}
-
-// Afficher le modal de visualisation d'analyse dans une nouvelle fenêtre
-function showAnalysisModal(analysis, analysisType) {
-    // Ouvrir dans une nouvelle fenêtre
-    showAnalysisResults(analysis);
-}
-
-// Générer le HTML pour une analyse SWOT
-function generateSWOTAnalysisHTML(analysis) {
-    const results = analysis.results || {};
-    
-    return `
-        <div class="analysis-view">
-            <div class="analysis-meta">
-                <div class="analysis-meta-item">
-                    <i class="fas fa-calendar-day"></i>
-                    <span>${formatDate(analysis.createdAt)}</span>
-                </div>
-                <div class="analysis-meta-item">
-                    <i class="fas fa-coins"></i>
-                    <span>${analysis.cost || 0} tokens</span>
-                </div>
-                <div class="analysis-meta-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Score: ${analysis.score || 0}/100</span>
-                </div>
-            </div>
-            
-            <p class="analysis-description">${analysis.description || 'Aucune description'}</p>
-            
-            <div class="swot-grid">
-                <div class="swot-quadrant positive internal">
-                    <h4><i class="fas fa-plus-circle"></i> Forces</h4>
-                    <ul>
-                        ${(results.strengths || []).map(s => `<li>${s}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="swot-quadrant negative internal">
-                    <h4><i class="fas fa-minus-circle"></i> Faiblesses</h4>
-                    <ul>
-                        ${(results.weaknesses || []).map(w => `<li>${w}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="swot-quadrant positive external">
-                    <h4><i class="fas fa-plus-circle"></i> Opportunités</h4>
-                    <ul>
-                        ${(results.opportunities || []).map(o => `<li>${o}</li>`).join('')}
-                    </ul>
-                </div>
-                <div class="swot-quadrant negative external">
-                    <h4><i class="fas fa-minus-circle"></i> Menaces</h4>
-                    <ul>
-                        ${(results.threats || []).map(t => `<li>${t}</li>`).join('')}
-                    </ul>
-                </div>
-            </div>
-            
-            ${results.strategicInsights ? `
-                <div class="strategic-insights">
-                    <h4><i class="fas fa-lightbulb"></i> Insights Stratégiques</h4>
-                    <div class="insights-grid">
-                        <div class="insight-card">
-                            <h5>SO (Forces-Opportunités)</h5>
-                            <ul>
-                                ${(results.strategicInsights.SO || []).map(i => `<li>${i}</li>`).join('')}
-                            </ul>
-                        </div>
-                        <div class="insight-card">
-                            <h5>ST (Forces-Menaces)</h5>
-                            <ul>
-                                ${(results.strategicInsights.ST || []).map(i => `<li>${i}</li>`).join('')}
-                            </ul>
-                        </div>
-                        <div class="insight-card">
-                            <h5>WO (Faiblesses-Opportunités)</h5>
-                            <ul>
-                                ${(results.strategicInsights.WO || []).map(i => `<li>${i}</li>`).join('')}
-                            </ul>
-                        </div>
-                        <div class="insight-card">
-                            <h5>WT (Faiblesses-Menaces)</h5>
-                            <ul>
-                                ${(results.strategicInsights.WT || []).map(i => `<li>${i}</li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            ` : ''}
-            
-            ${results.summary ? `
-                <div class="analysis-summary">
-                    <h4><i class="fas fa-summary"></i> Résumé</h4>
-                    <p>${results.summary.assessment || 'Aucun résumé disponible'}</p>
-                </div>
-            ` : ''}
-            
-            ${(analysis.recommendations || []).length > 0 ? `
-                <div class="analysis-recommendations">
-                    <h4><i class="fas fa-recommend"></i> Recommandations</h4>
-                    <ul>
-                        ${analysis.recommendations.map(rec => `
-                            <li class="recommendation-item priority-${rec.priority || 'medium'}">
-                                <span class="recommendation-type">${rec.category || 'Général'}</span>
-                                <span class="recommendation-text">${rec.action || rec}</span>
-                            </li>
-                        `).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-        </div>
-    `;
-}
-
-// Générer le HTML pour une analyse Porter 5 Forces
-function generatePorterAnalysisHTML(analysis) {
-    const results = analysis.results || {};
-    
-    return `
-        <div class="analysis-view">
-            <div class="analysis-meta">
-                <div class="analysis-meta-item">
-                    <i class="fas fa-calendar-day"></i>
-                    <span>${formatDate(analysis.createdAt)}</span>
-                </div>
-                <div class="analysis-meta-item">
-                    <i class="fas fa-coins"></i>
-                    <span>${analysis.cost || 0} tokens</span>
-                </div>
-                <div class="analysis-meta-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Score: ${analysis.score || 0}/100</span>
-                </div>
-            </div>
-            
-            <p class="analysis-description">${analysis.description || 'Aucune description'}</p>
-            
-            <div class="porter-forces">
-                <h4><i class="fas fa-balance-scale"></i> Analyse des 5 Forces de Porter</h4>
-                
-                <div class="force-card">
-                    <div class="force-header">
-                        <h5><i class="fas fa-industry"></i> Pouvoir des fournisseurs</h5>
-                        <span class="force-score ${getScoreClass(results.supplierPower?.score || 0)}">
-                            ${results.supplierPower?.score || 0}/100 - ${results.supplierPower?.level || 'Inconnu'}
-                        </span>
-                    </div>
-                    <p>${results.supplierPower?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-                
-                <div class="force-card">
-                    <div class="force-header">
-                        <h5><i class="fas fa-shopping-cart"></i> Pouvoir des acheteurs</h5>
-                        <span class="force-score ${getScoreClass(results.buyerPower?.score || 0)}">
-                            ${results.buyerPower?.score || 0}/100 - ${results.buyerPower?.level || 'Inconnu'}
-                        </span>
-                    </div>
-                    <p>${results.buyerPower?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-                
-                <div class="force-card">
-                    <div class="force-header">
-                        <h5><i class="fas fa-user-plus"></i> Menace des nouveaux entrants</h5>
-                        <span class="force-score ${getScoreClass(results.newEntrants?.barrierScore || (100 - (results.newEntrants?.score || 0)))}">
-                            ${results.newEntrants?.score || 0}/100 - ${results.newEntrants?.level || 'Inconnu'}
-                        </span>
-                    </div>
-                    <p>${results.newEntrants?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-                
-                <div class="force-card">
-                    <div class="force-header">
-                        <h5><i class="fas fa-exchange-alt"></i> Menace des substituts</h5>
-                        <span class="force-score ${getScoreClass(results.substitutes?.score || 0)}">
-                            ${results.substitutes?.score || 0}/100 - ${results.substitutes?.level || 'Inconnu'}
-                        </span>
-                    </div>
-                    <p>${results.substitutes?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-                
-                <div class="force-card">
-                    <div class="force-header">
-                        <h5><i class="fas fa-fire"></i> Intensité de la rivalité</h5>
-                        <span class="force-score ${getScoreClass(results.rivalry?.score || 0)}">
-                            ${results.rivalry?.score || 0}/100 - ${results.rivalry?.level || 'Inconnu'}
-                        </span>
-                    </div>
-                    <p>${results.rivalry?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-            </div>
-            
-            ${results.industryAttractiveness ? `
-                <div class="attractiveness-summary">
-                    <h4><i class="fas fa-chart-bar"></i> Attractivité de l'industrie</h4>
-                    <div class="attractiveness-card">
-                        <div class="attractiveness-score ${getAttractivenessClass(results.industryAttractiveness.score || 0)}">
-                            ${results.industryAttractiveness.score || 0}/100
-                        </div>
-                        <div class="attractiveness-level">
-                            ${results.industryAttractiveness.level || 'Inconnu'}
-                        </div>
-                        <p>${results.industryAttractiveness.recommendation || results.summary?.recommendation || ''}</p>
-                    </div>
-                </div>
-            ` : ''}
-            
-            ${results.strategicImplications ? `
-                <div class="strategic-implications">
-                    <h4><i class="fas fa-cog"></i> Implications Stratégiques</h4>
-                    <ul>
-                        ${results.strategicImplications.map(imp => `
-                            <li class="implication-item priority-${imp.priority || 'medium'}">
-                                <span class="implication-type">${imp.type || 'Général'}</span>
-                                <span class="implication-text">${imp.action || ''}</span>
-                            </li>
-                        `).join('')}
-                    </ul>
-                </div>
-            ` : ''}
-        </div>
-    `;
-}
-
-// Générer le HTML pour une analyse PESTEL
-function generatePESTELAnalysisHTML(analysis) {
-    const results = analysis.results || {};
-    
-    return `
-        <div class="analysis-view">
-            <div class="analysis-meta">
-                <div class="analysis-meta-item">
-                    <i class="fas fa-calendar-day"></i>
-                    <span>${formatDate(analysis.createdAt)}</span>
-                </div>
-                <div class="analysis-meta-item">
-                    <i class="fas fa-coins"></i>
-                    <span>${analysis.cost || 0} tokens</span>
-                </div>
-                <div class="analysis-meta-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Score: ${analysis.score || 0}/100</span>
-                </div>
-            </div>
-            
-            <p class="analysis-description">${analysis.description || 'Aucune description'}</p>
-            
-            <div class="pestel-grid">
-                <div class="pestel-factor ${results.political?.impact || 'neutral'}">
-                    <h4><i class="fas fa-landmark"></i> Politique</h4>
-                    <div class="factor-score">${results.political?.score || 0}/100 - ${results.political?.level || 'Inconnu'}</div>
-                    <p>${results.political?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-                
-                <div class="pestel-factor ${results.economic?.impact || 'neutral'}">
-                    <h4><i class="fas fa-chart-line"></i> Économique</h4>
-                    <div class="factor-score">${results.economic?.score || 0}/100 - ${results.economic?.level || 'Inconnu'}</div>
-                    <p>${results.economic?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-                
-                <div class="pestel-factor ${results.social?.impact || 'neutral'}">
-                    <h4><i class="fas fa-users"></i> Social</h4>
-                    <div class="factor-score">${results.social?.score || 0}/100 - ${results.social?.level || 'Inconnu'}</div>
-                    <p>${results.social?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-                
-                <div class="pestel-factor ${results.technological?.impact || 'neutral'}">
-                    <h4><i class="fas fa-cog"></i> Technologique</h4>
-                    <div class="factor-score">${results.technological?.score || 0}/100 - ${results.technological?.level || 'Inconnu'}</div>
-                    <p>${results.technological?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-                
-                <div class="pestel-factor ${results.environmental?.impact || 'neutral'}">
-                    <h4><i class="fas fa-leaf"></i> Environnemental</h4>
-                    <div class="factor-score">${results.environmental?.score || 0}/100 - ${results.environmental?.level || 'Inconnu'}</div>
-                    <p>${results.environmental?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-                
-                <div class="pestel-factor ${results.legal?.impact || 'neutral'}">
-                    <h4><i class="fas fa-gavel"></i> Légal</h4>
-                    <div class="factor-score">${results.legal?.score || 0}/100 - ${results.legal?.level || 'Inconnu'}</div>
-                    <p>${results.legal?.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-            </div>
-            
-            ${results.impactAssessment ? `
-                <div class="impact-assessment">
-                    <h4><i class="fas fa-balance-scale"></i> Évaluation d'impact global</h4>
-                    <div class="impact-balance">
-                        <div class="impact-positive">
-                            <h5>Facteurs positifs (${results.impactAssessment.positiveFactors.length})</h5>
-                            <ul>
-                                ${results.impactAssessment.positiveFactors.map(f => `
-                                    <li>${f.factor}: ${f.score}/100 - ${f.level}</li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                        <div class="impact-negative">
-                            <h5>Facteurs négatifs (${results.impactAssessment.negativeFactors.length})</h5>
-                            <ul>
-                                ${results.impactAssessment.negativeFactors.map(f => `
-                                    <li>${f.factor}: ${f.score}/100 - ${f.level}</li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                    <div class="overall-impact">
-                        <span>Impact global: <strong>${results.impactAssessment.overallImpact || 'Neutre'}</strong></span>
-                        <span>Balance: <strong>${results.impactAssessment.balance >= 0 ? '+' : ''}${results.impactAssessment.balance}</strong></span>
-                    </div>
-                </div>
-            ` : ''}
-            
-            ${results.summary ? `
-                <div class="analysis-summary">
-                    <h4><i class="fas fa-summary"></i> Résumé</h4>
-                    <p>${results.summary.recommendation || 'Aucun résumé disponible'}</p>
-                </div>
-            ` : ''}
-        </div>
-    `;
-}
-
-// Générer le HTML pour une analyse concurrentielle
-function generateCompetitiveAnalysisHTML(analysis) {
-    const results = analysis.results || {};
-    
-    return `
-        <div class="analysis-view">
-            <div class="analysis-meta">
-                <div class="analysis-meta-item">
-                    <i class="fas fa-calendar-day"></i>
-                    <span>${formatDate(analysis.createdAt)}</span>
-                </div>
-                <div class="analysis-meta-item">
-                    <i class="fas fa-coins"></i>
-                    <span>${analysis.cost || 0} tokens</span>
-                </div>
-                <div class="analysis-meta-item">
-                    <i class="fas fa-chart-line"></i>
-                    <span>Score: ${analysis.score || 0}/100</span>
-                </div>
-            </div>
-            
-            <p class="analysis-description">${analysis.description || 'Aucune description'}</p>
-            
-            ${results.marketShare ? `
-                <div class="market-share-summary">
-                    <h4><i class="fas fa-chart-pie"></i> Part de marché</h4>
-                    <div class="market-share-value">
-                        ${(results.marketShare.companyMarketShare * 100).toFixed(2)}%
-                    </div>
-                    <p>${results.marketShare.assessment || 'Aucune évaluation disponible'}</p>
-                    <p>Concentration du marché: <strong>${results.marketShare.marketConcentration || 'Inconnu'}</strong></p>
-                </div>
-            ` : ''}
-            
-            ${results.competitivePosition ? `
-                <div class="competitive-position">
-                    <h4><i class="fas fa-trophy"></i> Position Concurrentielle</h4>
-                    <div class="position-value ${results.competitivePosition.position || 'average'}">
-                        ${results.competitivePosition.position ? results.competitivePosition.position.charAt(0).toUpperCase() + results.competitivePosition.position.slice(1) : 'Inconnu'}
-                    </div>
-                    <p>${results.competitivePosition.assessment || 'Aucune évaluation disponible'}</p>
-                    
-                    <div class="position-details">
-                        <div class="position-strengths">
-                            <h5><i class="fas fa-plus"></i> Forces</h5>
-                            <ul>
-                                ${(results.competitivePosition.strengths || []).map(s => `<li>${s}</li>`).join('')}
-                            </ul>
-                        </div>
-                        <div class="position-weaknesses">
-                            <h5><i class="fas fa-minus"></i> Faiblesses</h5>
-                            <ul>
-                                ${(results.competitivePosition.weaknesses || []).map(w => `<li>${w}</li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            ` : ''}
-            
-            ${results.competitorBenchmark ? `
-                <div class="benchmark-summary">
-                    <h4><i class="fas fa-chart-bar"></i> Benchmark Concurrentiel</h4>
-                    <div class="benchmark-grid">
-                        <div class="benchmark-item">
-                            <h5>Prix</h5>
-                            <span class="benchmark-value ${results.competitorBenchmark.priceComparison || 'average'}">
-                                ${results.competitorBenchmark.priceComparison ? results.competitorBenchmark.priceComparison.replace(/_/g, ' ') : 'Inconnu'}
-                            </span>
-                            <p>Votre: ${results.competitorBenchmark.companyVsAverage?.price || 'N/A'}</p>
-                            <p>Moyenne: ${results.competitorBenchmark.industryAverage?.price || 'N/A'}</p>
-                        </div>
-                        <div class="benchmark-item">
-                            <h5>Qualité</h5>
-                            <span class="benchmark-value ${results.competitorBenchmark.qualityComparison || 'average'}">
-                                ${results.competitorBenchmark.qualityComparison ? results.competitorBenchmark.qualityComparison.replace(/_/g, ' ') : 'Inconnu'}
-                            </span>
-                            <p>Votre: ${results.competitorBenchmark.companyVsAverage?.quality || 'N/A'}</p>
-                            <p>Moyenne: ${results.competitorBenchmark.industryAverage?.quality || 'N/A'}</p>
-                        </div>
-                        <div class="benchmark-item">
-                            <h5>Fonctionnalités</h5>
-                            <span class="benchmark-value ${results.competitorBenchmark.featureComparison || 'average'}">
-                                ${results.competitorBenchmark.featureComparison ? results.competitorBenchmark.featureComparison.replace(/_/g, ' ') : 'Inconnu'}
-                            </span>
-                            <p>Votre: ${results.competitorBenchmark.companyVsAverage?.features || 'N/A'}</p>
-                            <p>Moyenne: ${results.competitorBenchmark.industryAverage?.features || 'N/A'}</p>
-                        </div>
-                        <div class="benchmark-item">
-                            <h5>Innovation</h5>
-                            <span class="benchmark-value ${results.competitorBenchmark.innovationComparison || 'average'}">
-                                ${results.competitorBenchmark.innovationComparison ? results.competitorBenchmark.innovationComparison.replace(/_/g, ' ') : 'Inconnu'}
-                            </span>
-                            <p>Votre: ${results.competitorBenchmark.companyVsAverage?.innovation || 'N/A'}</p>
-                            <p>Moyenne: ${results.competitorBenchmark.industryAverage?.innovation || 'N/A'}</p>
-                        </div>
-                    </div>
-                    <p>${results.competitorBenchmark.assessment || 'Aucune évaluation disponible'}</p>
-                </div>
-            ` : ''}
-            
-            ${results.competitiveAdvantage ? `
-                <div class="competitive-advantage">
-                    <h4><i class="fas fa-bolt"></i> Avantages Concurrentiels</h4>
-                    <div class="advantage-score ${getScoreClass(results.competitiveAdvantage.score || 0)}">
-                        ${results.competitiveAdvantage.score || 0}/100 - ${results.competitiveAdvantage.level || 'Inconnu'}
-                    </div>
-                    
-                    <div class="advantages-grid">
-                        <div class="advantages-list">
-                            <h5><i class="fas fa-check-circle"></i> Avantages</h5>
-                            <ul>
-                                ${(results.competitiveAdvantage.advantages || []).map(a => `<li>${a}</li>`).join('')}
-                            </ul>
-                        </div>
-                        <div class="disadvantages-list">
-                            <h5><i class="fas fa-times-circle"></i> Désavantages</h5>
-                            <ul>
-                                ${(results.competitiveAdvantage.disadvantages || []).map(d => `<li>${d}</li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            ` : ''}
-            
-            ${results.summary ? `
-                <div class="analysis-summary">
-                    <h4><i class="fas fa-summary"></i> Résumé</h4>
-                    <p>${results.summary.recommendation || 'Aucun résumé disponible'}</p>
-                </div>
-            ` : ''}
-        </div>
-    `;
-}
-
-// Générer le HTML par défaut pour une analyse
-function generateDefaultAnalysisHTML(analysis) {
-    return `
-        <div class="analysis-view">
-            <div class="analysis-meta">
-                <div class="analysis-meta-item">
-                    <i class="fas fa-calendar-day"></i>
-                    <span>${formatDate(analysis.createdAt)}</span>
-                </div>
-                <div class="analysis-meta-item">
-                    <i class="fas fa-coins"></i>
-                    <span>${analysis.cost || 0} tokens</span>
-                </div>
-            </div>
-            
-            <h4>${analysis.name || 'Analyse sans nom'}</h4>
-            <p class="analysis-description">${analysis.description || 'Aucune description'}</p>
-            
-            <div class="empty-state small">
-                <div class="empty-state-icon">
-                    <i class="fas fa-chart-bar"></i>
-                </div>
-                <p>Format d'analyse non reconnu.</p>
-            </div>
-        </div>
-    `;
-}
-
-// Afficher les résultats d'analyse dans une nouvelle fenêtre (fallback)
-function showAnalysisResultsFallback(analysis, analysisType) {
-    // Stocker les données dans localStorage pour la nouvelle page
-    try {
-        localStorage.setItem('dpai_analysis_results', JSON.stringify(analysis));
-        // Ouvrir la page des résultats dans un nouvel onglet
-        window.open('analysis-results.html', '_blank');
-    } catch (error) {
-        console.error('[DPAI] Erreur lors de l\'ouverture des résultats:', error);
-        // Fallback: afficher dans une alerte
-        let message = `Analyse: ${analysis.name || analysisType}\n`;
-        message += `Date: ${formatDate(analysis.createdAt)}\n`;
-        message += `Coût: ${analysis.cost || 0} tokens\n`;
-        message += `Score: ${analysis.score || 0}/100\n\n`;
-        message += `Résultats: ${JSON.stringify(analysis.results, null, 2)}`;
-        alert(message);
-    }
-}
-
-// Exporter une analyse
-async function exportAnalysis(analysisId) {
-    const user = authService.currentUser;
-    if (!user) return;
-    
-    try {
-        const firestoreDB = getDB();
-        if (!firestoreDB) {
-            console.warn('[Dashboard] Firestore non disponible pour exportAnalysis');
-            return;
-        }
-        const analysisDoc = await firestoreDB.collection('users')
-            .doc(user.uid)
-            .collection('analyses')
-            .doc(analysisId)
-            .get();
-        
-        if (!analysisDoc.exists) {
-            showAlert('error', 'Erreur', 'Analyse introuvable.');
-            return;
-        }
-        
-        const analysis = analysisDoc.data();
-        
-        // Créer un objet à exporter
-        const exportData = {
-            id: analysisId,
-            type: analysis.type,
-            name: analysis.name,
-            description: analysis.description,
-            cost: analysis.cost,
-            score: analysis.score,
-            confidence: analysis.confidence,
-            createdAt: analysis.createdAt,
-            results: analysis.results,
-            recommendations: analysis.recommendations,
-            companyData: analysis.companyData
-        };
-        
-        // Télécharger en JSON
-        const dataStr = JSON.stringify(exportData, null, 2);
-        const dataBlob = new Blob([dataStr], { type: 'application/json' });
-        const url = URL.createObjectURL(dataBlob);
-        
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = `analyse-${analysis.type}-${analysisId}-${new Date().toISOString().split('T')[0]}.json`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
-        showAlert('success', 'Succès', 'Votre analyse a été exportée avec succès !');
-        
-    } catch (error) {
-        showAlert('error', 'Erreur', error.message || 'Une erreur est survenue.');
-    }
-}
-
-// Supprimer une analyse
-async function deleteAnalysis(analysisId) {
-    if (!confirm('Êtes-vous sûr de vouloir supprimer cette analyse ? Cette action est irréversible.')) {
-        return;
-    }
-    
-    const user = authService.currentUser;
-    if (!user) return;
-    
-    try {
-        const firestoreDB = getDB();
-        if (!firestoreDB) {
-            console.warn('[Dashboard] Firestore non disponible pour deleteAnalysis');
-            return;
-        }
-        await firestoreDB.collection('users')
-            .doc(user.uid)
-            .collection('analyses')
-            .doc(analysisId)
-            .delete();
-        
-        showAlert('success', 'Succès', 'Votre analyse a été supprimée avec succès !');
-        
-        // Recharger l'historique
-        loadAnalysisHistory();
-        
-    } catch (error) {
-        showAlert('error', 'Erreur', error.message || 'Une erreur est survenue.');
-    }
-}
-
-// Charger les analyses récentes
-async function loadRecentAnalyses() {
-    await loadAnalysisHistory();
-}
-
-// Afficher toutes les analyses
-async function showAllAnalyses() {
-    const user = authService.currentUser;
-    const recentAnalysesEl = document.getElementById('recentAnalyses');
-    
-    if (!recentAnalysesEl) return;
-    
-    // Vérifier si on est en mode démo
-    const isFileProtocol = window.location.protocol === 'file:';
-    const isFirebaseAvailable = typeof window.firebase !== 'undefined' && window.firebase;
-    const isDemoMode = !isFirebaseAvailable || isFileProtocol;
-    
-    try {
-        let analyses = [];
-        
-        if (!isDemoMode && user) {
-            // Mode normal : charger TOUTES les analyses depuis Firestore
-            const firestoreDB = getDB();
-            if (!firestoreDB) {
-                console.warn('[Dashboard] Firestore non disponible pour showAllAnalyses');
-                isDemoMode = true;
-            } else {
-                const analysesSnapshot = await firestoreDB.collection('users')
-                    .doc(user.uid)
-                    .collection('analyses')
-                    .orderBy('createdAt', 'desc')
-                    .get();
-                
-                if (analysesSnapshot.empty) {
-                    recentAnalysesEl.innerHTML = `
-                    <div class="empty-state small">
-                        <div class="empty-state-icon">
-                            <i class="fas fa-chart-bar"></i>
-                        </div>
-                        <p>Vous n'avez pas encore réalisé d'analyse.</p>
-                    </div>
-                `;
-                    return;
-                }
-                
-                analysesSnapshot.forEach(doc => {
-                    analyses.push({ id: doc.id, ...doc.data() });
-                });
-            }
-        } else if (isDemoMode) {
-            // Mode démo : charger TOUTES les analyses depuis localStorage
-            try {
-                const demoAnalyses = JSON.parse(localStorage.getItem('dpai_demo_analyses') || '[]');
-                analyses = demoAnalyses;
-            } catch (e) {
-                console.error('[DPAI] Erreur chargement historique démo:', e);
-                analyses = [];
-            }
-        }
-        
-        if (analyses.length === 0) {
-            recentAnalysesEl.innerHTML = `
-                <div class="empty-state small">
-                    <div class="empty-state-icon">
-                        <i class="fas fa-chart-bar"></i>
-                    </div>
-                    <p>Vous n'avez pas encore réalisé d'analyse.</p>
-                </div>
-            `;
-            return;
-        }
-        
-        // Afficher TOUTES les analyses
-        let html = '<h4 style="margin-bottom: var(--spacing-md);">Toutes vos analyses</h4>';
-        
-        analyses.forEach(analysis => {
-            const date = formatDate(analysis.createdAt);
-            
-            const analysisTypes = {
-                swot: { icon: 'fa-swimming-pool', name: 'SWOT' },
-                porter: { icon: 'fa-project-diagram', name: 'Porter 5 Forces' },
-                pestel: { icon: 'fa-globe-americas', name: 'PESTEL' },
-                competitive: { icon: 'fa-users', name: 'Analyse Concurrentielle' }
-            };
-            
-            const typeInfo = analysisTypes[analysis.type] || { icon: 'fa-chart-line', name: analysis.type };
-            
-            const statusClass = analysis.status === 'completed' ? 'success' : 
-                              analysis.status === 'processing' ? 'warning' : 'error';
-            const statusIcon = analysis.status === 'completed' ? 'fa-check-circle' : 
-                               analysis.status === 'processing' ? 'fa-spinner fa-pulse' : 'fa-exclamation-circle';
-            const statusText = analysis.status === 'completed' ? 'Complété' : 
-                               analysis.status === 'processing' ? 'En cours' : 'Échoué';
-            
-            html += `
-                <div class="analysis-card" data-id="${analysis.id}" data-type="${analysis.type}">
-                    <div class="analysis-card-header">
-                        <div class="analysis-card-type">
-                            <i class="fas ${typeInfo.icon}"></i>
-                            <span class="analysis-type-badge">${typeInfo.name}</span>
-                        </div>
-                        <div class="analysis-card-title-wrapper">
-                            <span class="analysis-card-title">${analysis.name || 'Analyse sans nom'}</span>
-                            <span class="analysis-card-date">${date}</span>
-                        </div>
-                    </div>
-                    <div class="analysis-card-meta">
-                        <div class="analysis-card-meta-item">
-                            <i class="fas fa-coins"></i>
-                            <span>${analysis.cost || 0} tokens</span>
-                        </div>
-                        <div class="analysis-card-meta-item">
-                            <i class="fas fa-chart-line"></i>
-                            <span>Score: ${analysis.score || 0}/100</span>
-                        </div>
-                        <div class="analysis-card-meta-item">
-                            <i class="fas fa-circle ${statusClass}"></i>
-                            <span>${statusText}</span>
-                        </div>
-                    </div>
-                    <div class="analysis-card-actions">
-                        <button class="btn btn-sm btn-outline view-analysis-btn" data-id="${analysis.id}">
-                            <i class="fas fa-eye"></i> Voir les résultats
-                        </button>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += '<div style="margin-top: var(--spacing-md);"><a href="#" onclick="loadRecentAnalyses(); return false;" class="btn btn-outline"><i class="fas fa-arrow-left"></i> Retour aux récentes</a></div>';
-        
-        recentAnalysesEl.innerHTML = html;
-        
-        // Réattaché les événements de visionnage
-        initViewAnalysisButtons();
-        
-    } catch (error) {
-        console.error('[DPAI] Erreur chargement de toutes les analyses:', error);
-        showAlert('error', 'Erreur', 'Impossible de charger toutes les analyses.');
-    }
-}
-
-// Obtenir la classe CSS en fonction du score
-function getScoreClass(score) {
-    if (score >= 80) return 'excellent';
-    if (score >= 60) return 'good';
-    if (score >= 40) return 'average';
-    if (score >= 20) return 'poor';
-    return 'very-poor';
-}
-
-// Obtenir la classe CSS en fonction de l'attractivité
-function getAttractivenessClass(score) {
-    if (score >= 80) return 'very-attractive';
-    if (score >= 65) return 'attractive';
-    if (score >= 50) return 'neutral';
-    if (score >= 35) return 'unattractive';
-    return 'very-unattractive';
-}
-
-// Générer des résultats mock (pour la compatibilité avec l'existant)
-function generateMockResults(type) {
-    // Cette fonction est maintenant définie dans analyses.js
-    // On garde cette version pour la rétrocompatibilité
-    const results = {
-        swot: {
-            strengths: ['Forte notoriété', 'Équipe expérimentée', 'Technologie avancée'],
-            weaknesses: ['Coûts élevés', 'Dépendance à un client'],
-            opportunities: ['Nouveau marché', 'Partenariat stratégique'],
-            threats: ['Concurrence accrue', 'Changement réglementaire']
-        },
-        porter: {
-            supplierPower: 'Moyen',
-            buyerPower: 'Élevé',
-            newEntrants: 'Faible',
-            substitutes: 'Moyen',
-            rivalry: 'Élevé'
-        },
-        pestel: {
-            political: 'Stable',
-            economic: 'Croissance',
-            social: 'Favorable',
-            technological: 'Innovant',
-            environmental: 'Réglementé',
-            legal: 'Conforme'
-        },
-        competitive: {
-            competitors: ['Competitor A', 'Competitor B'],
-            comparison: { price: 'Compétitif', quality: 'Supérieur', features: 'Complet' }
-        }
-    };
-    
-    return results[type] || {};
+// Afficher un succès
+function showSuccess(message) {
+    console.log('Succès:', message);
+    // Peut être amélioré avec des notifications toast
 }
 
 // Afficher une alerte
-function showAlert(type, title, message) {
-    // Utiliser la fonction showAlert de main.js (si elle existe et est différente)
-    if (typeof window.showAlert === 'function' && window.showAlert !== showAlert) {
-        window.showAlert(type, title, message);
-    } else {
-        // Fallback
-        alert(`${title}: ${message}`);
-    }
+function showAlert(message) {
+    console.log('Alerte:', message);
+    // Peut être amélioré avec des notifications toast
 }
 
-// Lancer une analyse (fonction globale pour les boutons d'action rapide)
-async function startAnalysis(type) {
-    console.log('[DPAI] startAnalysis appelé avec type:', type);
+// Échapper le HTML
+function escapeHtml(text) {
+    if (!text) return '';
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+// =============================================================================
+// ÉVÉNEMENTS
+// =============================================================================
+
+// Initialiser les événements lors du chargement
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal Éditer Entreprise
+    const editCompanyBtn = document.createElement('button');
+    editCompanyBtn.className = 'btn btn-secondary btn-sm';
+    editCompanyBtn.innerHTML = '<i class="fas fa-edit"></i> Modifier les informations';
+    editCompanyBtn.style.marginTop = '1rem';
+    editCompanyBtn.addEventListener('click', () => {
+        document.getElementById('editCompanyName').value = companyData.name || '';
+        document.getElementById('editCompanySector').value = companyData.sector || '';
+        document.getElementById('editCompanyRevenue').value = companyData.revenue || '';
+        document.getElementById('editCompanyEmployees').value = companyData.employees || '';
+        document.getElementById('editCompanyEbitda').value = companyData.ebitda || '';
+        document.getElementById('editCompanyMargin').value = companyData.margin || '';
+        document.getElementById('editCompanyModal').classList.add('visible');
+    });
     
-    // Attendre que TokenManager et userData soient initialisés
-    if (typeof TokenManager !== 'undefined' && (!TokenManager.tokenState || !authService.userData)) {
-        console.log('[DPAI] Attente TokenManager.tokenState ou authService.userData...');
-        await new Promise((resolve) => {
-            const checkInterval = setInterval(() => {
-                if ((TokenManager.tokenState || typeof TokenManager === 'undefined') && 
-                    (authService.userData || typeof authService === 'undefined')) {
-                    clearInterval(checkInterval);
-                    resolve();
-                }
-            }, 100);
-            
-            setTimeout(() => {
-                clearInterval(checkInterval);
-                resolve(); // Continuer même si non initialisé
-            }, 3000);
+    // Ajouter le bouton à la carte entreprise
+    const companyCard = document.querySelector('.company-identity-card');
+    if (companyCard) {
+        companyCard.appendChild(editCompanyBtn);
+    }
+    
+    // Bouton Ajouter Action
+    const addActionBtn = document.createElement('button');
+    addActionBtn.className = 'btn btn-primary btn-sm';
+    addActionBtn.innerHTML = '<i class="fas fa-plus"></i> Ajouter une action';
+    addActionBtn.style.marginLeft = '1rem';
+    addActionBtn.addEventListener('click', () => {
+        document.getElementById('addActionModal').classList.add('visible');
+    });
+    
+    // Ajouter le bouton à la section actions
+    const actionsHeader = document.querySelector('.actions-header');
+    if (actionsHeader) {
+        const headerDiv = actionsHeader.querySelector('div:last-child');
+        if (headerDiv) {
+            headerDiv.prepend(addActionBtn);
+        }
+    }
+    
+    // Modal Éditer Entreprise - Boutons
+    document.getElementById('closeEditModal')?.addEventListener('click', () => {
+        document.getElementById('editCompanyModal').classList.remove('visible');
+    });
+    
+    document.getElementById('cancelEditCompany')?.addEventListener('click', () => {
+        document.getElementById('editCompanyModal').classList.remove('visible');
+    });
+    
+    document.getElementById('saveCompanyInfo')?.addEventListener('click', async () => {
+        const user = firebase.auth().currentUser;
+        if (user) {
+            await saveCompanyInfo(user.uid);
+        }
+    });
+    
+    // Modal Ajouter Action - Boutons
+    document.getElementById('closeAddActionModal')?.addEventListener('click', () => {
+        document.getElementById('addActionModal').classList.remove('visible');
+    });
+    
+    document.getElementById('cancelAddAction')?.addEventListener('click', () => {
+        document.getElementById('addActionModal').classList.remove('visible');
+    });
+    
+    document.getElementById('saveAction')?.addEventListener('click', async () => {
+        const user = firebase.auth().currentUser;
+        if (user) {
+            await saveNewAction(user.uid);
+        }
+    });
+    
+    // Fermer les modals en cliquant à l'extérieur
+    document.querySelectorAll('.modal').forEach(modal => {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('visible');
+            }
         });
-    }
+    });
     
-    const modal = document.getElementById('analysisModal');
-    const modalTitle = document.getElementById('analysisModalTitle');
+    // Onglets Alertes
+    document.querySelectorAll('.alert-tab').forEach(tab => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.alert-tab').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+        });
+    });
+});
+
+// Sauvegarder une nouvelle action
+async function saveNewAction(userId) {
+    const db = firebase.firestore();
     
-    if (modal) {
-        console.log('[DPAI] Modal trouvé, ouverture...');
-        // Définir le type d'analyse
-        const analysisTypeInput = document.getElementById('analysisType');
-        if (analysisTypeInput) {
-            analysisTypeInput.value = type;
-        }
-        
-        // Mettre à jour le titre du modal selon le type
-        const analysisNames = {
-            swot: 'Analyse SWOT',
-            porter: 'Porter 5 Forces',
-            pestel: 'Analyse PESTEL',
-            competitive: 'Analyse Concurrentielle'
-        };
-        if (modalTitle && analysisNames[type]) {
-            modalTitle.textContent = `Lancer : ${analysisNames[type]}`;
-        } else if (modalTitle) {
-            modalTitle.textContent = 'Lancer une analyse';
-        }
-        
-        // Mettre à jour l'estimation et les champs spécifiques
-        updateAnalysisEstimation(type);
-        const specificFieldsContainer = document.getElementById('analysisSpecificFields');
-        updateSpecificFields(type, specificFieldsContainer);
-        
-        // FORCER la synchronisation de userAvailableTokens depuis le dashboard
-        const availableTokensEl = document.getElementById('availableTokens');
-        const userAvailableTokensEl = document.getElementById('userAvailableTokens');
-        if (availableTokensEl && userAvailableTokensEl) {
-            userAvailableTokensEl.textContent = availableTokensEl.textContent;
-            console.log('[DPAI] Sync forcée: userAvailableTokens =', availableTokensEl.textContent);
-        }
-        
-        // Ouvrir le modal
-        modal.classList.add('visible');
-        console.log('[DPAI] Modal ouvert, classe visible ajoutée');
-    } else {
-        console.error('[DPAI] Modal analysisModal non trouvé !');
-    }
+    const action = {
+        title: document.getElementById('actionTitle').value,
+        description: document.getElementById('actionDescription').value,
+        priority: document.getElementById('actionPriority').value,
+        impact: parseFloat(document.getElementById('actionImpact').value) || 0,
+        deadline: document.getElementById('actionDeadline').value,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+        type: 'user'
+    };
+    
+    await db.collection('users').doc(userId).collection('actions').add(action);
+    
+    document.getElementById('addActionModal').classList.remove('visible');
+    document.getElementById('actionForm').reset();
+    
+    // Recharger les actions
+    await loadUserActions(userId);
+    updateActionsTable();
+    updateProjections();
+    
+    showSuccess('Action ajoutée avec succès');
 }
 
-// Lancer une analyse (appelée depuis la modal)
-async function launchAnalysis(type, name, description, cost) {
-    console.log('[DPAI] launchAnalysis appelé:', { type, name, description, cost });
-    
-    try {
-        // Vérifier qu'on peut utiliser les tokens
-        if (!TokenManager || !TokenManager.tokenState) {
-            showAlert('error', 'Erreur', 'TokenManager non initialisé. Veuillez recharger la page.');
-            return;
-        }
-        
-        const available = TokenManager.availableTokens || 0;
-        if (available < cost) {
-            showAlert('error', 'Erreur', `Vous n'avez pas assez de tokens. Nécessaire: ${TokenUtils.formatTokens(cost)}, Disponible: ${TokenUtils.formatTokens(available)}`);
-            return;
-        }
-        
-        // Utiliser les tokens via TokenManager
-        console.log('[DPAI] Déduction de', cost, 'tokens...');
-        const success = await TokenManager.useTokens(cost, type);
-        
-        if (!success) {
-            showAlert('error', 'Erreur', 'Impossible de déduire les tokens.');
-            return;
-        }
-        
-        console.log('[DPAI] Tokens déduits avec succès');
-        
-        // Mettre à jour l'interface
-        await updateAfterAnalysis(type, name, description, cost);
-        
-        // Fermer le modal si ouvert
-        const modal = document.getElementById('analysisModal');
-        if (modal && modal.classList.contains('visible')) {
-            modal.classList.remove('visible');
-        }
-        
-        showAlert('success', 'Succès', 'Analyse lancée avec succès ! Les tokens ont été déduits.');
-        
-    } catch (error) {
-        console.error('[DPAI] Erreur dans launchAnalysis:', error);
-        showAlert('error', 'Erreur', 'Une erreur est survenue lors du lancement de l\'analyse : ' + error.message);
-    }
-}
+// =============================================================================
+// EXPORT POUR L'INTÉGRATION
+// =============================================================================
 
-// Rendre les fonctions disponibles globalement
-window.startAnalysis = startAnalysis;
-window.launchAnalysis = launchAnalysis;
-window.viewAnalysis = viewAnalysis;
-window.exportAnalysis = exportAnalysis;
-window.deleteAnalysis = deleteAnalysis;
-window.showAnalysisModal = showAnalysisModal;
-window.generateMockResults = generateMockResults;
-window.updateSpecificFields = updateSpecificFields;
-window.collectAnalysisData = collectAnalysisData;
+window.loadDashboard = loadDashboard;
+window.saveCompanyInfo = saveCompanyInfo;
+window.changeActionStatus = changeActionStatus;

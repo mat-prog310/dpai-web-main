@@ -3,37 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Balises SEO - Noindex car page privée -->
-    <title>Tableau de Bord | DPAI Strategy - Gestion de vos Tokens et Analyses</title>
-    <meta name="description" content="Votre espace privé DPAI : suivez votre solde de tokens (500 gratuits = 125€), consultez l'historique de vos analyses stratégiques et gérez votre compte.">
-    <meta name="keywords" content="tableau de bord, gestion tokens, historique analyses, DPAI dashboard, suivi utilisation, analyser stratégiques">
+    <title>Tableau de Bord | DPAI Strategy - Analyse Stratégique Personnalisée</title>
+    <meta name="description" content="Votre espace privé DPAI : suivez vos KPIs entreprise, le suivi de vos actions stratégiques, vos projections et votre historique d'analyses.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="author" content="DPAI Strategy">
-    
-    <!-- Favicon -->
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    
-    <!-- Open Graph - Noindex -->
-    <meta property="og:title" content="Tableau de Bord DPAI - Espace Privé" />
-    <meta property="og:description" content="Gestion de vos tokens et analyses stratégiques" />
-    <meta property="og:robots" content="noindex" />
-    
-    <!-- Firebase -->
-    
-    <!-- Fonts -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Styles -->
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/responsive.css">
-    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
@@ -41,6 +25,376 @@
     <script src="/js/firebase-config.js"></script>
     <script src="/js/protocol-check.js"></script>
     <script src="/js/auth.js"></script>
+    <script src="/js/tokens.js"></script>
+    <style>
+        /* Dashboard Specific Styles */
+        .company-identity-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .company-identity-card .company-logo-placeholder {
+            width: 80px;
+            height: 80px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .company-info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .company-info-item {
+            background: rgba(255,255,255,0.1);
+            padding: 1rem;
+            border-radius: 12px;
+            text-align: center;
+        }
+        .company-info-label {
+            font-size: 0.875rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .company-info-value {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .kpi-section {
+            margin: 2rem 0;
+        }
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+        .kpi-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .kpi-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .kpi-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+        .kpi-icon.ca { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; }
+        .kpi-icon.employees { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; }
+        .kpi-icon.ebitda { background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); color: white; }
+        .kpi-icon.marge { background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%); color: white; }
+        .kpi-icon.growth { background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); color: white; }
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1a202c;
+            margin-bottom: 0.5rem;
+        }
+        .kpi-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 1rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+        }
+        .kpi-trend.up { background: #d6f5e5; color: #2b8a3e; }
+        .kpi-trend.down { background: #fee2e2; color: #c53030; }
+        .kpi-trend.stable { background: #e2e8f0; color: #4a5568; }
+        .kpi-label {
+            font-size: 0.875rem;
+            color: #718096;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .actions-section {
+            margin: 2rem 0;
+        }
+        .actions-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .actions-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .actions-table th,
+        .actions-table td {
+            padding: 1rem 1.5rem;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        .actions-table th {
+            background: #f7fafc;
+            font-weight: 600;
+            color: #4a5568;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+        .actions-table tr:hover td {
+            background: #f7fafc;
+        }
+        .action-status {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .action-status.completed { background: #d6f5e5; color: #2b8a3e; }
+        .action-status.in-progress { background: #fef5e7; color: #dd6b20; }
+        .action-status.pending { background: #e2e8f0; color: #4a5568; }
+        .action-priority {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+        }
+        .action-priority.high { background: #e53e3e; }
+        .action-priority.medium { background: #dd6b20; }
+        .action-priority.low { background: #38a169; }
+        .projections-section {
+            margin: 2rem 0;
+        }
+        .projections-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+        .projection-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .projection-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .projection-header i {
+            color: #667eea;
+            font-size: 1.5rem;
+        }
+        .projection-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1a202c;
+        }
+        .projection-values {
+            display: flex;
+            align-items: baseline;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        .projection-value {
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1a202c;
+        }
+        .projection-change {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        .projection-change.up { color: #38a169; }
+        .projection-change.down { color: #e53e3e; }
+        .projection-bar {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        .projection-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .history-section {
+            margin: 2rem 0;
+        }
+        .history-charts {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+        }
+        .chart-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .chart-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: #1a202c;
+        }
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .chart-btn {
+            padding: 0.25rem 0.75rem;
+            border: 1px solid #e2e8f0;
+            background: white;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #4a5568;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .chart-btn:hover {
+            background: #f7fafc;
+            border-color: #cbd5e0;
+        }
+        .chart-btn.active {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+        }
+        .alerts-section {
+            margin: 2rem 0;
+        }
+        .alerts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .alerts-tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid #e2e8f0;
+            margin-bottom: 1.5rem;
+        }
+        .alert-tab {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: #4a5568;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s ease;
+        }
+        .alert-tab:hover {
+            color: #667eea;
+        }
+        .alert-tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+        .alert-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+        .alert-item:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+        }
+        .alert-item.urgent { border-left: 4px solid #e53e3e; }
+        .alert-item.warning { border-left: 4px solid #dd6b20; }
+        .alert-item.success { border-left: 4px solid #38a169; }
+        .alert-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .alert-item.urgent .alert-icon { background: #fee2e2; color: #e53e3e; }
+        .alert-item.warning .alert-icon { background: #fef5e7; color: #dd6b20; }
+        .alert-item.success .alert-icon { background: #d6f5e5; color: #38a169; }
+        .alert-content {
+            flex: 1;
+        }
+        .alert-title {
+            font-size: 0.875rem;
+            font-weight: 700;
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+        }
+        .alert-message {
+            font-size: 0.875rem;
+            color: #4a5568;
+            line-height: 1.5;
+        }
+        .alert-time {
+            font-size: 0.75rem;
+            color: #718096;
+        }
+        @media (max-width: 768px) {
+            .company-info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .kpi-grid {
+                grid-template-columns: 1fr;
+            }
+            .projections-grid {
+                grid-template-columns: 1fr;
+            }
+            .history-charts {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
@@ -50,13 +404,11 @@
                 <i class="fas fa-chart-line"></i>
                 <span>DPAI</span>
             </a>
-            
             <ul class="nav-links" id="navLinks">
                 <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
                 <li><a href="services.html" class="nav-link">Services</a></li>
-                
+                <li><a href="pricing.html" class="nav-link">Tarifs</a></li>
             </ul>
-            
             <div class="nav-actions">
                 <a href="login.html" class="btn btn-ghost" id="loginBtn" style="display: none;">
                     <i class="fas fa-sign-in-alt"></i> Connexion
@@ -73,19 +425,17 @@
                         <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
                         <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
                         <a href="plus-de-tokens.html"><i class="fas fa-coins"></i> Plus de tokens</a>
-                        
                         <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                     </div>
                 </div>
             </div>
-            
             <button class="mobile-toggle" id="mobileToggle">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </nav>
 
-    <!-- Dashboard Header -->
+    <!-- Page Header -->
     <section class="page-header" id="dashboardHeader" style="display: none;">
         <div class="container">
             <div class="breadcrumb">
@@ -123,675 +473,477 @@
     </section>
 
     <!-- Dashboard Content -->
-    <section class="dashboard-content" id="dashboardContent" style="display: none;">
-        <!-- Welcome Section -->
-        <div class="container">
-            <div class="dashboard-header">
-                <div class="dashboard-welcome">
-                    <h2>Bonjour, <span id="dashboardUserName">Utilisateur</span> !</h2>
-                    <p>Voici un aperçu de votre activité et de vos ressources.</p>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Stats Section -->
-        <section class="stats-section">
+    <main class="dashboard-content" id="dashboardContent" style="display: none;">
+        <!-- Company Identity Section -->
+        <section class="company-section">
             <div class="container">
-                <div class="dashboard-stats">
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-coins"></i>
-                        </div>
-                        <div class="stat-value" id="availableTokens">0</div>
-                        <div class="stat-label">Tokens disponibles</div>
-                        <div class="progress-bar" style="margin-top: var(--spacing-sm);">
-                            <div class="progress-bar-fill" id="tokenProgress" style="width: 0%;"></div>
-                        </div>
-                        <div class="progress-bar-label">
-                            <span><span id="usedTokens">0</span> utilisés</span>
-                            <span><span id="totalTokens">0</span> total</span>
-                        </div>
+                <div class="company-identity-card">
+                    <div class="company-logo-placeholder">
+                        <i class="fas fa-building"></i>
                     </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-chart-line"></i>
+                    <h2 id="companyName">Nom de l'entreprise</h2>
+                    <p id="companySector" style="opacity: 0.9; margin-bottom: 1.5rem;">Secteur d'activité</p>
+                    <div class="company-info-grid">
+                        <div class="company-info-item">
+                            <div class="company-info-label">Chiffre d'affaires</div>
+                            <div class="company-info-value" id="companyRevenue">-</div>
                         </div>
-                        <div class="stat-value" id="totalAnalyses">0</div>
-                        <div class="stat-label">Analyses réalisées</div>
-                        <div class="stat-trend">
-                            <i class="fas fa-arrow-up"></i>
-                            <span>+<span id="monthlyAnalyses">0</span> ce mois</span>
+                        <div class="company-info-item">
+                            <div class="company-info-label">Employés</div>
+                            <div class="company-info-value" id="companyEmployees">-</div>
                         </div>
-                    </div>
-                    
-                    <div class="stat-card">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar-day"></i>
+                        <div class="company-info-item">
+                            <div class="company-info-label">EBITDA</div>
+                            <div class="company-info-value" id="companyEbitda">-</div>
                         </div>
-                        <div class="stat-value">+1</div>
-                        <div class="stat-label">Token par jour</div>
-                        <div class="stat-info">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Bonus quotidien</span>
+                        <div class="company-info-item">
+                            <div class="company-info-label">Marge</div>
+                            <div class="company-info-value" id="companyMargin">-</div>
                         </div>
-                    </div>
                     </div>
                 </div>
             </div>
         </section>
-        
-        <!-- Main Dashboard -->
-        <section class="dashboard-main-section">
+
+        <!-- KPIs Section -->
+        <section class="kpi-section">
             <div class="container">
-                <div class="dashboard-main">
-                    <!-- Left Column -->
-                    <div class="dashboard-column">
-                        <!-- Quick Actions -->
-                        <div class="card dashboard-content">
-                            <div class="card-header">
-                                <h3 class="card-title">Actions rapides</h3>
-                                <p class="card-subtitle">Lancez une nouvelle analyse en un clic</p>
-                            </div>
-                            <div class="card-body">
-                                <div class="quick-actions">
-                                    <!-- Les boutons seront générés dynamiquement par dashboard.js -->
-                                </div>
-                                <div class="quick-actions-info">
-                                    <p><i class="fas fa-info-circle"></i> Les coûts en tokens varient selon votre plan.</p>
-                                    <a href="services.html" class="btn btn-sm btn-outline">
-                                        <i class="fas fa-list"></i> Voir tous les services
-                                    </a>
-                                </div>
+                <div class="section-header">
+                    <span class="section-tag">PERFORMANCE</span>
+                    <h2>Indicateurs Clés</h2>
+                    <p>Suivez l'évolution de vos principaux indicateurs stratégiques</p>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon ca"><i class="fas fa-chart-line"></i></div>
+                            <div>
+                                <div class="kpi-label">Chiffre d'affaires</div>
                             </div>
                         </div>
-                        
-                        <!-- Recent Analyses -->
-                        <div class="card dashboard-content">
-                            <div class="dashboard-section-title">
-                                <h3>Dernières analyses</h3>
-                                <a href="#" id="showAllAnalyses">Toutes les analyses <i class="fas fa-arrow-right"></i></a>
-                            </div>
-                            <div class="card-body">
-                                <div class="analysis-list" id="recentAnalyses">
-                                    <!-- Les analyses seront chargées dynamiquement -->
-                                    <div class="empty-state small">
-                                        <div class="empty-state-icon">
-                                            <i class="fas fa-chart-bar"></i>
-                                        </div>
-                                        <p>Vous n'avez pas encore réalisé d'analyse.</p>
-                                        <p class="empty-state-message">Commencez par lancer votre première analyse !</p>
-                                    </div>
-                                </div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiRevenue">0 €</div>
+                            <div class="kpi-trend up" id="kpiRevenueTrend">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+0%</span>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Right Column -->
-                    <div class="dashboard-column">
-                        <!-- Token Summary -->
-                        <div class="card dashboard-sidebar">
-                            <div class="card-header">
-                                <h3 class="card-title">Résumé des tokens</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="token-summary">
-                                    <div class="token-summary-item">
-                                        <span>Disponibles</span>
-                                        <span class="token-summary-value" id="tokenAvailable">0</span>
-                                    </div>
-                                    <div class="token-summary-item">
-                                        <span>Utilisés ce mois</span>
-                                        <span class="token-summary-value" id="tokenUsedMonthly">0</span>
-                                    </div>
-                                    <div class="token-summary-item">
-                                        <span>Quota mensuel</span>
-                                        <span class="token-summary-value" id="tokenMonthlyLimit">50</span>
-                                    </div>
-                                </div>
-                                <div class="token-actions">
-                                    <a href="plus-de-tokens.html" class="btn btn-primary btn-block">
-                                        <i class="fas fa-plus-circle"></i> Besoin de plus de tokens ?
-                                    </a>
-                                </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon employees"><i class="fas fa-users"></i></div>
+                            <div>
+                                <div class="kpi-label">Effectif</div>
                             </div>
                         </div>
-                        
-                        <!-- Token History -->
-                        <div class="card dashboard-sidebar">
-                            <div class="card-header">
-                                <h3 class="card-title">Historique des tokens</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="token-history" id="tokenHistory">
-                                    <!-- L'historique sera chargé dynamiquement -->
-                                    <div class="empty-state small">
-                                        <div class="empty-state-icon">
-                                            <i class="fas fa-history"></i>
-                                        </div>
-                                        <p>Pas d'historique disponible.</p>
-                                    </div>
-                                </div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiEmployees">0</div>
+                            <div class="kpi-trend stable" id="kpiEmployeesTrend">
+                                <i class="fas fa-minus"></i>
+                                <span>0%</span>
                             </div>
                         </div>
-                        
-                        <!-- Contact pour plus de tokens -->
-                        <div class="card dashboard-sidebar">
-                            <div class="card-header">
-                                <h3 class="card-title"><i class="fas fa-coins"></i> Envie de plus ?</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="contact-info">
-                                    <p>Vous avez épuisé vos tokens ou souhaitez accéder aux <strong>Phases 3 & 4</strong> ?</p>
-                                    <p>Contactez-nous pour un devis personnalisé.</p>
-                                    <div class="contact-actions">
-                                        <a href="plus-de-tokens.html" class="btn btn-primary btn-block">
-                                            <i class="fas fa-arrow-right"></i> Voir les options
-                                        </a>
-                                    </div>
-                                </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon ebitda"><i class="fas fa-coins"></i></div>
+                            <div>
+                                <div class="kpi-label">EBITDA</div>
                             </div>
                         </div>
-                        
-    </section>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiEbitda">0 €</div>
+                            <div class="kpi-trend up" id="kpiEbitdaTrend">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>+0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon marge"><i class="fas fa-percentage"></i></div>
+                            <div>
+                                <div class="kpi-label">Marge</div>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiMargin">0%</div>
+                            <div class="kpi-trend stable" id="kpiMarginTrend">
+                                <i class="fas fa-minus"></i>
+                                <span>0%</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="kpi-card">
+                        <div class="kpi-header">
+                            <div class="kpi-icon growth"><i class="fas fa-rocket"></i></div>
+                            <div>
+                                <div class="kpi-label">Croissance CA</div>
+                            </div>
+                        </div>
+                        <div class="kpi-body">
+                            <div class="kpi-value" id="kpiGrowth">0%</div>
+                            <div class="kpi-trend up" id="kpiGrowthTrend">
+                                <i class="fas fa-arrow-up"></i>
+                                <span>Prévision</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <!-- NOUVELLES SECTIONS TABLEAU DE BORD -->
-    
-    <!-- Company Identity Card -->
-    <section class="company-section" id="companySection">
-        <div class="container">
-            <div class="company-card-full">
-                <div class="company-card-header">
-                    <div class="company-logo">
-                        <i class="fas fa-building"></i>
-                    </div>
-                    <div class="company-info-main">
-                        <h2 id="companyName">Mon Entreprise</h2>
-                        <p class="company-tagline" id="companyTagline">Stratégie de croissance externe</p>
-                    </div>
+        <!-- Actions Tracker Section -->
+        <section class="actions-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">SUIVI</span>
+                    <h2>Actions Recommandées</h2>
+                    <p>Suivez l'exécution des actions stratégiques proposées pour votre entreprise</p>
                 </div>
-                <div class="company-card-body">
-                    <div class="company-details-grid">
-                        <div class="company-detail">
-                            <div class="detail-label">Secteur</div>
-                            <div class="detail-value" id="companySector">Non spécifié</div>
-                        </div>
-                        <div class="company-detail">
-                            <div class="detail-label">Chiffre d'affaires</div>
-                            <div class="detail-value" id="companyRevenue">-</div>
-                        </div>
-                        <div class="company-detail">
-                            <div class="detail-label">EBITDA</div>
-                            <div class="detail-value" id="companyEbitda">-</div>
-                        </div>
-                        <div class="company-detail">
-                            <div class="detail-label">Effectifs</div>
-                            <div class="detail-value" id="companyEmployees">-</div>
-                        </div>
-                        <div class="company-detail">
-                            <div class="detail-label">Date de création</div>
-                            <div class="detail-value" id="companyFounded">-</div>
-                        </div>
-                        <div class="company-detail">
-                            <div class="detail-label">Part de marché</div>
-                            <div class="detail-value" id="companyMarketShare">-</div>
-                        </div>
+                <div class="actions-header">
+                    <div>
+                        <h3>Liste des actions</h3>
+                        <p style="color: #718096; font-size: 0.875rem; margin-top: 0.25rem;">
+                            <span id="actionsCompletedCount">0</span> complétées sur <span id="actionsTotalCount">0</span>
+                        </p>
                     </div>
-                    <div class="company-actions">
-                        <button class="btn btn-outline btn-sm" id="editCompanyInfo">
-                            <i class="fas fa-edit"></i> Modifier les informations
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- KPIs Section with Trends -->
-    <section class="kpis-section" id="kpisSection">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-tag">INDICATEURS</span>
-                <h2>Performances Clés</h2>
-                <p class="section-subtitle">Évolution de vos principaux indicateurs stratégiques</p>
-            </div>
-            <div class="kpis-grid">
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-icon">
-                            <i class="fas fa-chart-line"></i>
-                        </div>
-                        <div class="kpi-title">Indice DPAI</div>
-                    </div>
-                    <div class="kpi-body">
-                        <div class="kpi-value" id="dpaiIndex">-</div>
-                        <div class="kpi-trend" id="dpaiIndexTrend">-</div>
-                        <div class="kpi-description">Score global basé sur toutes vos analyses</div>
-                        <div class="kpi-bar">
-                            <div class="kpi-bar-fill" id="dpaiIndexBar" style="width: 0%;"></div>
+                    <div>
+                        <div class="kpi-trend up" id="actionsProgress">
+                            <i class="fas fa-check-circle"></i>
+                            <span>0%</span>
                         </div>
                     </div>
                 </div>
-                
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-icon">
-                            <i class="fas fa-bullseye"></i>
-                        </div>
-                        <div class="kpi-title">Score Stratégique</div>
-                    </div>
-                    <div class="kpi-body">
-                        <div class="kpi-value" id="strategicScore">-</div>
-                        <div class="kpi-trend" id="strategicScoreTrend">-</div>
-                        <div class="kpi-description">Basé sur vos analyses SWOT, Porter, PESTEL</div>
-                        <div class="kpi-bar">
-                            <div class="kpi-bar-fill" id="strategicScoreBar" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-icon">
-                            <i class="fas fa-rocket"></i>
-                        </div>
-                        <div class="kpi-title">Potentiel M&A</div>
-                    </div>
-                    <div class="kpi-body">
-                        <div class="kpi-value" id="maPotential">-</div>
-                        <div class="kpi-trend" id="maPotentialTrend">-</div>
-                        <div class="kpi-description">Opportunités de croissance externe identifiées</div>
-                        <div class="kpi-bar">
-                            <div class="kpi-bar-fill" id="maPotentialBar" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="kpi-card">
-                    <div class="kpi-header">
-                        <div class="kpi-icon">
-                            <i class="fas fa-euro-sign"></i>
-                        </div>
-                        <div class="kpi-title">Valorisation Estimée</div>
-                    </div>
-                    <div class="kpi-body">
-                        <div class="kpi-value" id="companyValuation">-</div>
-                        <div class="kpi-trend" id="valuationTrend">-</div>
-                        <div class="kpi-description">Valeur estimée de votre entreprise</div>
-                        <div class="kpi-bar">
-                            <div class="kpi-bar-fill" id="valuationBar" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Actions Tracker Section -->
-    <section class="actions-section" id="actionsSection">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-tag">ACTIONS</span>
-                <h2>Plan d'Action Stratégique</h2>
-                <p class="section-subtitle">Suivez l'avancement de vos actions recommandées</p>
-            </div>
-            <div class="actions-tracker">
-                <div class="actions-progress">
-                    <div class="progress-header">
-                        <span>Progression Globale</span>
-                        <span class="progress-percentage" id="actionsProgress">0%</span>
-                    </div>
-                    <div class="progress-bar">
-                        <div class="progress-bar-fill" id="actionsProgressBar" style="width: 0%;"></div>
-                    </div>
-                    <div class="progress-details">
-                        <span><span id="actionsCompleted">0</span> terminées</span>
-                        <span><span id="actionsInProgress">0</span> en cours</span>
-                        <span><span id="actionsPending">0</span> à faire</span>
-                    </div>
-                </div>
-                
                 <div class="actions-table-container">
                     <table class="actions-table">
                         <thead>
                             <tr>
                                 <th>Action</th>
+                                <th>Priorité</th>
                                 <th>Statut</th>
                                 <th>Impact</th>
-                                <th>Date</th>
-                                <th>Actions</th>
+                                <th>Échéance</th>
                             </tr>
                         </thead>
                         <tbody id="actionsTableBody">
                             <tr class="no-actions">
-                                <td colspan="5">
-                                    <div class="empty-state small">
-                                        <div class="empty-state-icon">
-                                            <i class="fas fa-tasks"></i>
-                                        </div>
-                                        <p>Aucune action recommandée pour le moment.</p>
-                                        <p>Lancez une analyse pour recevoir des recommandations personnalisées.</p>
-                                    </div>
+                                <td colspan="5" style="text-align: center; color: #718096; padding: 2rem;">
+                                    <i class="fas fa-info-circle"></i> Aucune action recommandée pour le moment
                                 </td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Projections Section -->
-    <section class="projections-section" id="projectionsSection">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-tag">PROJECTIONS</span>
-                <h2>Impact Potentiel</h2>
-                <p class="section-subtitle">Si toutes vos actions recommandées sont réalisées</p>
+        <!-- Projections Section -->
+        <section class="projections-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">PROJECTIONS</span>
+                    <h2>Évolutions Possibles</h2>
+                    <p>Basé sur votre historique et les actions en cours</p>
+                </div>
+                <div class="projections-grid">
+                    <div class="projection-card">
+                        <div class="projection-header">
+                            <i class="fas fa-chart-line"></i>
+                            <h3 class="projection-title">CA Projeté</h3>
+                        </div>
+                        <div class="projection-body">
+                            <div class="projection-values">
+                                <span class="projection-value" id="projectedRevenue">0 €</span>
+                                <span class="projection-change up" id="projectedRevenueChange">
+                                    <i class="fas fa-arrow-up"></i> +0%
+                                </span>
+                            </div>
+                            <div class="projection-bar">
+                                <div class="projection-bar-fill" id="projectedRevenueBar" style="width: 0%;"></div>
+                            </div>
+                            <div class="projection-note">
+                                <i class="fas fa-clock"></i>
+                                <span>Sur 12 mois (si actions implémentées)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="projection-card">
+                        <div class="projection-header">
+                            <i class="fas fa-coins"></i>
+                            <h3 class="projection-title">EBITDA Projeté</h3>
+                        </div>
+                        <div class="projection-body">
+                            <div class="projection-values">
+                                <span class="projection-value" id="projectedEbitda">0 €</span>
+                                <span class="projection-change up" id="projectedEbitdaChange">
+                                    <i class="fas fa-arrow-up"></i> +0%
+                                </span>
+                            </div>
+                            <div class="projection-bar">
+                                <div class="projection-bar-fill" id="projectedEbitdaBar" style="width: 0%;"></div>
+                            </div>
+                            <div class="projection-note">
+                                <i class="fas fa-clock"></i>
+                                <span>Sur 12 mois (si actions implémentées)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="projection-card">
+                        <div class="projection-header">
+                            <i class="fas fa-percentage"></i>
+                            <h3 class="projection-title">Marge Projetée</h3>
+                        </div>
+                        <div class="projection-body">
+                            <div class="projection-values">
+                                <span class="projection-value" id="projectedMargin">0%</span>
+                                <span class="projection-change up" id="projectedMarginChange">
+                                    <i class="fas fa-arrow-up"></i> +0%
+                                </span>
+                            </div>
+                            <div class="projection-bar">
+                                <div class="projection-bar-fill" id="projectedMarginBar" style="width: 0%;"></div>
+                            </div>
+                            <div class="projection-note">
+                                <i class="fas fa-clock"></i>
+                                <span>Sur 12 mois (si actions implémentées)</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="projection-card total-impact">
+                        <div class="projection-header">
+                            <i class="fas fa-star"></i>
+                            <h3 class="projection-title">Impact Total</h3>
+                        </div>
+                        <div class="projection-body">
+                            <div class="projection-values large">
+                                <span class="projection-value" id="totalImpact">0 €</span>
+                            </div>
+                            <div class="projection-change large up" id="totalImpactChange">
+                                <i class="fas fa-arrow-up"></i> Potentiel maximum
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="projections-grid">
-                <div class="projection-card">
-                    <div class="projection-header">
-                        <i class="fas fa-arrow-trend-up"></i>
-                        <h3>Chiffre d'Affaires</h3>
-                    </div>
-                    <div class="projection-body">
-                        <div class="projection-values">
-                            <span class="current-value" id="currentRevenue">-</span>
-                            <i class="fas fa-arrow-right"></i>
-                            <span class="future-value" id="futureRevenue">-</span>
-                        </div>
-                        <div class="projection-change" id="revenueChange">+0%</div>
-                        <div class="projection-bar">
-                            <div class="projection-bar-fill" id="revenueProgress" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="projection-card">
-                    <div class="projection-header">
-                        <i class="fas fa-arrow-trend-up"></i>
-                        <h3>EBITDA</h3>
-                    </div>
-                    <div class="projection-body">
-                        <div class="projection-values">
-                            <span class="current-value" id="currentEbitda">-</span>
-                            <i class="fas fa-arrow-right"></i>
-                            <span class="future-value" id="futureEbitda">-</span>
-                        </div>
-                        <div class="projection-change" id="ebitdaChange">+0%</div>
-                        <div class="projection-bar">
-                            <div class="projection-bar-fill" id="ebitdaProgress" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="projection-card">
-                    <div class="projection-header">
-                        <i class="fas fa-percentage"></i>
-                        <h3>Marge</h3>
-                    </div>
-                    <div class="projection-body">
-                        <div class="projection-values">
-                            <span class="current-value" id="currentMargin">-</span>
-                            <i class="fas fa-arrow-right"></i>
-                            <span class="future-value" id="futureMargin">-</span>
-                        </div>
-                        <div class="projection-change" id="marginChange">+0%</div>
-                        <div class="projection-bar">
-                            <div class="projection-bar-fill" id="marginProgress" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="projection-card total-impact">
-                    <div class="projection-header">
-                        <i class="fas fa-gem"></i>
-                        <h3>Valeur d'Entreprise</h3>
-                    </div>
-                    <div class="projection-body">
-                        <div class="projection-values large">
-                            <span class="current-value" id="currentValuation">-</span>
-                            <i class="fas fa-arrow-right"></i>
-                            <span class="future-value" id="futureValuation">-</span>
-                        </div>
-                        <div class="projection-change large" id="valuationChange">+0€</div>
-                        <div class="projection-note">
-                            <i class="fas fa-info-circle"></i>
-                            <span>Impact estimé si toutes les actions sont réalisées</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- History & Evolution Section -->
-    <section class="history-section" id="historySection">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-tag">HISTORIQUE</span>
-                <h2>Évolution des Indicateurs</h2>
-                <p class="section-subtitle">Analysez vos performances au fil du temps</p>
-            </div>
-            <div class="history-charts">
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h4>Évolution du Chiffre d'Affaires</h4>
-                        <div class="chart-controls">
-                            <button class="chart-btn active" data-period="month">Mois</button>
-                            <button class="chart-btn" data-period="quarter">Trimestre</button>
-                            <button class="chart-btn" data-period="year">Année</button>
+        <!-- History Charts Section -->
+        <section class="history-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">HISTORIQUE</span>
+                    <h2>Évolution sur 12 mois</h2>
+                    <p>Visualisez la progression de vos indicateurs clés</p>
+                </div>
+                <div class="history-charts">
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">Chiffre d'affaires</h4>
+                            <div class="chart-controls">
+                                <button class="chart-btn active" data-period="month">Mois</button>
+                                <button class="chart-btn" data-period="quarter">Trimestre</button>
+                                <button class="chart-btn" data-period="year">Année</button>
+                            </div>
+                        </div>
+                        <div class="chart-body" id="revenueChart">
+                            <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #718096;">
+                                <i class="fas fa-chart-area" style="font-size: 3rem; margin-right: 1rem;"></i>
+                                <span>Graphique disponible après saisie des données</span>
+                            </div>
                         </div>
                     </div>
-                    <div class="chart-body">
-                        <canvas id="revenueChart"></canvas>
-                    </div>
-                </div>
-                
-                <div class="chart-card">
-                    <div class="chart-header">
-                        <h4>Score DPAI</h4>
-                        <div class="chart-controls">
-                            <button class="chart-btn active" data-period="month">Mois</button>
-                            <button class="chart-btn" data-period="quarter">Trimestre</button>
-                            <button class="chart-btn" data-period="year">Année</button>
+                    <div class="chart-card">
+                        <div class="chart-header">
+                            <h4 class="chart-title">Analyses réalisées</h4>
+                            <div class="chart-controls">
+                                <button class="chart-btn active" data-period="month">Mois</button>
+                                <button class="chart-btn" data-period="quarter">Trimestre</button>
+                                <button class="chart-btn" data-period="year">Année</button>
+                            </div>
                         </div>
-                    </div>
-                    <div class="chart-body">
-                        <canvas id="dpaiScoreChart"></canvas>
+                        <div class="chart-body" id="analysesChart">
+                            <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: #718096;">
+                                <i class="fas fa-chart-bar" style="font-size: 3rem; margin-right: 1rem;"></i>
+                                <span>Graphique disponible après première analyse</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Alerts Section -->
-    <section class="alerts-section" id="alertsSection">
-        <div class="container">
-            <div class="section-header">
-                <span class="section-tag">ALERTES</span>
-                <h2>Centre de Notifications</h2>
-                <p class="section-subtitle">Alertes et recommandations en temps réel</p>
-            </div>
-            <div class="alerts-container">
-                <div class="alerts-tabs">
-                    <button class="alert-tab active" data-alert-type="all">Toutes</button>
-                    <button class="alert-tab" data-alert-type="urgent">⚠️ Urgent</button>
-                    <button class="alert-tab" data-alert-type="warning">ℹ️ Informations</button>
-                    <button class="alert-tab" data-alert-type="success">✅ Succès</button>
+        <!-- Alerts Section -->
+        <section class="alerts-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">ALERTES</span>
+                    <h2>Centre de Notifications</h2>
+                    <p>Alertes et recommandations en temps réel</p>
+                </div>
+                <div class="alerts-header">
+                    <div class="alerts-tabs">
+                        <button class="alert-tab active" data-tab="all">Toutes</button>
+                        <button class="alert-tab" data-tab="urgent">Urgentes</button>
+                        <button class="alert-tab" data-tab="recommendations">Recommandations</button>
+                        <button class="alert-tab" data-tab="system">Système</button>
+                    </div>
                 </div>
                 <div class="alerts-list" id="alertsList">
-                    <div class="alert-item urgent">
-                        <div class="alert-icon">
-                            <i class="fas fa-exclamation-triangle"></i>
-                        </div>
-                        <div class="alert-content">
-                            <div class="alert-title">Votre marge a baissé de 3% ce mois</div>
-                            <div class="alert-message">Analysez les causes avec notre outil de diagnostic financier.</div>
-                            <div class="alert-actions">
-                                <button class="btn btn-sm btn-outline">Analyser</button>
-                                <span class="alert-time">Il y a 2 jours</span>
-                            </div>
-                        </div>
-                    </div>
                     <div class="alert-item warning">
-                        <div class="alert-icon">
-                            <i class="fas fa-info-circle"></i>
-                        </div>
+                        <div class="alert-icon"><i class="fas fa-exclamation-triangle"></i></div>
                         <div class="alert-content">
-                            <div class="alert-title">Nouveau concurrent détecté : TechRival</div>
-                            <div class="alert-message">Nous avons identifié un nouvel acteur sur votre marché. Analyse SWOT recommandée.</div>
-                            <div class="alert-actions">
-                                <button class="btn btn-sm btn-outline">Lancer SWOT</button>
-                                <span class="alert-time">Il y a 1 jour</span>
-                            </div>
+                            <div class="alert-title">Actions en attente</div>
+                            <div class="alert-message">Vous avez <span id="pendingActionsCount">0</span> actions recommandées non démarrées</div>
                         </div>
+                        <div class="alert-time">Il y a 5 min</div>
                     </div>
                     <div class="alert-item success">
-                        <div class="alert-icon">
-                            <i class="fas fa-check-circle"></i>
-                        </div>
+                        <div class="alert-icon"><i class="fas fa-check-circle"></i></div>
                         <div class="alert-content">
-                            <div class="alert-title">Votre score DPAI a augmenté de 10 points</div>
-                            <div class="alert-message">Félicitations ! Votre stratégie montre des signes d'amélioration.</div>
-                            <div class="alert-actions">
-                                <button class="btn btn-sm btn-outline">Voir les détails</button>
-                                <span class="alert-time">Il y a 3 jours</span>
-                            </div>
+                            <div class="alert-title">Bienvenue sur DPAI</div>
+                            <div class="alert-message">Votre compte est prêt. Commencez par remplir les informations de votre entreprise pour des analyses personnalisées.</div>
                         </div>
+                        <div class="alert-time">Il y a 10 min</div>
+                    </div>
+                    <div class="alert-item" style="background: #f7fafc; border-left: 4px solid #e2e8f0;">
+                        <div class="alert-icon" style="background: #e2e8f0; color: #4a5568;"><i class="fas fa-info-circle"></i></div>
+                        <div class="alert-content">
+                            <div class="alert-title">Conseil DPAI</div>
+                            <div class="alert-message">Pour maximiser l'impact de vos analyses, nous vous recommandons de souscrire à l'Abonnement API Mensuel (199 €/mois) pour accéder à l'IA DPAI proprietary et à tous les services.</div>
+                        </div>
+                        <div class="alert-time">Il y a 15 min</div>
                     </div>
                 </div>
             </div>
-        </div>
-    </section>
+        </section>
+    </main>
 
-    <!-- Quick Analysis Modal -->
-    <div class="modal" id="analysisModal">
+    <!-- Edit Company Modal -->
+    <div class="modal" id="editCompanyModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="analysisModalTitle">Lancer une analyse</h3>
-                <button class="modal-close" id="analysisModalClose">&times;</button>
+                <h3><i class="fas fa-edit"></i> Modifier les informations de l'entreprise</h3>
+                <button class="modal-close" id="closeEditModal"><i class="fas fa-times"></i></button>
             </div>
-            <div class="modal-body" id="analysisModalBody">
-                <form id="analysisForm" class="analysis-form">
+            <div class="modal-body">
+                <form id="companyForm">
                     <div class="form-group">
-                        <label class="form-label" for="analysisType">Type d'analyse</label>
-                        <select class="form-select" id="analysisType" required>
-                            <option value="">Sélectionnez un type</option>
-                            <option value="swot">Analyse SWOT (40 tokens)</option>
-                            <option value="porter">Porter 5 Forces (120 tokens)</option>
-                            <option value="pestel">Analyse PESTEL (80 tokens)</option>
-                            <option value="competitive">Analyse Concurrentielle (120 tokens)</option>
+                        <label class="form-label">Nom de l'entreprise</label>
+                        <input type="text" class="form-input" id="editCompanyName" placeholder="Nom de votre entreprise">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Secteur d'activité</label>
+                        <select class="form-select" id="editCompanySector">
+                            <option value="">Sélectionnez un secteur</option>
+                            <option value="EdTech">EdTech</option>
+                            <option value="SaaS">SaaS</option>
+                            <option value="Industrie">Industrie</option>
+                            <option value="Santé">Santé</option>
+                            <option value="Retail">Retail / Commerce</option>
+                            <option value="Services">Services</option>
+                            <option value="Autre">Autre</option>
                         </select>
                     </div>
-                    
                     <div class="form-group">
-                        <label class="form-label" for="analysisName">Nom de l'analyse</label>
-                        <input type="text" class="form-input" id="analysisName" placeholder="Ex: Analyse SWOT - Entreprise X" required>
+                        <label class="form-label">Chiffre d'affaires annuel (€)</label>
+                        <input type="number" class="form-input" id="editCompanyRevenue" placeholder="Ex: 5000000">
                     </div>
-                    
                     <div class="form-group">
-                        <label class="form-label" for="analysisDescription">Description (optionnel)</label>
-                        <textarea class="form-textarea" id="analysisDescription" placeholder="Décrivez ce que vous souhaitez analyser..."></textarea>
+                        <label class="form-label">Nombre d'employés</label>
+                        <input type="number" class="form-input" id="editCompanyEmployees" placeholder="Ex: 50">
                     </div>
-                    
-                    <!-- Conteneur pour les champs spécifiques selon le type d'analyse -->
-                    <div class="form-group" id="analysisSpecificFields"></div>
-                    
                     <div class="form-group">
-                        <div class="payment-summary">
-                            <h4>Coût estimé</h4>
-                            <div class="payment-summary-item">
-                                <span class="payment-summary-label">Type d'analyse</span>
-                                <span class="payment-summary-value" id="estimatedAnalysisType">-</span>
-                            </div>
-                            <div class="payment-summary-item">
-                                <span class="payment-summary-label">Tokens estimés</span>
-                                <span class="payment-summary-value" id="estimatedTokens">0</span>
-                            </div>
-                            <div class="payment-summary-item">
-                                <span class="payment-summary-label"><i class="fas fa-coins"></i></span>
-                                <span class="payment-summary-value" id="userAvailableTokens">0</span>
-                            </div>
-                        </div>
+                        <label class="form-label">EBITDA (€)</label>
+                        <input type="number" class="form-input" id="editCompanyEbitda" placeholder="Ex: 1000000">
                     </div>
-                    
-                    <div class="alert alert-warning" id="insufficientTokensAlert" style="display: none;">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <div class="alert-content">
-                            <span class="alert-title">Tokens insuffisants</span>
-                            <span class="alert-message">Vous n'avez pas assez de tokens pour cette analyse.</span>
-                        </div>
+                    <div class="form-group">
+                        <label class="form-label">Marge (%)</label>
+                        <input type="number" class="form-input" id="editCompanyMargin" placeholder="Ex: 15" min="0" max="100">
                     </div>
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-ghost" id="analysisModalCancel">Annuler</button>
-                <button type="submit" class="btn btn-primary" id="startAnalysisBtn" form="analysisForm">
-                    <i class="fas fa-play"></i> Lancer l'analyse
+                <button type="button" class="btn btn-ghost" id="cancelEditCompany">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveCompanyInfo">
+                    <i class="fas fa-save"></i> Sauvegarder
                 </button>
             </div>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="footer">
-        <div class="container">
-            <div class="footer-grid">
-                <div class="footer-brand">
-                    <a href="/" class="logo">
-                        <i class="fas fa-chart-line"></i>
-                        <span>DPAI</span>
-                    </a>
-                    <p>Conseil en croissance externe et analyse stratégique avancée.</p>
-                </div>
-                
-                <div class="footer-links">
-                    <h4>Produit</h4>
-                    <ul>
-                        <li><a href="/#features">Fonctionnalités</a></li>
-                        <li><a href="services.html">Services</a></li>
-                        
-                    </ul>
-                </div>
-                
-                <div class="footer-links">
-                    <h4>Compte</h4>
-                    <ul>
-                        <li><a href="dashboard.html">Tableau de bord</a></li>
-                        <li><a href="profile.html">Profil</a></li>
-                        <li><a href="plus-de-tokens.html">Plus de tokens</a></li>
-                    </ul>
-                </div>
-                
-                <div class="footer-links">
-                    <h4>Légal</h4>
-                    <ul>
-                        <li><a href="terms.html">Conditions générales</a></li>
-                        <li><a href="privacy.html">Politique de confidentialité</a></li>
-                    </ul>
-                </div>
+    <!-- Add Action Modal -->
+    <div class="modal" id="addActionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fas fa-plus"></i> Ajouter une action</h3>
+                <button class="modal-close" id="closeAddActionModal"><i class="fas fa-times"></i></button>
             </div>
-            
-            <div class="footer-bottom">
-                <p>&copy; 2026 DPAI. Tous droits réservés.</p>
+            <div class="modal-body">
+                <form id="actionForm">
+                    <div class="form-group">
+                        <label class="form-label">Titre de l'action</label>
+                        <input type="text" class="form-input" id="actionTitle" placeholder="Ex: Développer le marché export">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-textarea" id="actionDescription" placeholder="Décrivez l'action..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priorité</label>
+                        <select class="form-select" id="actionPriority">
+                            <option value="high">Élevée</option>
+                            <option value="medium" selected>Moyenne</option>
+                            <option value="low">Faible</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Impact estimé (€)</label>
+                        <input type="number" class="form-input" id="actionImpact" placeholder="Ex: 500000">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Échéance</label>
+                        <input type="date" class="form-input" id="actionDeadline">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" id="cancelAddAction">Annuler</button>
+                <button type="button" class="btn btn-primary" id="saveAction">
+                    <i class="fas fa-save"></i> Ajouter l'action
+                </button>
             </div>
         </div>
-    </footer>
+    </div>
 
-    <!-- Back to Top -->
-    <a href="#" class="back-to-top" id="backToTop">
-        <i class="fas fa-arrow-up"></i>
-    </a>
-
-    <!-- Scripts -->
-    <script src="/js/tokens.js"></script>
-    
-    <script src="/js/analyses.js"></script>
-    <script src="/js/service-modal.js"></script>
-    <script src="/js/main.js"></script>
     <script src="/js/dashboard.js"></script>
-    <script src="/js/analytics.js"></script>
+    <script>
+        // Initialize authentication
+        document.addEventListener('DOMContentLoaded', function() {
+            initAuth();
+            
+            // Show dashboard content when authenticated
+            firebase.auth().onAuthStateChanged(function(user) {
+                if (user) {
+                    document.getElementById('unauthenticatedView').style.display = 'none';
+                    document.getElementById('dashboardContent').style.display = 'block';
+                    document.getElementById('dashboardHeader').style.display = 'block';
+                    loadDashboardData();
+                } else {
+                    document.getElementById('unauthenticatedView').style.display = 'block';
+                    document.getElementById('dashboardContent').style.display = 'none';
+                    document.getElementById('dashboardHeader').style.display = 'none';
+                }
+            });
+        });
+        
+        // Load dashboard data (defined in dashboard.js)
+        async function loadDashboardData() {
+            // This function is defined in dashboard.js
+            if (typeof window.loadDashboard !== 'undefined') {
+                window.loadDashboard();
+            }
+        }
+    </script>
 </body>
 </html>
