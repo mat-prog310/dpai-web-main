@@ -1,6 +1,6 @@
 // =============================================================================
 // INDEX.JS - Firebase Cloud Functions pour DPAI
-// Inclut : Auth, Tokens, IA (Mistral), Conseiller IA
+// Conseiller IA et Analyses utilisent l'API Mistral avec vos prompts DPAI personnalisés
 // =============================================================================
 
 const functions = require('firebase-functions');
@@ -16,19 +16,20 @@ const { DPAI_CONTEXT, SWOT_PROMPT, PORTER_PROMPT, ADVISOR_PROMPT, SECTOR_DATA,
         getSectorCompetitorCount, getSectorBarriers, getCustomerPower, getSupplierPower } = require('./src/prompt/dpai-prompts');
 
 // =============================================================================
-// CONFIGURATION MISTRAL
+// CONFIGURATION MISTRAL (POUR TOUT : Conseiller IA + Analyses)
 // =============================================================================
 const MISTRAL_API_KEY = functions.config().mistral?.key || "mstrl_OUgXuc71KYyO2QoWZ8h0okTn14wCYUnG_20gLSU";
 const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
 
-// Coûts des analyses IA en tokens DPAI
+// Coûts en tokens DPAI
 const AI_ANALYSIS_COSTS = {
     swot: 80,
     porter: 100,
     pestel: 90,
     due_diligence: 150,
     valuation: 200,
-    recommendation: 50
+    recommendation: 50,
+    advisor_chat: 50  // Coût par message Conseiller IA
 };
 
 // =============================================================================
@@ -40,7 +41,7 @@ function corsHandler(req, res, handler) {
     cors(req, res, handler);
 }
 
-// Appel à l'API Mistral
+// Appel à l'API Mistral (POUR TOUT : Conseiller IA + Analyses)
 async function callMistral(prompt, model = "mistral-large") {
     try {
         const response = await fetch(MISTRAL_API_URL, {
@@ -71,6 +72,15 @@ async function callMistral(prompt, model = "mistral-large") {
         console.error('❌ Erreur Mistral:', error);
         throw error;
     }
+}
+
+// Appel au Conseiller IA via API Mistral (avec vos prompts DPAI personnalisés)
+async function callAdvisor(prompt, conversationContext = null) {
+    // Formater le prompt avec vos templates DPAI
+    const advisorPrompt = ADVISOR_PROMPT(prompt, conversationContext);
+    
+    // Appeler Mistral avec le prompt personnalisé
+    return await callMistral(advisorPrompt, "mistral-large");
 }
 
 // Vérifier l'accès à l'IA
@@ -152,21 +162,10 @@ async function saveConversation(userId, userMessage, aiResponse, conversationId)
 }
 
 // =============================================================================
-// ENDPOINTS EXISTANTS (À CONSERVER)
+// ENDPOINTS POUR LES ANALYSES (UTILISENT MISTRAL)
 // =============================================================================
 
-// Exemple d'endpoint existant (à conserver si vous en avez)
-// exports.existingFunction = functions.https.onRequest((req, res) => {
-//     corsHandler(req, res, async () => {
-//         // Votre code existant
-//     });
-// });
-
-// =============================================================================
-// NOUVEAUX ENDPOINTS POUR L'IA
-// =============================================================================
-
-// 1. Endpoint pour les analyses IA (SWOT, Porter, etc.)
+// 1. Endpoint pour les analyses IA (SWOT, Porter, etc.) - UTILISE MISTRAL
 exports.analyzeWithAI = functions.https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         if (req.method !== 'POST') {
@@ -205,10 +204,10 @@ exports.analyzeWithAI = functions.https.onRequest(async (req, res) => {
                     return res.status(400).json({ error: 'Type d\'analyse inconnu' });
             }
 
-            // 3. Appeler Mistral
+            // 3. Appeler Mistral (pour les analyses)
             const response = await callMistral(prompt);
 
-            // 4. Déduire les tokens si l'utilisateur n'a pas des tokens illimités (seul advisor a des tokens illimités)
+            // 4. Déduire les tokens si l'utilisateur n'a pas des tokens illimités
             if (!access.isUnlimited) {
                 await deductAITokens(userId, type);
             }
@@ -217,7 +216,8 @@ exports.analyzeWithAI = functions.https.onRequest(async (req, res) => {
                 success: true,
                 result: response,
                 tokensUsed: access.isUnlimited ? 0 : AI_ANALYSIS_COSTS[type],
-                plan: access.plan
+                plan: access.plan,
+                model: 'mistral-api'  // Indique que c'est l'API Mistral
             });
 
         } catch (error) {
@@ -227,7 +227,11 @@ exports.analyzeWithAI = functions.https.onRequest(async (req, res) => {
     });
 });
 
-// 2. Endpoint pour le Conseiller IA (chat)
+// =============================================================================
+// ENDPOINT POUR LE CONSEILLER IA (UTILISE API MISTRAL + PROMPTS DPAI)
+// =============================================================================
+
+// Endpoint pour le Conseiller IA (utilise API Mistral avec prompts DPAI personnalisés)
 exports.advisorChat = functions.https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         if (req.method !== 'POST') {
@@ -238,8 +242,8 @@ exports.advisorChat = functions.https.onRequest(async (req, res) => {
             const { userId, message, conversationId } = req.body;
 
             // 1. Vérifier l'accès au Conseiller IA
-            const hasAccess = await checkAdvisorAccess(userId);
-            if (!hasAccess) {
+            const access = await checkAIAccess(userId);
+            if (!access.hasAccess) {
                 return res.status(403).json({
                     error: 'Abonnement Conseiller IA requis (499 €/mois)',
                     pricingUrl: '/pricing.html#advisor'
@@ -249,29 +253,115 @@ exports.advisorChat = functions.https.onRequest(async (req, res) => {
             // 2. Récupérer le contexte de la conversation
             const context = await getConversationContext(userId, conversationId);
 
-            // 3. Générer le prompt
-            const prompt = ADVISOR_PROMPT(message, context);
+            // 3. Appeler le Conseiller IA via Mistral avec vos prompts personnalisés
+            const response = await callAdvisor(message, context);
 
-            // 4. Appeler Mistral
-            const response = await callMistral(prompt);
-
-            // 5. Sauvegarder la conversation
+            // 4. Sauvegarder la conversation
             const newConversationId = await saveConversation(userId, message, response, conversationId);
+
+            // 5. Déduire les tokens si l'utilisateur n'a pas des tokens illimités
+            if (!access.isUnlimited) {
+                await deductAITokens(userId, 'advisor_chat');
+            }
 
             res.json({
                 success: true,
                 response: response,
-                conversationId: newConversationId
+                conversationId: newConversationId,
+                model: 'mistral-api',  // Indique que c'est l'API Mistral avec prompts DPAI
+                tokensUsed: access.isUnlimited ? 0 : AI_ANALYSIS_COSTS.advisor_chat
             });
 
         } catch (error) {
             console.error('❌ Erreur advisorChat:', error);
-            res.status(500).json({ error: error.message || 'Erreur serveur' });
+            res.status(500).json({ 
+                error: error.message || 'Erreur serveur',
+                model: 'mistral-api'
+            });
         }
     });
 });
 
-// 3. Endpoint pour changer de plan (à appeler manuellement)
+// =============================================================================
+// ENDPOINTS EXISTANTS (À CONSERVER)
+// =============================================================================
+
+// Endpoint pour lister les conversations d'un utilisateur
+exports.listAdvisorConversations = functions.https.onRequest(async (req, res) => {
+    corsHandler(req, res, async () => {
+        if (req.method !== 'GET') {
+            return res.status(405).json({ error: 'Method Not Allowed' });
+        }
+
+        try {
+            const { userId } = req.query;
+            if (!userId) {
+                return res.status(400).json({ error: 'userId requis' });
+            }
+
+            const hasAccess = await checkAdvisorAccess(userId);
+            if (!hasAccess) {
+                return res.status(403).json({ error: 'Abonnement Conseiller IA requis' });
+            }
+
+            const conversationsSnapshot = await admin.firestore()
+                .collection('advisor_conversations')
+                .where('userId', '==', userId)
+                .orderBy('updatedAt', 'desc')
+                .limit(20)
+                .get();
+
+            const conversations = [];
+            conversationsSnapshot.forEach(doc => {
+                conversations.push({
+                    id: doc.id,
+                    ...doc.data(),
+                    updatedAt: doc.data().updatedAt?.toDate()
+                });
+            });
+
+            res.json({ success: true, conversations });
+        } catch (error) {
+            console.error('❌ Erreur listAdvisorConversations:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+});
+
+// Endpoint pour supprimer une conversation
+exports.deleteAdvisorConversation = functions.https.onRequest(async (req, res) => {
+    corsHandler(req, res, async () => {
+        if (req.method !== 'DELETE') {
+            return res.status(405).json({ error: 'Method Not Allowed' });
+        }
+
+        try {
+            const { userId, conversationId } = req.query;
+            if (!userId || !conversationId) {
+                return res.status(400).json({ error: 'userId et conversationId requis' });
+            }
+
+            const hasAccess = await checkAdvisorAccess(userId);
+            if (!hasAccess) {
+                return res.status(403).json({ error: 'Abonnement Conseiller IA requis' });
+            }
+
+            // Vérifier que la conversation appartient à l'utilisateur
+            const convDoc = await admin.firestore().collection('advisor_conversations').doc(conversationId).get();
+            if (!convDoc.exists || convDoc.data().userId !== userId) {
+                return res.status(404).json({ error: 'Conversation non trouvée' });
+            }
+
+            await admin.firestore().collection('advisor_conversations').doc(conversationId).delete();
+            res.json({ success: true, message: 'Conversation supprimée' });
+        } catch (error) {
+            console.error('❌ Erreur deleteAdvisorConversation:', error);
+            res.status(500).json({ error: error.message });
+        }
+    });
+});
+
+// Endpoint pour changer de plan
 exports.setUserPlan = functions.https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         if (req.method !== 'POST') {
@@ -303,7 +393,7 @@ exports.setUserPlan = functions.https.onRequest(async (req, res) => {
                 updates['tokenState.availableTokens'] = 500;
                 updates['tokenState.usedTokens'] = 0;
                 updates['tokenState.totalTokens'] = 500;
-                updates['tokenState.expiresAt'] = null; // Gratuit n'a pas d'expiration
+                updates['tokenState.expiresAt'] = null;
                 updates['subscription.expiresAt'] = admin.firestore.FieldValue.delete();
             } else if (plan === 'advisor') {
                 // Conseiller IA: tokens illimités + IA illimitée
@@ -339,8 +429,7 @@ exports.setUserPlan = functions.https.onRequest(async (req, res) => {
     });
 });
 
-// 4. Endpoint pour activer un abonnement après paiement
-// À appeler quand vous recevez un paiement (virement, PayPal, etc.)
+// Endpoint pour activer un abonnement après paiement
 exports.activateSubscription = functions.https.onRequest(async (req, res) => {
     corsHandler(req, res, async () => {
         if (req.method !== 'POST') {
@@ -414,316 +503,14 @@ exports.activateSubscription = functions.https.onRequest(async (req, res) => {
     });
 });
 
-// 5. Endpoint pour renouveler un abonnement existant
-exports.renewSubscription = functions.https.onRequest(async (req, res) => {
-    corsHandler(req, res, async () => {
-        if (req.method !== 'POST') {
-            return res.status(405).json({ error: 'Method Not Allowed' });
-        }
-
-        try {
-            const { userId, days = 30 } = req.body;
-
-            // Vérifier que l'utilisateur existe
-            const userDoc = await admin.firestore().collection('users').doc(userId).get();
-            if (!userDoc.exists) {
-                return res.status(404).json({ error: 'Utilisateur non trouvé' });
-            }
-
-            const userData = userDoc.data();
-            const currentPlan = userData.subscription?.plan || userData.tokenState?.plan || 'free';
-
-            if (currentPlan === 'free') {
-                return res.status(400).json({ 
-                    error: 'Impossible de renouveler un plan gratuit. Utilisez activateSubscription pour activer un plan payant.'
-                });
-            }
-
-            // Calculer la nouvelle date d'expiration
-            let newExpiryDate;
-            if (userData.subscription?.expiresAt) {
-                // Si on a une date d'expiration existante, on l'étend
-                newExpiryDate = new Date(userData.subscription.expiresAt);
-                newExpiryDate.setDate(newExpiryDate.getDate() + days);
-            } else {
-                // Sinon, on part d'aujourd'hui
-                newExpiryDate = new Date();
-                newExpiryDate.setDate(newExpiryDate.getDate() + days);
-            }
-
-            // Mettre à jour le tokenState
-            const tokenStateUpdates = {
-                ...userData.tokenState,
-                expiresAt: newExpiryDate.toISOString(),
-                isExpired: false
-            };
-
-            // Pour api_monthly, réinitialiser les tokens
-            if (currentPlan === 'api_monthly') {
-                tokenStateUpdates.availableTokens = 1000;
-                tokenStateUpdates.usedTokens = 0;
-            }
-
-            const updates = {
-                tokenState: tokenStateUpdates,
-                'subscription.expiresAt': newExpiryDate,
-                'subscription.lastRenewalDate': admin.firestore.FieldValue.serverTimestamp(),
-                'subscription.status': 'active'
-            };
-
-            await admin.firestore().collection('users').doc(userId).update(updates);
-
-            res.json({ 
-                success: true, 
-                userId: userId,
-                plan: currentPlan,
-                newExpiresAt: newExpiryDate.toISOString(),
-                message: `Abonnement renouvelé avec succès jusqu'au ${newExpiryDate.toLocaleDateString('fr-FR')}`
-            });
-        } catch (error) {
-            console.error('❌ Erreur renewSubscription:', error);
-            res.status(500).json({ error: error.message });
-        }
-    });
-});
-
-// 6. Endpoint pour vérifier si un abonnement est expiré
-exports.checkExpiry = functions.https.onRequest(async (req, res) => {
-    corsHandler(req, res, async () => {
-        if (req.method !== 'GET' && req.method !== 'POST') {
-            return res.status(405).json({ error: 'Method Not Allowed' });
-        }
-
-        try {
-            const userId = req.method === 'GET' ? req.query.userId : req.body.userId;
-            if (!userId) {
-                return res.status(400).json({ error: 'userId requis' });
-            }
-
-            const userDoc = await admin.firestore().collection('users').doc(userId).get();
-            if (!userDoc.exists) {
-                return res.status(404).json({ error: 'Utilisateur non trouvé' });
-            }
-
-            const userData = userDoc.data();
-            const now = new Date();
-
-            // Vérifier l'expiration du tokenState
-            let tokenStateExpired = false;
-            if (userData.tokenState?.expiresAt) {
-                const tokenExpiry = new Date(userData.tokenState.expiresAt);
-                if (tokenExpiry < now) {
-                    tokenStateExpired = true;
-                }
-            }
-
-            // Vérifier l'expiration de l'abonnement
-            let subscriptionExpired = false;
-            if (userData.subscription?.expiresAt) {
-                const subExpiry = new Date(userData.subscription.expiresAt);
-                if (subExpiry < now) {
-                    subscriptionExpired = true;
-                }
-            }
-
-            const isExpired = tokenStateExpired || subscriptionExpired;
-
-            res.json({ 
-                userId: userId,
-                isExpired: isExpired,
-                tokenStateExpired: tokenStateExpired,
-                subscriptionExpired: subscriptionExpired,
-                tokenStateExpiry: userData.tokenState?.expiresAt || null,
-                subscriptionExpiry: userData.subscription?.expiresAt || null,
-                currentPlan: userData.subscription?.plan || userData.tokenState?.plan || 'free'
-            });
-        } catch (error) {
-            console.error('❌ Erreur checkExpiry:', error);
-            res.status(500).json({ error: error.message });
-        }
-    });
-});
-
-// 7. Endpoint pour désactiver les abonnements expirés (à exécuter manuellement ou via cron)
-exports.expireSubscriptions = functions.https.onRequest(async (req, res) => {
-    corsHandler(req, res, async () => {
-        try {
-            const now = new Date();
-            const expiredUsers = [];
-
-            // Trouver tous les utilisateurs avec un abonnement expiré
-            const usersSnapshot = await admin.firestore().collection('users').get();
-
-            const batch = admin.firestore().batch();
-
-            for (const doc of usersSnapshot.docs) {
-                const userData = doc.data();
-                const userId = doc.id;
-
-                // Vérifier si le tokenState ou l'abonnement est expiré
-                let isExpired = false;
-                let expiryDate = null;
-
-                if (userData.tokenState?.expiresAt) {
-                    const tokenExpiry = new Date(userData.tokenState.expiresAt);
-                    if (tokenExpiry < now) {
-                        isExpired = true;
-                        expiryDate = tokenExpiry;
-                    }
-                }
-
-                if (!isExpired && userData.subscription?.expiresAt) {
-                    const subExpiry = new Date(userData.subscription.expiresAt);
-                    if (subExpiry < now) {
-                        isExpired = true;
-                        expiryDate = subExpiry;
-                    }
-                }
-
-                if (isExpired && userData.subscription?.plan !== 'free') {
-                    // Ajouter à la liste et préparer la désactivation
-                    expiredUsers.push({
-                        userId: userId,
-                        email: userData.email,
-                        plan: userData.subscription?.plan || userData.tokenState?.plan,
-                        expiredAt: expiryDate
-                    });
-
-                    // Désactiver l'abonnement
-                    const updates = {
-                        'subscription.status': 'expired',
-                        'tokenState.plan': 'free',
-                        'tokenState.baseTokens': 500,
-                        'tokenState.totalTokens': 500,
-                        'tokenState.availableTokens': 500,
-                        'tokenState.usedTokens': 0,
-                        'tokenState.expiresAt': null,
-                        'subscription.expiresAt': admin.firestore.FieldValue.delete()
-                    };
-
-                    batch.update(doc.ref, updates);
-                }
-            }
-
-            // Exécuter les mises à jour
-            await batch.commit();
-
-            res.json({ 
-                success: true,
-                expiredCount: expiredUsers.length,
-                expiredUsers: expiredUsers,
-                message: `${expiredUsers.length} abonnements désactivés`
-            });
-        } catch (error) {
-            console.error('❌ Erreur expireSubscriptions:', error);
-            res.status(500).json({ error: error.message });
-        }
-    });
-});
-
-// 8. Endpoint pour tester l'IA (debug)
-exports.testAI = functions.https.onRequest(async (req, res) => {
-    corsHandler(req, res, async () => {
-        try {
-            const testPrompt = `${DPAI_CONTEXT}\n\n**Test:** Comment valoriser une entreprise de SaaS avec 10M€ de CA et 3M€ d'EBITDA ?`;
-            const response = await callMistral(testPrompt);
-            res.json({ 
-                success: true, 
-                message: 'Backend AI fonctionne !',
-                testResponse: response.substring(0, 500) + '...'
-            });
-        } catch (error) {
-            res.status(500).json({ 
-                success: false, 
-                error: error.message || 'Erreur serveur'
-            });
-        }
-    });
-});
-
-// 5. Endpoint pour lister les conversations d'un utilisateur
-exports.listAdvisorConversations = functions.https.onRequest(async (req, res) => {
-    corsHandler(req, res, async () => {
-        if (req.method !== 'GET') {
-            return res.status(405).json({ error: 'Method Not Allowed' });
-        }
-
-        try {
-            const { userId } = req.query;
-            if (!userId) {
-                return res.status(400).json({ error: 'userId requis' });
-            }
-
-            const hasAccess = await checkAdvisorAccess(userId);
-            if (!hasAccess) {
-                return res.status(403).json({ error: 'Abonnement Conseiller IA requis' });
-            }
-
-            const conversationsSnapshot = await admin.firestore()
-                .collection('advisor_conversations')
-                .where('userId', '==', userId)
-                .orderBy('updatedAt', 'desc')
-                .limit(20)
-                .get();
-
-            const conversations = [];
-            conversationsSnapshot.forEach(doc => {
-                conversations.push({
-                    id: doc.id,
-                    ...doc.data(),
-                    updatedAt: doc.data().updatedAt?.toDate()
-                });
-            });
-
-            res.json({ success: true, conversations });
-        } catch (error) {
-            console.error('❌ Erreur listAdvisorConversations:', error);
-            res.status(500).json({ error: error.message });
-        }
-    });
-});
-
-// 6. Endpoint pour supprimer une conversation
-exports.deleteAdvisorConversation = functions.https.onRequest(async (req, res) => {
-    corsHandler(req, res, async () => {
-        if (req.method !== 'DELETE') {
-            return res.status(405).json({ error: 'Method Not Allowed' });
-        }
-
-        try {
-            const { userId, conversationId } = req.query;
-            if (!userId || !conversationId) {
-                return res.status(400).json({ error: 'userId et conversationId requis' });
-            }
-
-            const hasAccess = await checkAdvisorAccess(userId);
-            if (!hasAccess) {
-                return res.status(403).json({ error: 'Abonnement Conseiller IA requis' });
-            }
-
-            // Vérifier que la conversation appartient à l'utilisateur
-            const convDoc = await admin.firestore().collection('advisor_conversations').doc(conversationId).get();
-            if (!convDoc.exists || convDoc.data().userId !== userId) {
-                return res.status(404).json({ error: 'Conversation non trouvée' });
-            }
-
-            await admin.firestore().collection('advisor_conversations').doc(conversationId).delete();
-            res.json({ success: true, message: 'Conversation supprimée' });
-        } catch (error) {
-            console.error('❌ Erreur deleteAdvisorConversation:', error);
-            res.status(500).json({ error: error.message });
-        }
-    });
-});
-
 // =============================================================================
-// EXPORT DEFAULT (pour compatibilité)
+// EXPORT DEFAULT
 // =============================================================================
 module.exports = {
     analyzeWithAI: exports.analyzeWithAI,
     advisorChat: exports.advisorChat,
     setUserPlan: exports.setUserPlan,
-    testAI: exports.testAI,
     listAdvisorConversations: exports.listAdvisorConversations,
-    deleteAdvisorConversation: exports.deleteAdvisorConversation
+    deleteAdvisorConversation: exports.deleteAdvisorConversation,
+    activateSubscription: exports.activateSubscription
 };

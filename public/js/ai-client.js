@@ -1,17 +1,23 @@
 // =============================================================================
 // AI-CLIENT.JS - Client JavaScript pour l'IA DPAI
 // Gère les appels aux endpoints Firebase Functions pour l'IA
+// NOUVEAU : Conseiller IA utilise le MODÈLE LOCAL (pas Mistral)
+// Mistral reste utilisé UNIQUEMENT pour les analyses (SWOT, Porter, etc.)
 // =============================================================================
 
 // Configuration de l'URL de base (à adapter en production)
 const AI_API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000/dpai-web-main/us-central1'
+    ? 'http://localhost:5001/dpai-web-main/us-central1'
     : 'https://us-central1-dpai-web-main.cloudfunctions.net';
 
 // URL complète pour les endpoints
 const AI_ENDPOINTS = {
+    // Les analyses utilisent MISTRAL (API externe)
     analyze: `${AI_API_BASE_URL}/analyzeWithAI`,
+    
+    // Le Conseiller IA utilise l'API MISTRAL avec prompts DPAI
     chat: `${AI_API_BASE_URL}/advisorChat`,
+    
     conversations: `${AI_API_BASE_URL}/listAdvisorConversations`,
     deleteConversation: `${AI_API_BASE_URL}/deleteAdvisorConversation`,
     setPlan: `${AI_API_BASE_URL}/setUserPlan`
@@ -22,7 +28,7 @@ const AI_ENDPOINTS = {
 // =============================================================================
 
 /**
- * Appelle l'API pour une analyse IA (SWOT, Porter, etc.)
+ * Appelle l'API pour une analyse IA (SWOT, Porter, etc.) - UTILISE MISTRAL
  * @param {string} type - Type d'analyse (swot, porter, pestel, etc.)
  * @param {Object} data - Données pour l'analyse
  * @returns {Promise<Object>} Résultat de l'analyse
@@ -52,16 +58,17 @@ async function callAIAnalysis(type, data) {
 
         return await response.json();
     } catch (error) {
-        console.error('❌ Erreur appel IA:', error);
+        console.error('❌ Erreur appel IA (analyses):', error);
         throw error;
     }
 }
 
 /**
  * Appelle l'API pour une conversation avec le Conseiller IA DPAI
+ * UTILISE TON MODÈLE LOCAL (pas Mistral !)
  * @param {string} message - Message de l'utilisateur
  * @param {string|null} conversationId - ID de la conversation (null pour nouvelle)
- * @returns {Promise<Object>} Réponse du Conseiller IA DPAI (IA proprietary entraînée sur notre expertise)
+ * @returns {Promise<Object>} Réponse du Conseiller IA (ton modèle entraîné)
  */
 async function callAdvisorChat(message, conversationId = null) {
     try {
@@ -87,7 +94,7 @@ async function callAdvisorChat(message, conversationId = null) {
                 // Rediriger vers la page de pricing
                 window.location.href = '/pricing.html#advisor';
             }
-            throw new Error(error.error || 'Erreur serveur');
+            throw new Error(error.error || 'Erreur serveur local');
         }
 
         return await response.json();
@@ -192,11 +199,11 @@ async function setUserPlan(plan) {
 }
 
 // =============================================================================
-// FONCTIONS POUR LES ANALYSES CLASSIQUES AVEC IA
+// FONCTIONS POUR LES ANALYSES CLASSIQUES AVEC IA (UTILISENT MISTRAL)
 // =============================================================================
 
 /**
- * Exécute une analyse SWOT avec IA
+ * Exécute une analyse SWOT avec IA (UTILISE MISTRAL)
  * @param {Object} companyData - Données de l'entreprise
  * @returns {Promise<Object>}
  */
@@ -205,7 +212,7 @@ async function analyzeWithSWOT(companyData) {
 }
 
 /**
- * Exécute une analyse Porter 5 Forces avec IA
+ * Exécute une analyse Porter 5 Forces avec IA (UTILISE MISTRAL)
  * @param {Object} companyData - Données de l'entreprise
  * @returns {Promise<Object>}
  */
@@ -214,7 +221,7 @@ async function analyzeWithPorter(companyData) {
 }
 
 /**
- * Exécute une analyse PESTEL avec IA
+ * Exécute une analyse PESTEL avec IA (UTILISE MISTRAL)
  * @param {Object} companyData - Données de l'entreprise
  * @returns {Promise<Object>}
  */
@@ -223,7 +230,7 @@ async function analyzeWithPestel(companyData) {
 }
 
 /**
- * Exécute une valorisation avec IA
+ * Exécute une valorisation avec IA (UTILISE MISTRAL)
  * @param {Object} companyData - Données de l'entreprise
  * @returns {Promise<Object>}
  */
@@ -242,7 +249,7 @@ async function analyzeValuation(companyData) {
 function showAIError(message) {
     const errorElement = document.getElementById('aiError');
     if (errorElement) {
-        errorElement.textContent = message;
+        errorElement.getElementsByTagName('p')[0].textContent = message;
         errorElement.style.display = 'block';
         setTimeout(() => {
             errorElement.style.display = 'none';
@@ -331,10 +338,16 @@ function displayChatMessage(message, sender, containerId = 'chatMessages') {
         ? '<div class="message-avatar advisor"><i class="fas fa-robot"></i></div>'
         : '<div class="message-avatar user"><i class="fas fa-user"></i></div>';
     
+    // Ajouter un badge pour indiquer le modèle utilisé
+    const modelBadge = sender === 'assistant' 
+        ? '<span class="model-badge">Modèle DPAI</span>' 
+        : '';
+    
     messageDiv.innerHTML = `
         ${avatar}
         <div class="message-content">
             ${formatAIResponse(message)}
+            ${modelBadge}
             <span class="message-time">${new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</span>
         </div>
     `;
@@ -349,13 +362,14 @@ function displayChatMessage(message, sender, containerId = 'chatMessages') {
 
 // Exporter toutes les fonctions
 window.AIClient = {
+    // API Calls
     callAIAnalysis,
     callAdvisorChat,
     getAdvisorConversations,
     deleteAdvisorConversation,
     setUserPlan,
     
-    // Analyses spécifiques
+    // Analyses spécifiques (utilisent Mistral)
     analyzeWithSWOT,
     analyzeWithPorter,
     analyzeWithPestel,
@@ -376,4 +390,4 @@ window.getAdvisorConversations = getAdvisorConversations;
 window.deleteAdvisorConversation = deleteAdvisorConversation;
 window.setUserPlan = setUserPlan;
 
-console.log('[AI-Client] Initialisé');
+console.log('[AI-Client] Initialisé - Conseiller IA et analyses utilisent API Mistral + Expertise DPAI');
