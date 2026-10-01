@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Collecte d'informations - DPAI</title>
+    
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+</head>
+<body>
+    <!-- Navigation (même que dashboard) -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>DPAI</span>
+            </a>
+            <ul class="nav-links" id="navLinks"></ul>
+            <div class="nav-actions">
+                <div class="user-menu" id="userMenu">
+                    <button class="user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                        <span id="userName">Compte</span>
+                    </button>
+                </div>
+            </div>
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <header class="page-header">
+        <div class="container">
+            <a href="dashboard.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+            </a>
+            <div class="header-content">
+                <h1><i class="fas fa-file-alt"></i> <span id="pageTitle">Formulaire d'analyse</span></h1>
+                <p id="pageDescription">Renseignez les informations nécessaires pour l'analyse</p>
+            </div>
+        </div>
+    </header>
+
+    <!-- Form Container -->
+    <div class="container" style="max-width: 800px; margin-bottom: 2rem;">
+        <div class="card">
+            <div class="card-body">
+                <form id="analysisForm">
+                    <div id="formFields"></div>
+                    <div class="form-actions" style="margin-top: 1.5rem; display: flex; gap: 1rem;">
+                        <button type="button" onclick="cancelForm()" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Annuler
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> Lancer l'analyse
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal" style="display: none;">
+        <div class="modal-content" style="max-width: 400px;">
+            <div style="text-align: center; padding: 2rem;">
+                <div class="spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; width: 50px; height: 50px; animation: spin 1s linear infinite; margin: 0 auto 1rem;"></div>
+                <p>Analyse en cours avec Mistral...</p>
+                <p style="margin-top: 1rem; color: #666; font-size: 0.9rem;">Cela peut prendre 10-30 secondes</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .form-group { margin-bottom: 1rem; }
+        .form-group label { display: block; margin-bottom: 0.5rem; font-weight: 500; }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 1rem;
+        }
+        .form-group textarea { min-height: 100px; resize: vertical; }
+        .form-group input:focus, .form-group textarea:focus, .form-group select:focus {
+            outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+        }
+        .required-field::after { content: " *"; color: #e53e3e; }
+    </style>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/ai-client.js"></script>
+    
+    <script>
+        // Récupérer le type d'analyse depuis l'URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const analysisType = urlParams.get('type') || 'swot';
+
+        // Configurations des formulaires par type
+        const formConfigs = {
+            swot: {
+                title: 'Analyse SWOT',
+                description: 'Analysez les forces, faiblesses, opportunités et menaces de votre entreprise.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur d\'activité', type: 'text', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires (€)', type: 'number', required: false },
+                    { name: 'ebitda', label: 'EBITDA (€)', type: 'number', required: false },
+                    { name: 'employees', label: 'Nombre d\'employés', type: 'number', required: false },
+                    { name: 'targetMarket', label: 'Marché cible', type: 'text', required: false },
+                    { name: 'goals', label: 'Objectifs stratégiques', type: 'textarea', required: false, placeholder: 'Ex: Croissance externe, diversification, etc.' },
+                    { name: 'constraints', label: 'Contraintes actuelles', type: 'textarea', required: false, placeholder: 'Ex: Manque de ressources, concurrence intense, etc.' }
+                ]
+            },
+            porter: {
+                title: 'Analyse Porter 5 Forces',
+                description: 'Évaluez la compétitivité de votre secteur.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur d\'activité', type: 'text', required: true },
+                    { name: 'positioning', label: 'Positionnement', type: 'select', required: true, options: ['Leader', 'Challenger', 'Suiveur', 'Niche'] },
+                    { name: 'marketShare', label: 'Part de marché (%)', type: 'number', required: false },
+                    { name: 'mainCompetitors', label: 'Principaux concurrents (séparés par virgule)', type: 'text', required: false },
+                    { name: 'suppliers', label: 'Principaux fournisseurs (séparés par virgule)', type: 'text', required: false }
+                ]
+            },
+            pestel: {
+                title: 'Analyse PESTEL',
+                description: 'Analysez les facteurs politiques, économiques, socioculturels, technologiques, environnementaux et légaux.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur d\'activité', type: 'text', required: true },
+                    { name: 'country', label: 'Pays principal', type: 'text', required: true, default: 'France' },
+                    { name: 'targetMarket', label: 'Marché cible', type: 'text', required: false },
+                    { name: 'growthRate', label: 'Croissance annuelle du secteur (%)', type: 'number', required: false }
+                ]
+            },
+            reports: {
+                title: 'Rapports Détaillés',
+                description: 'Générez un rapport complet sur votre entreprise.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur d\'activité', type: 'text', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires (€)', type: 'number', required: false },
+                    { name: 'ebitda', label: 'EBITDA (€)', type: 'number', required: false },
+                    { name: 'employees', label: 'Nombre d\'employés', type: 'number', required: false },
+                    { name: 'history', label: 'Historique (dernières années)', type: 'textarea', required: false, placeholder: 'Ex: 2020: 5M€, 2021: 6M€, etc.' },
+                    { name: 'objectives', label: 'Objectifs stratégiques', type: 'textarea', required: false }
+                ]
+            },
+            competitive: {
+                title: 'Analyse Concurrentielle',
+                description: 'Analysez vos principaux concurrents.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de votre entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur d\'activité', type: 'text', required: true },
+                    { name: 'competitors', label: 'Principaux concurrents (1 par ligne)', type: 'textarea', required: true },
+                    { name: 'revenue', label: 'Votre CA (€)', type: 'number', required: false },
+                    { name: 'marketShare', label: 'Votre part de marché (%)', type: 'number', required: false }
+                ]
+            },
+            benchmark: {
+                title: 'Benchmarking',
+                description: 'Comparez vos performances avec celles de votre secteur.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur d\'activité', type: 'text', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires (€)', type: 'number', required: true },
+                    { name: 'ebitda', label: 'EBITDA (€)', type: 'number', required: true },
+                    { name: 'margin', label: 'Marge (%)', type: 'number', required: false },
+                    { name: 'employees', label: 'Nombre d\'employés', type: 'number', required: false }
+                ]
+            },
+            modeling: {
+                title: 'Modélisation Financière',
+                description: 'Modélisez différents scénarios financiers.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires actuel (€)', type: 'number', required: true },
+                    { name: 'revenueGrowth', label: 'Croissance annuelle du CA (%)', type: 'number', required: true, default: 5 },
+                    { name: 'ebitda', label: 'EBITDA actuel (€)', type: 'number', required: true },
+                    { name: 'ebitdaMargin', label: 'Marge EBITDA (%)', type: 'number', required: false },
+                    { name: 'investments', label: 'Investissements prévus (€)', type: 'number', required: false }
+                ]
+            },
+            due_diligence: {
+                title: 'Due Diligence',
+                description: 'Analyse approfondie pour une acquisition.',
+                fields: [
+                    { name: 'targetCompany', label: 'Nom de la cible', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur de la cible', type: 'text', required: true },
+                    { name: 'revenue', label: 'CA de la cible (€)', type: 'number', required: true },
+                    { name: 'ebitda', label: 'EBITDA de la cible (€)', type: 'number', required: true },
+                    { name: 'valuation', label: 'Valorisation demandée (€)', type: 'number', required: true },
+                    { name: 'synergies', label: 'Synergies estimées (€)', type: 'number', required: false }
+                ]
+            },
+            valuation: {
+                title: 'Valorisation d\'Entreprise',
+                description: 'Estimez la valeur de votre entreprise.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur d\'activité', type: 'text', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires (€)', type: 'number', required: true },
+                    { name: 'ebitda', label: 'EBITDA (€)', type: 'number', required: true },
+                    { name: 'grossMargin', label: 'Marge brute (%)', type: 'number', required: false },
+                    { name: 'revenueGrowth', label: 'Croissance CA (%)', type: 'number', required: false, default: 5 },
+                    { name: 'employees', label: 'Nombre d\'employés', type: 'number', required: false }
+                ]
+            },
+            synergy: {
+                title: 'Analyse des Synergies',
+                description: 'Identifiez les synergies entre deux entreprises.',
+                fields: [
+                    { name: 'company1', label: 'Entreprise 1', type: 'text', required: true },
+                    { name: 'company2', label: 'Entreprise 2', type: 'text', required: true },
+                    { name: 'sector1', label: 'Secteur Entreprise 1', type: 'text', required: true },
+                    { name: 'sector2', label: 'Secteur Entreprise 2', type: 'text', required: false },
+                    { name: 'revenue1', label: 'CA Entreprise 1 (€)', type: 'number', required: false },
+                    { name: 'revenue2', label: 'CA Entreprise 2 (€)', type: 'number', required: false }
+                ]
+            },
+            ideal_sector: {
+                title: 'Secteur Idéal',
+                description: 'Trouvez le secteur idéal pour votre croissance externe.',
+                fields: [
+                    { name: 'currentSector', label: 'Secteur actuel', type: 'text', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires (€)', type: 'number', required: true },
+                    { name: 'expertise', label: 'Expertise secteur actuel (années)', type: 'number', required: false },
+                    { name: 'targetGrowth', label: 'Croissance cible (%)', type: 'number', required: false, default: 10 },
+                    { name: 'budget', label: 'Budget investissement (€)', type: 'number', required: false }
+                ]
+            },
+            maturity_score: {
+                title: 'Score de Maturité',
+                description: 'Évaluez la maturité de votre entreprise pour la croissance externe.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur', type: 'text', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires (€)', type: 'number', required: true },
+                    { name: 'employees', label: 'Nombre d\'employés', type: 'number', required: false },
+                    { name: 'processes', label: 'Processus documentés (%)', type: 'number', required: false },
+                    { name: 'team', label: 'Équipe dédiée M&A (oui/non)', type: 'text', required: false }
+                ]
+            }
+        };
+
+        // Configurer le formulaire au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            const config = formConfigs[analysisType] || formConfigs.swot;
+            
+            // Mettre à jour le titre et la description
+            document.getElementById('pageTitle').textContent = config.title;
+            document.getElementById('pageDescription').textContent = config.description;
+
+            // Générer les champs du formulaire
+            const formFields = document.getElementById('formFields');
+            formFields.innerHTML = '';
+            
+            config.fields.forEach(field => {
+                const fieldId = `field_${field.name}`;
+                const fieldHtml = createFieldHtml(field, fieldId);
+                formFields.innerHTML += fieldHtml;
+            });
+
+            // Gérer la soumission du formulaire
+            document.getElementById('analysisForm').addEventListener('submit', handleFormSubmit);
+        });
+
+        // Créer le HTML pour un champ
+        function createFieldHtml(field, fieldId) {
+            const required = field.required ? 'required' : '';
+            const labelClass = field.required ? 'required-field' : '';
+            
+            if (field.type === 'select') {
+                const optionsHtml = field.options.map(opt => 
+                    `<option value="${opt}">${opt}</option>`
+                ).join('');
+                return `
+                    <div class="form-group">
+                        <label for="${fieldId}" class="${labelClass}">${field.label}</label>
+                        <select id="${fieldId}" name="${field.name}" class="form-control" ${required}>
+                            ${optionsHtml}
+                        </select>
+                    </div>
+                `;
+            } else if (field.type === 'textarea') {
+                return `
+                    <div class="form-group">
+                        <label for="${fieldId}" class="${labelClass}">${field.label}</label>
+                        <textarea id="${fieldId}" name="${field.name}" class="form-control" ${required} 
+                            placeholder="${field.placeholder || field.label}">${field.default || ''}</textarea>
+                    </div>
+                `;
+            } else {
+                return `
+                    <div class="form-group">
+                        <label for="${fieldId}" class="${labelClass}">${field.label}</label>
+                        <input type="${field.type}" id="${fieldId}" name="${field.name}" class="form-control" 
+                            ${required} value="${field.default || ''}" placeholder="${field.placeholder || field.label}">
+                    </div>
+                `;
+            }
+        }
+
+        // Gérer la soumission du formulaire
+        async function handleFormSubmit(e) {
+            e.preventDefault();
+            
+            const user = firebase.auth().currentUser;
+            if (!user) {
+                alert('Veuillez vous connecter pour lancer une analyse.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Afficher le modal de chargement
+            document.getElementById('loadingModal').style.display = 'block';
+
+            try {
+                // Collecter les données du formulaire
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData.entries());
+                
+                // Nettoyer les données (supprimer les champs vides)
+                Object.keys(data).forEach(key => {
+                    if (!data[key]) delete data[key];
+                });
+
+                // Ajouter l'ID utilisateur
+                data.userId = user.uid;
+
+                // Appeler l'API d'analyse
+                const result = await callAIAnalysis(analysisType, data);
+
+                // Stocker le résultat dans localStorage pour analysis-results.html
+                localStorage.setItem('dpai_analysis_results', JSON.stringify({
+                    type: analysisType,
+                    name: formConfigs[analysisType].title,
+                    description: formConfigs[analysisType].description,
+                    results: result.result,
+                    createdAt: new Date().toISOString()
+                }));
+
+                // Ouvrir la page des résultats dans une NOUVELLE FENÊTRE
+                window.open('analysis-results.html', '_blank');
+
+            } catch (error) {
+                console.error('Erreur lors de l\'analyse:', error);
+                alert('Erreur lors de l\'analyse: ' + error.message);
+            } finally {
+                document.getElementById('loadingModal').style.display = 'none';
+            }
+        }
+
+        // Annuler le formulaire
+        function cancelForm() {
+            if (confirm('Voulez-vous vraiment annuler cette analyse?')) {
+                window.location.href = 'dashboard.html';
+            }
+        }
+    </script>
+</body>
+</html>

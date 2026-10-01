@@ -922,17 +922,9 @@ function showPlanUpgradeMessage(service) {
 
 // Démarrer une analyse rapide
 function startQuickAnalysis(type) {
-    const modal = document.getElementById('analysisModal');
-    const analysisTypeInput = document.getElementById('analysisType');
-    
-    if (modal && analysisTypeInput) {
-        analysisTypeInput.value = type;
-        modal.classList.add('visible');
-    } else {
-        console.warn('[DASHBOARD] Modal ou input analysisType non trouvé');
-        // Fallback: rediriger vers services.html avec paramètre
-        window.location.href = `services.html?type=${type}`;
-    }
+    // Rediriger vers la page de collecte d'infos pour cette analyse
+    // Le type sera utilisé pour afficher le bon formulaire
+    window.location.href = `analysis-form.html?type=${type}`;
 }
 
 // =============================================================================
