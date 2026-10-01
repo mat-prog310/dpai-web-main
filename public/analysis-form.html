@@ -98,10 +98,20 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
     <script src="/js/firebase-config.js"></script>
+    <script src="/js/tokens.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/ai-client.js"></script>
     
     <script>
+        // Attendre que authService soit prêt et initialiser TokenManager
+        window.addEventListener('authStateChanged', function(event) {
+            const { user, userData } = event.detail;
+            if (user && userData) {
+                // Initialiser TokenManager avec les données utilisateur
+                TokenManager.init(userData);
+            }
+        });
+
         // Récupérer le type d'analyse depuis l'URL
         const urlParams = new URLSearchParams(window.location.search);
         const analysisType = urlParams.get('type') || 'swot';
@@ -257,6 +267,11 @@
 
         // Configurer le formulaire au chargement
         document.addEventListener('DOMContentLoaded', function() {
+            // Si authService est déjà prêt, essayer de charger TokenManager immédiatement
+            if (window.authService && window.authService.currentUserData) {
+                TokenManager.init(window.authService.currentUserData);
+            }
+
             const config = formConfigs[analysisType] || formConfigs.swot;
             
             // Mettre à jour le titre et la description
@@ -317,8 +332,8 @@
         async function handleFormSubmit(e) {
             e.preventDefault();
             
-            const user = firebase.auth().currentUser;
-            if (!user) {
+            // Vérifier que TokenManager est initialisé
+            if (!TokenManager || !TokenManager.userData) {
                 alert('Veuillez vous connecter pour lancer une analyse.');
                 window.location.href = 'login.html';
                 return;
@@ -337,8 +352,8 @@
                     if (!data[key]) delete data[key];
                 });
 
-                // Ajouter l'ID utilisateur
-                data.userId = user.uid;
+                // Ajouter l'ID utilisateur depuis TokenManager
+                data.userId = TokenManager.userData.id;
 
                 // Appeler l'API d'analyse
                 const result = await callAIAnalysis(analysisType, data);
