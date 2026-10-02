@@ -122,6 +122,7 @@
     <script src="/js/tokens.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/ai-client.js"></script>
+    <script src="/js/analysis-generator.js"></script>
     
     <script>
         // Attendre que authService soit prêt et initialiser TokenManager
@@ -376,19 +377,11 @@
                 // Ajouter l'ID utilisateur depuis TokenManager
                 data.userId = TokenManager.userData.id;
 
-                // Appeler l'API d'analyse
-                const result = await callAIAnalysis(analysisType, data);
+                // Générer l'analyse localement avec le générateur DPAI
+                const result = window.generateAnalysis(analysisType, data);
 
-                // Calculer le coût de l'analyse
-                const analysisCosts = {
-                    swot: 80,
-                    porter: 100,
-                    pestel: 90,
-                    due_diligence: 150,
-                    valuation: 200,
-                    recommendation: 50
-                };
-                const cost = analysisCosts[analysisType] || 100;
+                // Calculer le coût de l'analyse (0 car local)
+                const cost = 0; // Analyse locale = gratuit
 
                 // Stocker le résultat dans localStorage pour analysis-results.html
                 localStorage.setItem('dpai_analysis_results', JSON.stringify({
@@ -396,13 +389,13 @@
                     name: data.companyName || data.name || formConfigs[analysisType].title,
                     description: formConfigs[analysisType].description,
                     cost: cost,
-                    score: 85, // Score par défaut (peut être calculé plus tard)
-                    results: result.result,
+                    score: result.score || 85,
+                    results: result,
                     createdAt: new Date().toISOString(),
-                    model: result.model,
-                    tokensUsed: result.tokensUsed,
-                    availableTokens: result.availableTokens,
-                    plan: result.plan
+                    model: 'dpai-local-generator',
+                    tokensUsed: 0,
+                    availableTokens: TokenManager.userData.tokenState?.availableTokens || 0,
+                    plan: TokenManager.userData.subscription?.plan || 'free'
                 }));
 
                 // Ouvrir la page des résultats dans une NOUVELLE FENÊTRE
