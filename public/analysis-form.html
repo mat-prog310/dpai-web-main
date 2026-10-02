@@ -403,7 +403,7 @@
                 }
 
                 // Stocker le résultat dans localStorage pour analysis-results.html
-                localStorage.setItem('dpai_analysis_results', JSON.stringify({
+                const analysisResult = {
                     type: analysisType,
                     name: data.companyName || data.name || formConfigs[analysisType].title,
                     description: formConfigs[analysisType].description,
@@ -415,7 +415,27 @@
                     tokensUsed: tokenResult.tokensUsed || 0,
                     availableTokens: tokenResult.availableTokens || userTokens.availableTokens || 0,
                     plan: TokenManager.userData.subscription?.plan || 'free'
-                }));
+                };
+                
+                localStorage.setItem('dpai_analysis_results', JSON.stringify(analysisResult));
+
+                // Sauvegarder aussi dans Firestore pour l'historique
+                try {
+                    const user = firebase.auth().currentUser;
+                    if (user) {
+                        const db = firebase.firestore();
+                        const historyRef = db.collection('users').doc(user.uid).collection('analysisHistory').doc();
+                        
+                        // Ajouter l'ID de l'analyse
+                        analysisResult.id = historyRef.id;
+                        
+                        await historyRef.set(analysisResult);
+                        console.log('%c[Analysis-Form] Analyse sauvegardée dans Firestore:', 'color: #28a745; font-weight: bold;', historyRef.id);
+                    }
+                } catch (firebaseError) {
+                    console.error('Erreur sauvegarde Firestore:', firebaseError);
+                    // Ne pas bloquer si Firestore échoue - les données sont dans localStorage
+                }
 
                 // Ouvrir la page des résultats dans une NOUVELLE FENÊTRE
                 window.open('analysis-results.html', '_blank');

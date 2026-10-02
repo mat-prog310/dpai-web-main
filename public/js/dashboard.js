@@ -100,6 +100,7 @@ async function loadAnalysisHistory(userId) {
     
     // Mettre à jour l'affichage
     updateAnalysisList();
+    updateFullAnalysisHistory();
 }
 
 // Mettre à jour la liste des analyses récentes
@@ -121,7 +122,7 @@ function updateAnalysisList() {
     }
     
     container.innerHTML = analysisHistory.slice(0, 5).map(analysis => `
-        <div class="analysis-item">
+        <div class="analysis-item" onclick="viewAnalysisDetails('${analysis.id}')" style="cursor: pointer; transition: all 0.3s ease;">
             <div class="analysis-icon">
                 <i class="fas fa-${getAnalysisIcon(analysis.type)}"></i>
             </div>
@@ -134,6 +135,62 @@ function updateAnalysisList() {
             </div>
         </div>
     `).join('');
+}
+
+// Mettre à jour l'historique complet des analyses
+function updateFullAnalysisHistory() {
+    const container = document.getElementById('fullAnalysisHistory');
+    if (!container) return;
+    
+    if (analysisHistory.length === 0) {
+        container.innerHTML = `
+            <div class="empty-state small">
+                <div class="empty-state-icon">
+                    <i class="fas fa-history"></i>
+                </div>
+                <p>Vous n'avez pas encore réalisé d'analyse.</p>
+                <p class="empty-state-message">Commencez par lancer votre première analyse !</p>
+            </div>
+        `;
+        return;
+    }
+    
+    // Trier par date décroissante (la plus récente en premier)
+    const sortedHistory = [...analysisHistory].sort((a, b) => 
+        new Date(b.createdAt) - new Date(a.createdAt)
+    );
+    
+    container.innerHTML = sortedHistory.map(analysis => {
+        const analysisIcon = getAnalysisIcon(analysis.type);
+        const analysisName = getAnalysisName(analysis.type);
+        const formattedDate = formatDate(analysis.createdAt);
+        const tokensUsed = analysis.tokensUsed || analysis.cost || 0;
+        const score = analysis.score || 0;
+        
+        return `
+            <div class="analysis-history-item" onclick="viewAnalysisDetails('${analysis.id}')">
+                <div class="analysis-history-icon">
+                    <i class="fas ${analysisIcon}"></i>
+                </div>
+                <div class="analysis-history-info">
+                    <div class="analysis-history-name">
+                        ${escapeHtml(analysis.name || analysisName)}
+                    </div>
+                    <div class="analysis-history-meta">
+                        <span><i class="fas fa-calendar-alt"></i> ${formattedDate}</span>
+                        <span><i class="fas fa-coins"></i> ${tokensUsed} tokens</span>
+                        <span><i class="fas fa-chart-line"></i> Score: ${score}/100</span>
+                        <span><i class="fas fa-tag"></i> ${analysis.type}</span>
+                    </div>
+                </div>
+                <div class="analysis-history-actions">
+                    <button class="analysis-history-btn" onclick="event.stopPropagation(); viewAnalysisDetails('${analysis.id}')">
+                        <i class="fas fa-eye"></i> Voir
+                    </button>
+                </div>
+            </div>
+        `;
+    }).join('');
 }
 
 // Obtenir l'icône d'une analyse
@@ -168,6 +225,44 @@ function getAnalysisName(type) {
         synergy: 'Analyse des Synergies'
     };
     return names[type] || type;
+}
+
+// Consulter les détails d'une analyse depuis l'historique
+async function viewAnalysisDetails(analysisId) {
+    const user = firebase.auth().currentUser;
+    if (!user) {
+        alert('Veuillez vous connecter pour consulter cette analyse.');
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    try {
+        // Trouver l'analyse dans le tableau local
+        const analysis = analysisHistory.find(a => a.id === analysisId);
+        
+        if (analysis) {
+            // Stocker dans localStorage pour que analysis-results.html puisse le lire
+            localStorage.setItem('dpai_analysis_results', JSON.stringify(analysis));
+            
+            // Rediriger vers la page des résultats
+            window.location.href = 'analysis-results.html';
+        } else {
+            // Si non trouvée localement, essayer de la charger depuis Firestore
+            const db = firebase.firestore();
+            const analysisDoc = await db.collection('users').doc(user.uid).collection('analysisHistory').doc(analysisId).get();
+            
+            if (analysisDoc.exists) {
+                const analysisData = { id: analysisDoc.id, ...analysisDoc.data() };
+                localStorage.setItem('dpai_analysis_results', JSON.stringify(analysisData));
+                window.location.href = 'analysis-results.html';
+            } else {
+                alert('Impossible de trouver cette analyse.');
+            }
+        }
+    } catch (error) {
+        console.error('Erreur lors du chargement des détails de l\'analyse:', error);
+        alert('Erreur lors du chargement des détails de l\'analyse.');
+    }
 }
 
 // Charger les actions utilisateur
@@ -937,3 +1032,4 @@ window.saveCompanyInfo = saveCompanyInfo;
 window.changeActionStatus = changeActionStatus;
 window.initQuickActions = initQuickActions;
 window.startQuickAnalysis = startQuickAnalysis;
+window.viewAnalysisDetails = viewAnalysisDetails;

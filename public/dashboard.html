@@ -380,6 +380,106 @@
             font-size: 0.75rem;
             color: #718096;
         }
+        /* Analysis History Styles */
+        .analysis-history-section {
+            margin: 2rem 0;
+        }
+        .analysis-history-container {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .analysis-history-list {
+            display: grid;
+            gap: 1rem;
+        }
+        .analysis-history-item {
+            display: flex;
+            gap: 1rem;
+            padding: 1rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .analysis-history-item:hover {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            transform: translateX(5px);
+            border-color: #cbd5e0;
+            background: #f7fafc;
+        }
+        .analysis-history-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+        .analysis-history-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .analysis-history-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #1a202c;
+            margin-bottom: 0.25rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .analysis-history-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            font-size: 0.875rem;
+            color: #718096;
+        }
+        .analysis-history-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .analysis-history-meta i {
+            font-size: 0.75rem;
+        }
+        .analysis-history-actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        .analysis-history-btn {
+            padding: 0.5rem 1rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        .analysis-history-btn:hover {
+            background: var(--primary-dark);
+        }
+        .analysis-history-btn.secondary {
+            background: #f7fafc;
+            color: #4a5568;
+            border: 1px solid #e2e8f0;
+        }
+        .analysis-history-btn.secondary:hover {
+            background: #e2e8f0;
+        }
         @media (max-width: 768px) {
             .company-info-grid {
                 grid-template-columns: repeat(2, 1fr);
@@ -533,7 +633,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h3><i class="fas fa-chart-bar"></i> Dernières analyses</h3>
-                        <a href="#" id="showAllAnalyses" style="font-size: 0.875rem; color: var(--primary); text-decoration: none;">
+                        <a href="#analysis-history" id="showAllAnalyses" style="font-size: 0.875rem; color: var(--primary); text-decoration: none;">
                             Toutes les analyses <i class="fas fa-arrow-right"></i>
                         </a>
                     </div>
@@ -883,6 +983,28 @@
                             <div class="alert-message">Pour maximiser l'impact de vos analyses, nous vous recommandons de souscrire à l'Abonnement API Mensuel (199 €/mois) pour accéder à l'IA DPAI proprietary et à tous les services.</div>
                         </div>
                         <div class="alert-time">Il y a 15 min</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Full Analysis History Section -->
+        <section class="analysis-history-section">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">HISTORIQUE</span>
+                    <h2>Toutes vos analyses</h2>
+                    <p>Consultez l'historique complet de vos analyses stratégiques</p>
+                </div>
+                <div class="analysis-history-container">
+                    <div class="analysis-history-list" id="fullAnalysisHistory">
+                        <!-- Les analyses seront chargées dynamiquement -->
+                        <div class="empty-state small">
+                            <div class="empty-state-icon">
+                                <i class="fas fa-history"></i>
+                            </div>
+                            <p>Vous n'avez pas encore réalisé d'analyse.</p>
+                        </div>
                     </div>
                 </div>
             </div>

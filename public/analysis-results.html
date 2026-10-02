@@ -323,6 +323,9 @@
             <a href="dashboard.html" class="back-button">
                 <i class="fas fa-arrow-left"></i> Retour au tableau de bord
             </a>
+            <a href="dashboard.html#analysis-history" class="back-button" style="margin-left: var(--spacing-sm);">
+                <i class="fas fa-history"></i> Retour à l'historique
+            </a>
             <button class="print-button" onclick="window.print()">
                 <i class="fas fa-print"></i> Imprimer
             </button>
@@ -432,7 +435,11 @@
                     const data = JSON.parse(analysisData);
                     displayResults(data);
                     // Nettoyer le localStorage après lecture
-                    localStorage.removeItem('dpai_analysis_results');
+                    // Ne pas nettoyer le localStorage si c'est une analyse historique (avec ID)
+                    // pour permettre de revenir en arrière dans le navigateur
+                    if (!data.id) {
+                        localStorage.removeItem('dpai_analysis_results');
+                    }
                 } catch (error) {
                     console.error('Erreur lors du chargement des résultats:', error);
                     document.getElementById('resultsContent').innerHTML = `
