@@ -6,22 +6,25 @@
 // =============================================================================
 
 // Configuration de l'URL de base (à adapter en production)
-// En production, on utilise le chemin /functions/ qui est réécrit par Firebase Hosting vers Cloud Functions
-const AI_API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5001/dpai-web-main/us-central1'
-    : '';
+// Projet Firebase: dpai-8be62, Région: us-central1
+// En local: utilise l'Emulator Firebase Functions
+// En production: utilise directement l'URL Cloud Functions pour éviter les problèmes de réécriture
+const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const AI_API_BASE_URL = isLocalhost
+    ? 'http://localhost:5001/dpai-8be62/us-central1'
+    : 'https://us-central1-dpai-8be62.cloudfunctions.net';
 
 // URL complète pour les endpoints
 const AI_ENDPOINTS = {
     // Les analyses utilisent MISTRAL (API externe)
-    analyze: AI_API_BASE_URL ? `${AI_API_BASE_URL}/analyzeWithAI` : '/functions/analyzeWithAI',
+    analyze: `${AI_API_BASE_URL}/analyzeWithAI`,
     
     // Le Conseiller IA utilise l'API MISTRAL avec prompts DPAI
-    chat: AI_API_BASE_URL ? `${AI_API_BASE_URL}/advisorChat` : '/functions/advisorChat',
+    chat: `${AI_API_BASE_URL}/advisorChat`,
     
-    conversations: AI_API_BASE_URL ? `${AI_API_BASE_URL}/listAdvisorConversations` : '/functions/listAdvisorConversations',
-    deleteConversation: AI_API_BASE_URL ? `${AI_API_BASE_URL}/deleteAdvisorConversation` : '/functions/deleteAdvisorConversation',
-    setPlan: AI_API_BASE_URL ? `${AI_API_BASE_URL}/setUserPlan` : '/functions/setUserPlan'
+    conversations: `${AI_API_BASE_URL}/listAdvisorConversations`,
+    deleteConversation: `${AI_API_BASE_URL}/deleteAdvisorConversation`,
+    setPlan: `${AI_API_BASE_URL}/setUserPlan`
 };
 
 // =============================================================================
