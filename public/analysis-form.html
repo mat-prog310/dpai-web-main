@@ -374,29 +374,32 @@
                     if (!data[key]) delete data[key];
                 });
 
-                // Coût de l'analyse selon le type
+                // Coût de l'analyse selon le type (ajusté pour être plus accessible)
                 const analysisCosts = {
-                    swot: 80,
-                    porter: 100,
-                    pestel: 90,
-                    due_diligence: 150,
-                    valuation: 200,
-                    recommendation: 50,
-                    competitive: 75,
-                    benchmark: 60,
-                    modeling: 90,
-                    synergy: 85,
-                    ideal_sector: 70,
-                    maturity_score: 50
+                    swot: 50,
+                    porter: 60,
+                    pestel: 55,
+                    competitive: 45,
+                    due_diligence: 80,
+                    valuation: 100,
+                    recommendation: 30,
+                    benchmark: 40,
+                    modeling: 70,
+                    synergy: 60,
+                    ideal_sector: 40,
+                    maturity_score: 25
                 };
-                const cost = analysisCosts[analysisType] || 100;
+                const cost = analysisCosts[analysisType] || 50;
 
                 // Vérifier si l'utilisateur a assez de tokens (sauf si illimité)
                 const userTokens = TokenManager.userData.tokenState || {};
                 const isUnlimited = userTokens.baseTokens === -1 || TokenManager.userData.subscription?.plan === 'advisor';
                 
                 if (!isUnlimited && (userTokens.availableTokens || 0) < cost) {
-                    alert(`Vous n'avez pas assez de tokens. Il vous en faut ${cost} mais vous n'en avez que ${userTokens.availableTokens || 0}.`);
+                    // Rediriger vers la page d'achat de tokens
+                    if (confirm(`Vous n'avez pas assez de tokens. Il vous en faut ${cost} mais vous n'en avez que ${userTokens.availableTokens || 0}.\n\nSouhaitez-vous acheter plus de tokens ?`)) {
+                        window.location.href = 'plus-de-tokens.html';
+                    }
                     return;
                 }
 

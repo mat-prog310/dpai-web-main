@@ -34,14 +34,20 @@ const { DPAI_CONTEXT, SWOT_PROMPT, PORTER_PROMPT, ADVISOR_PROMPT, SECTOR_DATA,
 const MISTRAL_API_KEY = functions.config().mistral?.key || "mstrl_OUgXuc71KYyO2QoWZ8h0okTn14wCYUnG_20gLSU";
 const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
 
-// Coûts en tokens DPAI
+// Coûts en tokens DPAI (ajustés pour être plus accessibles)
 const AI_ANALYSIS_COSTS = {
-    swot: 80,
-    porter: 100,
-    pestel: 90,
-    due_diligence: 150,
-    valuation: 200,
-    recommendation: 50,
+    swot: 50,
+    porter: 60,
+    pestel: 55,
+    competitive: 45,
+    due_diligence: 80,
+    valuation: 100,
+    recommendation: 30,
+    benchmark: 40,
+    modeling: 70,
+    synergy: 60,
+    ideal_sector: 40,
+    maturity_score: 25,
     advisor_chat: 50  // Coût par message Conseiller IA
 };
 
