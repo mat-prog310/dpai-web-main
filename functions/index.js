@@ -12,6 +12,17 @@ if (admin.apps.length === 0) {
     admin.initializeApp();
 }
 
+// Polyfill pour fetch dans Firebase Functions
+// Node.js 18+ a fetch natif, mais dans certaines configurations il peut manquer
+if (typeof global.fetch === 'undefined') {
+    // Utiliser node-fetch@2.x qui est disponible comme dépendance transitive
+    const nodeFetch = require('node-fetch');
+    global.fetch = nodeFetch;
+    global.Request = nodeFetch.Request;
+    global.Response = nodeFetch.Response;
+    global.Headers = nodeFetch.Headers;
+}
+
 // Importer les prompts DPAI
 const { DPAI_CONTEXT, SWOT_PROMPT, PORTER_PROMPT, ADVISOR_PROMPT, SECTOR_DATA, 
         getSectorGrowth, getSectorMultiple, getSectorCompetitors, 
