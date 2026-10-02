@@ -94,8 +94,10 @@ async function checkAIAccess(userId) {
     const plan = userData.subscription?.plan || 'free';
     const tokenState = userData.tokenState || {};
 
-    if (plan === 'api_monthly' || plan === 'advisor') {
-        // advisor a des tokens illimités, api_monthly a des tokens limités
+    // Le plan 'free' a accès avec tokens limités (500 tokens gratuits)
+    // Les plans 'api_monthly' et 'advisor' ont aussi accès
+    if (plan === 'free' || plan === 'api_monthly' || plan === 'advisor') {
+        // advisor a des tokens illimités, free et api_monthly ont des tokens limités
         const isUnlimited = plan === 'advisor' || tokenState.baseTokens === -1;
         return { hasAccess: true, plan: plan, isUnlimited: isUnlimited };
     }
