@@ -122,6 +122,7 @@ const AnalysisCosts = {
   porter: 60,
   pestel: 55,
   competitive: 45,
+  recommendation: 30,
   basic: 50,
   advanced: 55,
   detailed_report: 100,
@@ -148,15 +149,7 @@ const AnalysisCosts = {
   // PHASE 4 : INTÉGRATION & SUIVI - BLOQUÉ (Contact par mail)
   action_plan_100: 999999,
   action_plan_100_days: 999999,
-  post_acquisition_dashboard: 999999,
-  
-  // ANALYSES AVEC IA (coût en tokens DPAI)
-  ai_swot: 50,
-  ai_porter: 60,
-  ai_pestel: 55,
-  ai_due_diligence: 80,
-  ai_valuation: 100,
-  ai_recommendation: 30
+  post_acquisition_dashboard: 999999
 };
 
 // Tous les services sont gratuits - Plus de packs de tokens
