@@ -374,22 +374,8 @@
                     if (!data[key]) delete data[key];
                 });
 
-                // Coût de l'analyse selon le type (ajusté pour être plus accessible)
-                const analysisCosts = {
-                    swot: 50,
-                    porter: 60,
-                    pestel: 55,
-                    competitive: 45,
-                    due_diligence: 80,
-                    valuation: 100,
-                    recommendation: 30,
-                    benchmark: 40,
-                    modeling: 70,
-                    synergy: 60,
-                    ideal_sector: 40,
-                    maturity_score: 25
-                };
-                const cost = analysisCosts[analysisType] || 50;
+                // Coût de l'analyse selon le type - utiliser les coûts de TokenManager
+                const cost = window.AnalysisCosts ? window.AnalysisCosts[analysisType] : 50;
 
                 // Vérifier si l'utilisateur a assez de tokens (sauf si illimité)
                 const userTokens = TokenManager.userData.tokenState || {};

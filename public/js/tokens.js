@@ -113,32 +113,32 @@ const PLAN_CONFIG = {
   }
 };
 
-// Coûts des analyses par type - TOUS LES UTILISATEURS ONT ACCÈS AUX PHASES 1 & 2
+// Coûts des analyses par type - Alignés avec functions/index.js
+// Tous les utilisateurs ont accès aux Phases 1 & 2
 // Email: window.CONTACT_EMAIL pour Phases 3 & 4
-// Les coûts ont été multipliés par 4 pour équilibrer avec les 500 tokens gratuits
 const AnalysisCosts = {
-  // PHASE 1 & 2 : Coûts en tokens (x4 par rapport à la version précédente)
-  swot: 40,
-  porter: 120,
-  pestel: 80,
-  competitive: 120,
-  basic: 40,
-  advanced: 80,
-  detailed_report: 160,
-  synergy: 200,
-  modeling: 240,
-  benchmark: 160,
-  due_diligence: 280,
-  valuation: 320,
-  mergers_acquisitions: 400,
-  strategic_audit: 240,
-  risk_assessment: 200,
+  // PHASE 1 & 2 : Coûts en tokens (alignés avec le serveur)
+  swot: 50,
+  porter: 60,
+  pestel: 55,
+  competitive: 45,
+  basic: 50,
+  advanced: 55,
+  detailed_report: 100,
+  synergy: 60,
+  modeling: 70,
+  benchmark: 40,
+  due_diligence: 80,
+  valuation: 100,
+  mergers_acquisitions: 100,
+  strategic_audit: 70,
+  risk_assessment: 50,
   // Services supplémentaires Phase 1 & 2
-  reports: 160,
-  ideal_sector: 35,
-  maturity_score: 50,
-  integration_matrix: 180,
-  valuation_simulator: 320,
+  reports: 100,
+  ideal_sector: 40,
+  maturity_score: 25,
+  integration_matrix: 60,
+  valuation_simulator: 100,
   
   // PHASE 3 : NÉGOCIATION & SIGNATURE - BLOQUÉ (Contact par mail)
   loi_generation: 999999,
@@ -151,12 +151,12 @@ const AnalysisCosts = {
   post_acquisition_dashboard: 999999,
   
   // ANALYSES AVEC IA (coût en tokens DPAI)
-  ai_swot: 80,
-  ai_porter: 100,
-  ai_pestel: 90,
-  ai_due_diligence: 150,
-  ai_valuation: 200,
-  ai_recommendation: 50
+  ai_swot: 50,
+  ai_porter: 60,
+  ai_pestel: 55,
+  ai_due_diligence: 80,
+  ai_valuation: 100,
+  ai_recommendation: 30
 };
 
 // Tous les services sont gratuits - Plus de packs de tokens
