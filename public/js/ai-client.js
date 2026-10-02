@@ -5,44 +5,27 @@
 // Mistral reste utilisé UNIQUEMENT pour les analyses (SWOT, Porter, etc.)
 // =============================================================================
 
-// Configuration de l'URL de base (à adapter en production)
+// Configuration de l'URL de base
 // Projet Firebase: dpai-8be62, Région: us-central1
 // En local: utilise l'Emulator Firebase Functions
-// En production: utilise /functions/ qui est réécrit par Firebase Hosting
+// En production: utilise l'URL Cloud Functions directe (fonctionne partout)
 const isLocalhost = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const isFirebaseHosting = 
-    window.location.hostname.includes('firebaseapp.com') ||
-    window.location.hostname.includes('web.app') ||
-    window.location.hostname === 'dpai-8be62.web.app' ||
-    window.location.hostname === 'dpai-8be62.firebaseapp.com';
 
 const AI_API_BASE_URL = isLocalhost
     ? 'http://localhost:5001/dpai-8be62/us-central1'
-    : isFirebaseHosting
-        ? ''  // Utilise /functions/ avec réécriture Firebase Hosting
-        : 'https://us-central1-dpai-8be62.cloudfunctions.net';
+    : 'https://us-central1-dpai-8be62.cloudfunctions.net';
 
 // URL complète pour les endpoints
 const AI_ENDPOINTS = {
     // Les analyses utilisent MISTRAL (API externe)
-    analyze: isFirebaseHosting
-        ? '/functions/analyzeWithAI'
-        : `${AI_API_BASE_URL}/analyzeWithAI`,
+    analyze: `${AI_API_BASE_URL}/analyzeWithAI`,
     
     // Le Conseiller IA utilise l'API MISTRAL avec prompts DPAI
-    chat: isFirebaseHosting
-        ? '/functions/advisorChat'
-        : `${AI_API_BASE_URL}/advisorChat`,
+    chat: `${AI_API_BASE_URL}/advisorChat`,
     
-    conversations: isFirebaseHosting
-        ? '/functions/listAdvisorConversations'
-        : `${AI_API_BASE_URL}/listAdvisorConversations`,
-    deleteConversation: isFirebaseHosting
-        ? '/functions/deleteAdvisorConversation'
-        : `${AI_API_BASE_URL}/deleteAdvisorConversation`,
-    setPlan: isFirebaseHosting
-        ? '/functions/setUserPlan'
-        : `${AI_API_BASE_URL}/setUserPlan`
+    conversations: `${AI_API_BASE_URL}/listAdvisorConversations`,
+    deleteConversation: `${AI_API_BASE_URL}/deleteAdvisorConversation`,
+    setPlan: `${AI_API_BASE_URL}/setUserPlan`
 };
 
 // =============================================================================
