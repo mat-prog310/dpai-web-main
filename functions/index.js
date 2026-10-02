@@ -226,7 +226,22 @@ exports.analyzeWithAI = functions.https.onRequest(async (req, res) => {
 
         } catch (error) {
             console.error('❌ Erreur analyzeWithAI:', error);
-            res.status(500).json({ error: error.message || 'Erreur serveur' });
+            console.error('Stack trace:', error.stack);
+            
+            // Retourner une erreur plus détaillée
+            let errorMessage = error.message || 'Erreur serveur';
+            if (error.message && error.message.includes('Mistral')) {
+                errorMessage = 'Erreur API Mistral: ' + error.message;
+            } else if (error.message && error.message.includes('Firestore')) {
+                errorMessage = 'Erreur Firestore: ' + error.message;
+            } else if (error.code) {
+                errorMessage = 'Erreur: ' + error.code + ' - ' + error.message;
+            }
+            
+            res.status(500).json({
+                error: errorMessage,
+                details: process.env.NODE_ENV === 'development' ? error.stack : undefined
+            });
         }
     });
 });
