@@ -7,8 +7,10 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const cors = require('cors')({ origin: true });
 
-// Initialiser Firebase Admin (déjà fait dans le projet)
-// admin.initializeApp(); // Décommenter si non initialisé
+// Initialiser Firebase Admin
+if (admin.apps.length === 0) {
+    admin.initializeApp();
+}
 
 // Importer les prompts DPAI
 const { DPAI_CONTEXT, SWOT_PROMPT, PORTER_PROMPT, ADVISOR_PROMPT, SECTOR_DATA, 
