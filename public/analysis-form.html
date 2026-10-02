@@ -97,7 +97,28 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
     <script src="/js/firebase-config.js"></script>
+    <script>
+        // Initialiser Firebase Functions IMMEDIATEMENT après firebase-config
+        // Cela garantit que window.firebaseFunctions est disponible avant ai-client.js
+        if (typeof firebase !== 'undefined' && firebase.functions) {
+            // Si firebase-config a déjà initialisé, utiliser sa valeur
+            if (!window.firebaseFunctions) {
+                window.firebaseFunctions = firebase.functions('us-central1');
+            }
+            console.log('%c✅ [Firebase Functions] Initialisé avec région us-central1', 'color: #28a745; font-weight: bold;');
+        } else {
+            // Attendre que firebase soit prêt
+            const initFunctions = setInterval(() => {
+                if (typeof firebase !== 'undefined' && firebase.functions) {
+                    window.firebaseFunctions = firebase.functions('us-central1');
+                    console.log('%c✅ [Firebase Functions] Initialisé avec région us-central1 (reporté)', 'color: #28a745; font-weight: bold;');
+                    clearInterval(initFunctions);
+                }
+            }, 100);
+        }
+    </script>
     <script src="/js/tokens.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/ai-client.js"></script>
@@ -358,13 +379,30 @@
                 // Appeler l'API d'analyse
                 const result = await callAIAnalysis(analysisType, data);
 
+                // Calculer le coût de l'analyse
+                const analysisCosts = {
+                    swot: 80,
+                    porter: 100,
+                    pestel: 90,
+                    due_diligence: 150,
+                    valuation: 200,
+                    recommendation: 50
+                };
+                const cost = analysisCosts[analysisType] || 100;
+
                 // Stocker le résultat dans localStorage pour analysis-results.html
                 localStorage.setItem('dpai_analysis_results', JSON.stringify({
                     type: analysisType,
-                    name: formConfigs[analysisType].title,
+                    name: data.companyName || data.name || formConfigs[analysisType].title,
                     description: formConfigs[analysisType].description,
+                    cost: cost,
+                    score: 85, // Score par défaut (peut être calculé plus tard)
                     results: result.result,
-                    createdAt: new Date().toISOString()
+                    createdAt: new Date().toISOString(),
+                    model: result.model,
+                    tokensUsed: result.tokensUsed,
+                    availableTokens: result.availableTokens,
+                    plan: result.plan
                 }));
 
                 // Ouvrir la page des résultats dans une NOUVELLE FENÊTRE

@@ -30,10 +30,12 @@ const AI_ENDPOINTS = {
 
 // =============================================================================
 // FONCTIONS D'APPEL À L'API IA
+// Utilisation de httpsCallable pour une meilleure gestion de l'authentification
 // =============================================================================
 
 /**
  * Appelle l'API pour une analyse IA (SWOT, Porter, etc.) - UTILISE MISTRAL
+ * Utilise fetch avec URL directe Cloud Functions pour compatibilité
  * @param {string} type - Type d'analyse (swot, porter, pestel, etc.)
  * @param {Object} data - Données pour l'analyse
  * @returns {Promise<Object>} Résultat de l'analyse
@@ -44,10 +46,13 @@ async function callAIAnalysis(type, data) {
             throw new Error('Utilisateur non connecté');
         }
 
+        // Utiliser fetch avec l'URL directe pour éviter les problèmes de timing
+        // avec httpsCallable et assurer la compatibilité avec tous les hébergements
+        // Format attendu par la fonction onRequest: { userId, type, data }
         const response = await fetch(AI_ENDPOINTS.analyze, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 userId: TokenManager.userData.id,
@@ -63,7 +68,6 @@ async function callAIAnalysis(type, data) {
                 const error = JSON.parse(responseText);
                 throw new Error(error.error || error.message || 'Erreur serveur');
             } catch (parseError) {
-                // Si la réponse n'est pas du JSON, utiliser le texte brut
                 throw new Error(responseText || 'Erreur serveur');
             }
         }
@@ -71,7 +75,8 @@ async function callAIAnalysis(type, data) {
         try {
             return JSON.parse(responseText);
         } catch (parseError) {
-            throw new Error(responseText || 'Réponse serveur invalide');
+            // Si le parsing échoue, retourner un objet avec le texte brut
+            return { result: responseText, rawText: responseText };
         }
     } catch (error) {
         console.error('❌ Erreur appel IA (analyses):', error);
@@ -92,44 +97,29 @@ async function callAdvisorChat(message, conversationId = null) {
             throw new Error('Utilisateur non connecté');
         }
 
-        const response = await fetch(AI_ENDPOINTS.chat, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: TokenManager.userData.id,
-                message: message,
-                conversationId: conversationId
-            })
+        // Utiliser httpsCallable
+        if (typeof window.firebaseFunctions === 'undefined' || !window.firebaseFunctions) {
+            throw new Error('Firebase Functions non initialisé');
+        }
+
+        const advisorChatFunc = window.firebaseFunctions.httpsCallable('advisorChat');
+        const result = await advisorChatFunc({
+            message: message,
+            conversationId: conversationId
         });
 
-        const responseText = await response.text();
-        
-        if (!response.ok) {
-            try {
-                const error = JSON.parse(responseText);
-                if (error.error && error.error.includes('Abonnement Conseiller IA')) {
-                    // Rediriger vers la page de pricing
-                    window.location.href = '/pricing.html#advisor';
-                }
-                throw new Error(error.error || error.message || 'Erreur serveur local');
-            } catch (parseError) {
-                // Si la réponse n'est pas du JSON, utiliser le texte brut
-                if (responseText && responseText.includes('Abonnement Conseiller IA')) {
-                    window.location.href = '/pricing.html#advisor';
-                }
-                throw new Error(responseText || 'Erreur serveur local');
-            }
-        }
-
-        try {
-            return JSON.parse(responseText);
-        } catch (parseError) {
-            throw new Error(responseText || 'Réponse serveur invalide');
-        }
+        return result.data;
     } catch (error) {
         console.error('❌ Erreur Conseiller IA:', error);
+        
+        // Gérer les erreurs HttpsError
+        if (error.code) {
+            if (error.message && error.message.includes('Abonnement Conseiller IA')) {
+                // Rediriger vers la page de pricing
+                window.location.href = '/pricing.html#advisor';
+            }
+            throw new Error(error.message || 'Erreur Conseiller IA');
+        }
         throw error;
     }
 }

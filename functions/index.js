@@ -54,6 +54,272 @@ function corsHandler(req, res, handler) {
     cors(req, res, handler);
 }
 
+// Parser pour transformer la réponse texte de Mistral en JSON structuré
+function parseMistralResponse(textResponse, analysisType, companyData) {
+    const result = {};
+    
+    // Extraire le résumé/évaluation globale si présent
+    const summaryMatch = textResponse.match(/^##\s*[📈📊]?\s*([^\n]+)/m);
+    if (summaryMatch) {
+        result.summary = summaryMatch[1].trim();
+    }
+    
+    // Extraire le contexte si présent
+    const contextMatch = textResponse.match(/^\*\*Contexte\*\*\s*:\s*([^\n]+)/m);
+    if (contextMatch) {
+        result.context = contextMatch[1].trim();
+    }
+    
+    switch (analysisType) {
+        case 'swot':
+            result.strengths = extractSectionItems(textResponse, ['Forces', 'Strengths']);
+            result.weaknesses = extractSectionItems(textResponse, ['Faiblesses', 'Weaknesses']);
+            result.opportunities = extractSectionItems(textResponse, ['Opportunités', 'Opportunities']);
+            result.threats = extractSectionItems(textResponse, ['Menaces', 'Threats']);
+            result.recommendations = extractSectionItems(textResponse, ['Recommandations', 'Recommendations']);
+            
+            // Extraire les insights stratégiques
+            const insightsMatch = extractSection(textResponse, ['Recommandations Stratégiques', 'Strategic Insights']);
+            if (insightsMatch) {
+                result.strategicInsights = insightsMatch;
+            }
+            
+            // Si on n'a pas trouvé assez d'items, utiliser le texte brut
+            if ((result.strengths.length + result.weaknesses.length + result.opportunities.length + result.threats.length) < 3) {
+                const fallbackResult = parseGenericSWOT(textResponse);
+                Object.assign(result, fallbackResult);
+            }
+            break;
+            
+        case 'porter':
+            result.supplierPower = extractForce(textResponse, 'Pouvoir des fournisseurs');
+            result.supplierPowerScore = extractScore(textResponse, 'Pouvoir des fournisseurs');
+            result.buyerPower = extractForce(textResponse, 'Pouvoir des clients');
+            result.buyerPowerScore = extractScore(textResponse, 'Pouvoir des clients');
+            result.newEntrants = extractForce(textResponse, 'Menace des nouveaux entrants');
+            result.newEntrantsScore = extractScore(textResponse, 'Menace des nouveaux entrants');
+            result.substitutes = extractForce(textResponse, 'Menace des substituts');
+            result.substitutesScore = extractScore(textResponse, 'Menace des substituts');
+            result.rivalry = extractForce(textResponse, 'Intensité de la rivalité');
+            result.rivalryScore = extractScore(textResponse, 'Intensité de la rivalité');
+            result.overallAssessment = extractSection(textResponse, ['Évaluation Globale', 'Overall Assessment']);
+            result.recommendations = extractSectionItems(textResponse, ['Recommandations']);
+            break;
+            
+        case 'pestel':
+            result.political = extractFactor(textResponse, 'Politique');
+            result.economic = extractFactor(textResponse, 'Économique');
+            result.social = extractFactor(textResponse, 'Socioculturel');
+            result.technological = extractFactor(textResponse, 'Technologique');
+            result.environmental = extractFactor(textResponse, 'Environnemental');
+            result.legal = extractFactor(textResponse, 'Légal');
+            result.overallAssessment = extractSection(textResponse, ['Évaluation Globale', 'Overall Assessment']);
+            result.recommendations = extractSectionItems(textResponse, ['Recommandations']);
+            break;
+            
+        case 'competitive':
+            result.overallScore = extractScore(textResponse, 'Score global');
+            result.competitiveAdvantage = extractTextAfter(textResponse, 'Avantage concurrentiel');
+            result.competitors = extractCompetitors(textResponse);
+            result.recommendations = extractSectionItems(textResponse, ['Recommandations']);
+            break;
+            
+        default:
+            // Pour les autres types, retourner le texte complet
+            result.rawResponse = textResponse;
+            result.overallAssessment = extractSection(textResponse, ['Évaluation', 'Assessment', 'Résumé', 'Summary']);
+            result.recommendations = extractSectionItems(textResponse, ['Recommandations', 'Recommendations']);
+    }
+    
+    // Ajouter des métadonnées
+    result.companyName = companyData.name || companyData.companyName || 'Analyse';
+    result.sector = companyData.sector || 'Non spécifié';
+    result.rawText = textResponse;
+    
+    return result;
+}
+
+// Extraire les items d'une section (liste numérotée ou à puces)
+function extractSectionItems(text, sectionTitles) {
+    const items = [];
+    
+    for (const title of sectionTitles) {
+        const startRegex = new RegExp(`###?\\s*${title}:?\\s*[\\n]*`, 'i');
+        const startMatch = text.match(startRegex);
+        
+        if (startMatch) {
+            const startIndex = startMatch.index + startMatch[0].length;
+            let endIndex = text.length;
+            
+            // Trouver la fin de la section (prochaine section de niveau 2 ou 3)
+            const nextSectionMatch = text.substring(startIndex).match(/\n###?\\s*[A-Z]/i);
+            if (nextSectionMatch) {
+                endIndex = startIndex + nextSectionMatch.index;
+            }
+            
+            const sectionText = text.substring(startIndex, endIndex);
+            
+            // Extraire les items (listes numérotées ou à puces)
+            const lines = sectionText.split('\n');
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (trimmed === '') continue;
+                
+                // Match liste numérotée (1., 2., etc.) ou à puces (-, *, •)
+                const numberedMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
+                const bulletMatch = trimmed.match(/^[-\*•]\s+(.+)/);
+                
+                if (numberedMatch) {
+                    items.push(numberedMatch[2].trim());
+                } else if (bulletMatch) {
+                    items.push(bulletMatch[1].trim());
+                } else if (trimmed && !trimmed.match(/^###?\s*[A-Z]/i)) {
+                    // Si ce n'est pas un titre, l'ajouter
+                    items.push(trimmed);
+                }
+            }
+            break; // On prend la première section trouvée
+        }
+    }
+    
+    return items;
+}
+
+// Extraire une section complète (texte)
+function extractSection(text, sectionTitles) {
+    for (const title of sectionTitles) {
+        const startRegex = new RegExp(`###?\\s*${title}:?\\s*[\\n]*`, 'i');
+        const startMatch = text.match(startRegex);
+        
+        if (startMatch) {
+            const startIndex = startMatch.index + startMatch[0].length;
+            let endIndex = text.length;
+            
+            const nextSectionMatch = text.substring(startIndex).match(/\n###?\\s*[A-Z]/i);
+            if (nextSectionMatch) {
+                endIndex = startIndex + nextSectionMatch.index;
+            }
+            
+            const sectionText = text.substring(startIndex, endIndex).trim();
+            return sectionText || null;
+        }
+    }
+    return null;
+}
+
+// Extraire une force/menace de Porter
+function extractForce(text, forceName) {
+    const startRegex = new RegExp(`###?\\s*${forceName}:?\\s*[\\n]*`, 'i');
+    const startMatch = text.match(startRegex);
+    if (startMatch) {
+        const startIndex = startMatch.index + startMatch[0].length;
+        const nextSection = text.substring(startIndex).match(/\n###?\\s*/);
+        const endIndex = nextSection ? startIndex + nextSection.index : text.length;
+        const forceText = text.substring(startIndex, endIndex).trim();
+        const firstLine = forceText.split('\n')[0].trim();
+        return firstLine || 'Non disponible';
+    }
+    return 'Non disponible';
+}
+
+// Extraire un score (nombre entre 0 et 100)
+function extractScore(text, forceName) {
+    const pattern = new RegExp(`${forceName}[^\\d]*(\\d{1,3})[^\\d]*[/]?\\s*100`);
+    const match = text.match(pattern);
+    if (match) {
+        const score = parseInt(match[1], 10);
+        return Math.min(100, Math.max(0, score));
+    }
+    
+    // Chercher juste un nombre suivi de /100
+    const scorePattern = /(\d{1,3})\/100/;
+    const scoreMatch = text.match(scorePattern);
+    if (scoreMatch) {
+        return parseInt(scoreMatch[1], 10);
+    }
+    
+    return 0;
+}
+
+// Extraire un facteur PESTEL
+function extractFactor(text, factorName) {
+    const startRegex = new RegExp(`###?\\s*${factorName}:?\\s*[\\n]*`, 'i');
+    const startMatch = text.match(startRegex);
+    if (startMatch) {
+        const startIndex = startMatch.index + startMatch[0].length;
+        const nextSection = text.substring(startIndex).match(/\n###?\\s*/);
+        const endIndex = nextSection ? startIndex + nextSection.index : text.length;
+        const factorText = text.substring(startIndex, endIndex).trim();
+        const firstLine = factorText.split('\n')[0].trim();
+        return firstLine || 'Non disponible';
+    }
+    return 'Non disponible';
+}
+
+// Extraire les concurrents
+function extractCompetitors(text) {
+    const competitors = [];
+    const pattern = /(Concurrent|Competitor)\s*[\d]*:?\s*([^\n]+)/gi;
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+        competitors.push({ name: match[2].trim(), overallScore: 0 });
+    }
+    return competitors.length > 0 ? competitors : null;
+}
+
+// Extraire du texte après un label
+function extractTextAfter(text, label) {
+    const pattern = new RegExp(`${label}[:\\s]*([^\\n]+)`, 'i');
+    const match = text.match(pattern);
+    return match ? match[1].trim() : 'Non évalué';
+}
+
+// Parser SWOT générique (fallback)
+function parseGenericSWOT(text) {
+    const result = {
+        strengths: [],
+        weaknesses: [],
+        opportunities: [],
+        threats: []
+    };
+    
+    const sections = {
+        'strengths': ['Forces', 'Strengths'],
+        'weaknesses': ['Faiblesses', 'Weaknesses'],
+        'opportunities': ['Opportunités', 'Opportunities'],
+        'threats': ['Menaces', 'Threats']
+    };
+    
+    for (const [key, titles] of Object.entries(sections)) {
+        for (const title of titles) {
+            const regex = new RegExp(`###?\\s*${title}:?\\s*[\\n]*([\\s\\S]*?)(?=\\n###?|$)`);
+            const match = text.match(regex);
+            if (match) {
+                const sectionText = match[1];
+                const lines = sectionText.split('\n');
+                for (const line of lines) {
+                    const trimmed = line.trim();
+                    if (trimmed && !trimmed.match(/^[##]/)) {
+                        const numberedMatch = trimmed.match(/^(\d+)\.\s+(.+)/);
+                        const bulletMatch = trimmed.match(/^[-\*•]\s+(.+)/);
+                        
+                        if (numberedMatch) {
+                            result[key].push(numberedMatch[2].trim());
+                        } else if (bulletMatch) {
+                            result[key].push(bulletMatch[1].trim());
+                        } else if (trimmed) {
+                            result[key].push(trimmed);
+                        }
+                    }
+                }
+                break;
+            }
+        }
+    }
+    
+    return result;
+}
+
 // Appel à l'API Mistral (POUR TOUT : Conseiller IA + Analyses)
 async function callMistral(prompt, model = "mistral-large") {
     try {
@@ -220,19 +486,28 @@ exports.analyzeWithAI = functions.https.onRequest(async (req, res) => {
             }
 
             // 3. Appeler Mistral (pour les analyses)
-            const response = await callMistral(prompt);
+            const mistralResponse = await callMistral(prompt);
 
-            // 4. Déduire les tokens si l'utilisateur n'a pas des tokens illimités
+            // 4. Parser la réponse pour obtenir une structure JSON
+            const structuredResult = parseMistralResponse(mistralResponse, type, data);
+
+            // 5. Déduire les tokens si l'utilisateur n'a pas des tokens illimités
             if (!access.isUnlimited) {
                 await deductAITokens(userId, type);
             }
 
+            // 6. Récupérer les tokens mis à jour
+            const userDoc = await admin.firestore().collection('users').doc(userId).get();
+            const userData = userDoc.exists ? userDoc.data() : {};
+
             res.json({
                 success: true,
-                result: response,
+                result: structuredResult,
                 tokensUsed: access.isUnlimited ? 0 : AI_ANALYSIS_COSTS[type],
                 plan: access.plan,
-                model: 'mistral-api'  // Indique que c'est l'API Mistral
+                model: 'mistral-api',
+                availableTokens: userData.tokenState?.availableTokens || 0,
+                type: type
             });
 
         } catch (error) {
