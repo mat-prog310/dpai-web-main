@@ -374,27 +374,57 @@
                     if (!data[key]) delete data[key];
                 });
 
-                // Ajouter l'ID utilisateur depuis TokenManager
-                data.userId = TokenManager.userData.id;
+                // Coût de l'analyse selon le type
+                const analysisCosts = {
+                    swot: 80,
+                    porter: 100,
+                    pestel: 90,
+                    due_diligence: 150,
+                    valuation: 200,
+                    recommendation: 50,
+                    competitive: 75,
+                    benchmark: 60,
+                    modeling: 90,
+                    synergy: 85,
+                    ideal_sector: 70,
+                    maturity_score: 50
+                };
+                const cost = analysisCosts[analysisType] || 100;
+
+                // Vérifier si l'utilisateur a assez de tokens (sauf si illimité)
+                const userTokens = TokenManager.userData.tokenState || {};
+                const isUnlimited = userTokens.baseTokens === -1 || TokenManager.userData.subscription?.plan === 'advisor';
+                
+                if (!isUnlimited && (userTokens.availableTokens || 0) < cost) {
+                    alert(`Vous n'avez pas assez de tokens. Il vous en faut ${cost} mais vous n'en avez que ${userTokens.availableTokens || 0}.`);
+                    return;
+                }
 
                 // Générer l'analyse localement avec le générateur DPAI
                 const result = window.generateAnalysis(analysisType, data);
 
-                // Calculer le coût de l'analyse (0 car local)
-                const cost = 0; // Analyse locale = gratuit
+                // Déduire les tokens via l'API (sauf si illimité)
+                let tokenResult = { success: true, tokensUsed: 0, availableTokens: userTokens.availableTokens || 0 };
+                if (!isUnlimited) {
+                    tokenResult = await window.deductAnalysisTokens(analysisType);
+                    if (!tokenResult.success) {
+                        alert(tokenResult.error || 'Erreur lors de la déduction des tokens');
+                        return;
+                    }
+                }
 
                 // Stocker le résultat dans localStorage pour analysis-results.html
                 localStorage.setItem('dpai_analysis_results', JSON.stringify({
                     type: analysisType,
                     name: data.companyName || data.name || formConfigs[analysisType].title,
                     description: formConfigs[analysisType].description,
-                    cost: cost,
+                    cost: isUnlimited ? 0 : cost,
                     score: result.score || 85,
                     results: result,
                     createdAt: new Date().toISOString(),
                     model: 'dpai-local-generator',
-                    tokensUsed: 0,
-                    availableTokens: TokenManager.userData.tokenState?.availableTokens || 0,
+                    tokensUsed: tokenResult.tokensUsed || 0,
+                    availableTokens: tokenResult.availableTokens || userTokens.availableTokens || 0,
                     plan: TokenManager.userData.subscription?.plan || 'free'
                 }));
 

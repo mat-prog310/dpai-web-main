@@ -809,11 +809,98 @@ exports.activateSubscription = functions.https.onRequest(async (req, res) => {
 });
 
 // =============================================================================
+// ENDPOINT POUR DÉDUIRE LES TOKENS D'ANALYSE
+// =============================================================================
+
+// Endpoint pour déduire les tokens après une analyse locale
+exports.deductAnalysisTokens = functions.https.onRequest(async (req, res) => {
+    corsHandler(req, res, async () => {
+        if (req.method !== 'POST') {
+            return res.status(405).json({ error: 'Method Not Allowed' });
+        }
+
+        try {
+            const { userId, analysisType } = req.body;
+            
+            if (!userId || !analysisType) {
+                return res.status(400).json({ 
+                    error: 'userId et analysisType sont requis'
+                });
+            }
+
+            // Vérifier l'utilisateur
+            const userDoc = await admin.firestore().collection('users').doc(userId).get();
+            if (!userDoc.exists) {
+                return res.status(404).json({ error: 'Utilisateur non trouvé' });
+            }
+
+            const userData = userDoc.data();
+            const tokenState = userData.tokenState || {};
+            const plan = userData.subscription?.plan || 'free';
+
+            // Vérifier si l'utilisateur a des tokens illimités (plan advisor)
+            const isUnlimited = tokenState.baseTokens === -1 || plan === 'advisor';
+            
+            if (isUnlimited) {
+                // Tokens illimités, ne rien déduire
+                return res.json({
+                    success: true,
+                    tokensUsed: 0,
+                    availableTokens: -1,
+                    message: 'Tokens illimités - Aucune déduction'
+                });
+            }
+
+            // Vérifier si l'utilisateur a assez de tokens
+            const analysisCost = AI_ANALYSIS_COSTS[analysisType] || 100;
+            const availableTokens = tokenState.availableTokens || 0;
+            
+            if (availableTokens < analysisCost) {
+                return res.status(403).json({
+                    error: 'Solde de tokens insuffisant',
+                    availableTokens: availableTokens,
+                    required: analysisCost,
+                    message: `Vous avez besoin de ${analysisCost - availableTokens} tokens supplémentaires`
+                });
+            }
+
+            // Déduire les tokens
+            await admin.firestore().collection('users').doc(userId).update({
+                'tokenState.availableTokens': admin.firestore.FieldValue.increment(-analysisCost),
+                'tokenState.usedTokens': admin.firestore.FieldValue.increment(analysisCost),
+                lastTokenUpdate: admin.firestore.FieldValue.serverTimestamp()
+            });
+
+            // Récupérer les tokens mis à jour
+            const updatedUserDoc = await admin.firestore().collection('users').doc(userId).get();
+            const updatedTokenState = updatedUserDoc.data().tokenState || {};
+
+            res.json({
+                success: true,
+                tokensUsed: analysisCost,
+                availableTokens: updatedTokenState.availableTokens || 0,
+                usedTokens: updatedTokenState.usedTokens || 0,
+                totalTokens: updatedTokenState.totalTokens || 0,
+                analysisType: analysisType,
+                message: `Tokens déduits avec succès: -${analysisCost}`
+            });
+
+        } catch (error) {
+            console.error('❌ Erreur deductAnalysisTokens:', error);
+            res.status(500).json({ 
+                error: error.message || 'Erreur serveur'
+            });
+        }
+    });
+});
+
+// =============================================================================
 // EXPORT DEFAULT
 // =============================================================================
 module.exports = {
     analyzeWithAI: exports.analyzeWithAI,
     advisorChat: exports.advisorChat,
+    deductAnalysisTokens: exports.deductAnalysisTokens,
     setUserPlan: exports.setUserPlan,
     listAdvisorConversations: exports.listAdvisorConversations,
     deleteAdvisorConversation: exports.deleteAdvisorConversation,

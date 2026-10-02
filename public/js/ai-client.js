@@ -17,8 +17,11 @@ const AI_API_BASE_URL = isLocalhost
 
 // URL complète pour les endpoints
 const AI_ENDPOINTS = {
-    // Les analyses utilisent MISTRAL (API externe)
+    // Les analyses utilisent MISTRAL (API externe) - plus utilisé maintenant
     analyze: `${AI_API_BASE_URL}/analyzeWithAI`,
+    
+    // Déduction de tokens pour les analyses locales
+    deductTokens: `${AI_API_BASE_URL}/deductAnalysisTokens`,
     
     // Le Conseiller IA utilise l'API MISTRAL avec prompts DPAI
     chat: `${AI_API_BASE_URL}/advisorChat`,
@@ -200,6 +203,50 @@ async function deleteAdvisorConversation(conversationId) {
         }
     } catch (error) {
         console.error('❌ Erreur suppression conversation:', error);
+        throw error;
+    }
+}
+
+/**
+ * Déduit les tokens pour une analyse
+ * @param {string} analysisType - Type d'analyse (swot, porter, pestel, etc.)
+ * @returns {Promise<Object>} Résultat avec tokens mis à jour
+ */
+async function deductAnalysisTokens(analysisType) {
+    try {
+        if (!TokenManager || !TokenManager.userData) {
+            throw new Error('Utilisateur non connecté');
+        }
+
+        const response = await fetch(AI_ENDPOINTS.deductTokens, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                userId: TokenManager.userData.id,
+                analysisType: analysisType
+            })
+        });
+
+        const responseText = await response.text();
+        
+        if (!response.ok) {
+            try {
+                const error = JSON.parse(responseText);
+                throw new Error(error.error || error.message || 'Erreur serveur');
+            } catch (parseError) {
+                throw new Error(responseText || 'Erreur serveur');
+            }
+        }
+
+        try {
+            return JSON.parse(responseText);
+        } catch (parseError) {
+            throw new Error(responseText || 'Réponse serveur invalide');
+        }
+    } catch (error) {
+        console.error('❌ Erreur déduction tokens:', error);
         throw error;
     }
 }
@@ -415,11 +462,12 @@ window.AIClient = {
     // API Calls
     callAIAnalysis,
     callAdvisorChat,
+    deductAnalysisTokens,
     getAdvisorConversations,
     deleteAdvisorConversation,
     setUserPlan,
     
-    // Analyses spécifiques (utilisent Mistral)
+    // Analyses spécifiques (utilisent le générateur local maintenant)
     analyzeWithSWOT,
     analyzeWithPorter,
     analyzeWithPestel,
@@ -436,6 +484,7 @@ window.AIClient = {
 // Exporter aussi les fonctions individuellement pour la compatibilité
 window.callAIAnalysis = callAIAnalysis;
 window.callAdvisorChat = callAdvisorChat;
+window.deductAnalysisTokens = deductAnalysisTokens;
 window.getAdvisorConversations = getAdvisorConversations;
 window.deleteAdvisorConversation = deleteAdvisorConversation;
 window.setUserPlan = setUserPlan;
