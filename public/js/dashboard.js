@@ -1082,7 +1082,7 @@ function initQuickActions() {
     container.innerHTML = '';
     
     // Obtenir le plan de l'utilisateur
-    const userPlan = (typeof authService !== 'undefined' && authService.userData) ? authService.userData.plan : 'free';
+    const userPlan = (typeof TokenManager !== 'undefined' && TokenManager.tokenState) ? TokenManager.tokenState.plan : 'free';
     
     // Générer les boutons
     const servicesOrder = ['swot', 'porter', 'pestel', 'competitive', 'reports', 'benchmark', 'modeling', 'due_diligence', 'valuation', 'synergy', 'ideal_sector', 'maturity_score', 'integration_matrix', 'valuation_simulator'];
