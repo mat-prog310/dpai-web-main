@@ -89,7 +89,20 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
     <script src="/js/firebase-config.js"></script>
     <script src="/js/protocol-check.js"></script>
-</head>
+
+      <style>
+        .lock-icons-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1rem;
+            justify-content: center;
+        }
+        .lock-overlay .lock-icon {
+            color: #fbbf24;
+            font-size: 2rem;
+        }
+      </style>
+    </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -243,9 +256,8 @@
             <div class="pricing-cards-grid">
                 <!-- API Monthly Plan -->
                 <div class="pricing-card premium lock-overlay-container" data-required-plan="api_monthly">
-                    <div class="lock-overlay" data-required-plan="api_monthly">
-                        <i class="fas fa-lock lock-icon"></i>
-                        <div class="lock-message">fonctionalité a venir</div>
+                    <div class="lock-overlay" data-required-plan="api_monthly">`n                        <div class="lock-icons-row">`n                            <i class="fas fa-lock lock-icon"></i>`n                            <i class="fas fa-lock lock-icon"></i>`n                            <i class="fas fa-lock lock-icon"></i>`n                        </div>
+                        <div class="lock-message">Fonctionnalité � venir</div>
                         <div class="lock-submessage">Souscrivez à l'Abonnement API Mensuel (199 €/mois) pour accéder à tous les services avec tokens et IA intégrée</div>
                         <div class="lock-cta">
                             <a href="#pricing" class="btn btn-primary btn-sm">
@@ -305,9 +317,8 @@
 
                 <!-- Conseiller IA Plan -->
                 <div class="pricing-card advisor lock-overlay-container" data-required-plan="advisor">
-                    <div class="lock-overlay" data-required-plan="advisor">
-                        <i class="fas fa-lock lock-icon"></i>
-                        <div class="lock-message">fonctionalité a venir</div>
+                    <div class="lock-overlay" data-required-plan="advisor">`n                        <div class="lock-icons-row">`n                            <i class="fas fa-lock lock-icon"></i>`n                            <i class="fas fa-lock lock-icon"></i>`n                            <i class="fas fa-lock lock-icon"></i>`n                        </div>
+                        <div class="lock-message">Fonctionnalité � venir</div>
                         <div class="lock-submessage">Souscrivez au Conseiller IA (499 €/mois) pour accéder à notre **IA DPAI proprietary** et au conseiller personnel</div>
                         <div class="lock-cta">
                             <a href="#pricing" class="btn btn-primary btn-sm">

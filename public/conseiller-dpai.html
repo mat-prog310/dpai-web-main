@@ -774,5 +774,55 @@
             <p>Chargement du Conseiller DPAI...</p>
         </div>
     </div>
+    
+    <!-- Script de vérification d'accès -->
+    <script>
+        // Vérifier si l'utilisateur a accès au Conseiller IA (plan advisor uniquement)
+        document.addEventListener('DOMContentLoaded', function() {
+            const accessCheck = document.getElementById('advisorAccessCheck');
+            const advisorChat = document.getElementById('advisorChat');
+            
+            // Vérifier si l'utilisateur est connecté et a le bon plan
+            if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
+                const userPlan = TokenManager.tokenState.plan;
+                
+                if (userPlan === 'advisor') {
+                    // L'utilisateur a accès - masquer la bannière et afficher le chat
+                    if (accessCheck) accessCheck.style.display = 'none';
+                    if (advisorChat) advisorChat.style.display = 'block';
+                } else {
+                    // L'utilisateur n'a pas accès - afficher la bannière et masquer le chat
+                    if (accessCheck) accessCheck.style.display = 'block';
+                    if (advisorChat) advisorChat.style.display = 'none';
+                }
+            } else {
+                // Utilisateur non connecté - afficher la bannière
+                if (accessCheck) accessCheck.style.display = 'block';
+                if (advisorChat) advisorChat.style.display = 'none';
+            }
+        });
+        
+        // Écouter les changements d'authentification
+        if (typeof TokenManager !== 'undefined') {
+            TokenManager.addListener(function() {
+                const accessCheck = document.getElementById('advisorAccessCheck');
+                const advisorChat = document.getElementById('advisorChat');
+                
+                if (TokenManager.tokenState) {
+                    const userPlan = TokenManager.tokenState.plan;
+                    if (userPlan === 'advisor') {
+                        if (accessCheck) accessCheck.style.display = 'none';
+                        if (advisorChat) advisorChat.style.display = 'block';
+                    } else {
+                        if (accessCheck) accessCheck.style.display = 'block';
+                        if (advisorChat) advisorChat.style.display = 'none';
+                    }
+                } else {
+                    if (accessCheck) accessCheck.style.display = 'block';
+                    if (advisorChat) advisorChat.style.display = 'none';
+                }
+            });
+        }
+    </script>
 </body>
 </html>
