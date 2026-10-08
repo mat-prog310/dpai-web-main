@@ -306,13 +306,7 @@ class TokenManager {
     }
     
     // Corriger les incohérences: availableTokens = totalTokens - usedTokens
-    // SAUF si totalTokens === -1 (illimité), alors availableTokens doit être -1
-    let expectedAvailable = availableTokens;
-    if (totalTokens === -1) {
-      expectedAvailable = -1; // Illimité
-    } else {
-      expectedAvailable = totalTokens - usedTokens;
-    }
+    const expectedAvailable = totalTokens - usedTokens;
     if (availableTokens !== expectedAvailable) {
       console.log('[TokenManager] Correction incohérence: availableTokens =', expectedAvailable);
       availableTokens = expectedAvailable;
@@ -553,7 +547,6 @@ class TokenManager {
     }
 
     this.tokenState = newState;
-    this.notifyListeners();
     return true;
   }
 
@@ -573,7 +566,6 @@ class TokenManager {
     }
 
     this.tokenState = newState;
-    this.notifyListeners();
     return true;
   }
 
@@ -604,7 +596,6 @@ class TokenManager {
     }
 
     this.tokenState = newState;
-    this.notifyListeners();
   }
 
   static async changePlan(newPlan) {
@@ -626,7 +617,6 @@ class TokenManager {
     }
 
     this.tokenState = newState;
-    this.notifyListeners();
   }
 
   static async applyReferralSponsorBonus() {
@@ -663,27 +653,6 @@ class TokenManager {
   static canPerformAnalysis(analysisType, plan) {
     const cost = this.getCost(analysisType);
     return this.availableTokens >= cost;
-  }
-
-  // Système de listeners pour les changements de tokenState
-  static listeners = [];
-
-  static addListener(callback) {
-    this.listeners.push(callback);
-  }
-
-  static removeListener(callback) {
-    this.listeners = this.listeners.filter(listener => listener !== callback);
-  }
-
-  static notifyListeners() {
-    this.listeners.forEach(listener => {
-      try {
-        listener();
-      } catch (error) {
-        console.error('[TokenManager] Erreur dans listener:', error);
-      }
-    });
   }
 
   static clear() {
