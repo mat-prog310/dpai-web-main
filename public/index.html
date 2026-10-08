@@ -111,57 +111,6 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
     <script src="/js/firebase-config.js"></script>
     <meta name="google-site-verification" content="Fb-66EKY6wiPTYsQHWW2keoJGM6RvcpGg05NuomxG4Q" />
-    <style>
-        .advisor-content.lock-overlay-container {
-            position: relative;
-        }
-        .advisor-lock-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.85);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            z-index: 1000;
-            border-radius: 12px;
-            color: white;
-            text-align: center;
-            padding: 2rem;
-        }
-        .lock-icons-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-        }
-        .advisor-lock-overlay .lock-icon {
-            color: #fbbf24;
-            font-size: 2.5rem;
-        }
-        .advisor-lock-overlay .lock-message {
-            font-size: 1.5rem;
-            font-weight: 700;
-            margin-bottom: 0.5rem;
-            color: #fbbf24;
-        }
-        .advisor-lock-overlay .lock-submessage {
-            font-size: 1rem;
-            margin-bottom: 1.5rem;
-            opacity: 0.9;
-        }
-        .advisor-lock-overlay .lock-cta {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .advisor-lock-overlay .btn {
-            min-width: 200px;
-        }
-      </style>
     </head>
 <body>
     <!-- Navigation -->
@@ -408,7 +357,7 @@
             <div class="section-header">
                 <span class="section-tag">IA DPAI</span>
                 <h2 class="section-title">
-                    <i class="fas fa-lock"></i> Conseiller IA - Votre Expert Stratégique Personnel <i class="fas fa-lock"></i>
+                    Conseiller IA - Votre Expert Stratégique Personnel
                 </h2>
                 <p class="section-subtitle">
                     Une intelligence artificielle **100% DPAI**, entraînée sur notre expertise en croissance externe, 
@@ -416,24 +365,7 @@
                 </p>
             </div>
             
-            <div class="advisor-content lock-overlay-container" data-required-plan="advisor">
-                <div class="lock-overlay advisor-lock-overlay" data-required-plan="advisor">
-                    <div class="lock-icons-row">
-                        <i class="fas fa-lock lock-icon"></i>
-                        <i class="fas fa-lock lock-icon"></i>
-                        <i class="fas fa-lock lock-icon"></i>
-                    </div>
-                    <div class="lock-message">Fonctionnalité Réservée</div>
-                    <div class="lock-submessage">Souscrivez au Conseiller IA (499 €/mois) pour accéder à notre **IA DPAI proprietary** et au conseiller personnel</div>
-                    <div class="lock-cta">
-                        <a href="pricing.html#advisor" class="btn btn-primary btn-sm">
-                            <i class="fas fa-arrow-right"></i> Voir l'offre Conseiller IA
-                        </a>
-                        <a href="mailto:duprey.conseil@gmail.com?subject=Souscription%20Conseiller%20IA%20(499%20€)" class="btn btn-secondary btn-sm">
-                            <i class="fas fa-paper-plane"></i> Nous contacter
-                        </a>
-                    </div>
-                </div>
+            <div class="advisor-content">
                 <div class="advisor-card">
                     <div class="advisor-features">
                         <div class="advisor-feature">
@@ -864,39 +796,6 @@
     <script src="/js/main.js"></script>
     <script src="/js/analytics.js"></script>
     
-    <!-- Script pour le lock overlay Conseiller IA -->
-    <script>
-        // Gérer le clic sur Conseiller IA dans le menu
-        document.addEventListener('DOMContentLoaded', function() {
-            const advisorLink = document.querySelector('.advisor-link');
-            const advisorOverlay = document.getElementById('advisorLockOverlay');
-            
-            if (advisorLink && advisorOverlay) {
-                advisorLink.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    
-                    // Vérifier si l'utilisateur a accès au Conseiller IA
-                    const userHasAdvisor = typeof TokenManager !== 'undefined' && 
-                                          TokenManager.tokenState && 
-                                          TokenManager.tokenState.plan === 'advisor';
-                    
-                    if (!userHasAdvisor) {
-                        // Afficher l'overlay
-                        advisorOverlay.style.display = 'flex';
-                        document.body.style.overflow = 'hidden';
-                    } else {
-                        // Rediriger vers conseiller-dpai.html si l'utilisateur a le plan advisor
-                        window.location.href = 'conseiller-dpai.html';
-                    }
-                });
-                
-                // Fermer l'overlay en cliquant dessus
-                advisorOverlay.addEventListener('click', function() {
-                    advisorOverlay.style.display = 'none';
-                    document.body.style.overflow = '';
-                });
-            }
-        });
-    </script>
+
 </body>
 </html>

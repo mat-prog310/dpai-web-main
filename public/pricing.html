@@ -90,15 +90,6 @@
     <script src="/js/firebase-config.js"></script>
     <script src="/js/protocol-check.js"></script>
 
-      <style>
-        .lock-icons-row {
-            display: flex;
-            gap: 1rem;
-            margin-bottom: 1rem;
-            justify-content: center;
-        }
-        .lock-overlay .lock-icon {
-            color: #fbbf24;
             font-size: 2rem;
         }
       </style>
@@ -255,19 +246,7 @@
         <div class="container">
             <div class="pricing-cards-grid">
                 <!-- API Monthly Plan -->
-                <div class="pricing-card premium lock-overlay-container" data-required-plan="api_monthly">
-                    <div class="lock-overlay" data-required-plan="api_monthly">`n                        <div class="lock-icons-row">`n                            <i class="fas fa-lock lock-icon"></i>`n                            <i class="fas fa-lock lock-icon"></i>`n                            <i class="fas fa-lock lock-icon"></i>`n                        </div>
-                        <div class="lock-message">Fonctionnalité � venir</div>
-                        <div class="lock-submessage">Souscrivez à l'Abonnement API Mensuel (199 €/mois) pour accéder à tous les services avec tokens et IA intégrée</div>
-                        <div class="lock-cta">
-                            <a href="#pricing" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-down"></i> Voir les tarifs
-                            </a>
-                            <a href="mailto:duprey.conseil@gmail.com?subject=Souscription%20API%20Mensuel" class="btn btn-secondary btn-sm">
-                                <i class="fas fa-paper-plane"></i> Nous contacter
-                            </a>
-                        </div>
-                    </div>
+                <div class="pricing-card premium">
                     
                     <div class="pricing-card-header">
                         <div class="pricing-badge pro-badge">PRO</div>
@@ -316,20 +295,7 @@
                 </div>
 
                 <!-- Conseiller IA Plan -->
-                <div class="pricing-card advisor lock-overlay-container" data-required-plan="advisor">
-                    <div class="lock-overlay" data-required-plan="advisor">`n                        <div class="lock-icons-row">`n                            <i class="fas fa-lock lock-icon"></i>`n                            <i class="fas fa-lock lock-icon"></i>`n                            <i class="fas fa-lock lock-icon"></i>`n                        </div>
-                        <div class="lock-message">Fonctionnalité � venir</div>
-                        <div class="lock-submessage">Souscrivez au Conseiller IA (499 €/mois) pour accéder à notre **IA DPAI proprietary** et au conseiller personnel</div>
-                        <div class="lock-cta">
-                            <a href="#pricing" class="btn btn-primary btn-sm">
-                                <i class="fas fa-arrow-down"></i> Voir les tarifs
-                            </a>
-                            <a href="mailto:duprey.conseil@gmail.com?subject=Souscription%20Conseiller%20IA%20(499%20€)" class="btn btn-secondary btn-sm">
-                                <i class="fas fa-paper-plane"></i> Nous contacter
-                            </a>
-                        </div>
-                    </div>
-                    
+                <div class="pricing-card advisor">
                     <div class="pricing-card-header">
                         <div class="pricing-badge advisor-badge">PREMIUM</div>
                         <h2>Conseiller IA</h2>
@@ -814,57 +780,5 @@
     <script src="/js/main.js"></script>
     <script src="/js/analytics.js"></script>
     
-    <!-- Script pour gérer les lock-overlays -->
-    <script>
-        // Attendre que TokenManager soit initialisé
-        function checkLockOverlays() {
-            const interval = setInterval(() => {
-                if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
-                    clearInterval(interval);
-                    updateLockOverlays();
-                }
-            }, 100);
-        }
-        
-        function updateLockOverlays() {
-            const userPlan = TokenManager.tokenState?.plan || 'free';
-            const PLAN_HIERARCHY = {
-                'free': 0,
-                'api_monthly': 1,
-                'advisor': 2
-            };
-            
-            // Récupérer tous les conteneurs avec lock-overlay
-            const lockContainers = document.querySelectorAll('.lock-overlay-container');
-            
-            lockContainers.forEach(container => {
-                const requiredPlan = container.getAttribute('data-required-plan');
-                const requiredPlanLevel = PLAN_HIERARCHY[requiredPlan] || 0;
-                const userPlanLevel = PLAN_HIERARCHY[userPlan] || 0;
-                
-                // Afficher le lock-overlay si le plan de l'utilisateur est inférieur au plan requis
-                const lockOverlay = container.querySelector('.lock-overlay');
-                if (lockOverlay) {
-                    if (userPlanLevel < requiredPlanLevel) {
-                        lockOverlay.style.display = 'flex';
-                        container.style.position = 'relative';
-                    } else {
-                        lockOverlay.style.display = 'none';
-                    }
-                }
-            });
-        }
-        
-        // Mettre à jour au chargement et quand l'utilisateur se connecte/déconnecte
-        document.addEventListener('DOMContentLoaded', checkLockOverlays);
-        
-        // Écouter les changements d'authentification
-        if (window.authService) {
-            window.authService.onAuthStateChanged(checkLockOverlays);
-        }
-        
-        // Re-vérifier périodiquement (pour les changements de plan)
-        setInterval(updateLockOverlays, 5000);
-    </script>
 </body>
 </html>
