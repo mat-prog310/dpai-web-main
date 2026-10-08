@@ -349,6 +349,43 @@ class TokenManager {
       isExpired: isExpired
     };
     
+    // Synchroniser les flags d'accès avec le plan
+    const plan = this.tokenState.plan;
+    const updates = {
+      hasAccessToAPI: plan === 'advisor' || plan === 'api_monthly',
+      hasAccessToAdvancedAnalytics: plan === 'advisor',
+      hasAccessToPremiumSuggestions: plan === 'advisor'
+    };
+    
+    // Mettre à jour localement
+    this.tokenState.hasAccessToAPI = updates.hasAccessToAPI;
+    this.tokenState.hasAccessToAdvancedAnalytics = updates.hasAccessToAdvancedAnalytics;
+    this.tokenState.hasAccessToPremiumSuggestions = updates.hasAccessToPremiumSuggestions;
+    
+    // Mettre à jour dans Firestore si les flags diffèrent
+    const firestoreDB = getDB();
+    if (firestoreDB && userData.id) {
+      const needsUpdate = 
+        userData.hasAccessToAPI !== updates.hasAccessToAPI ||
+        userData.hasAccessToAdvancedAnalytics !== updates.hasAccessToAdvancedAnalytics ||
+        userData.hasAccessToPremiumSuggestions !== updates.hasAccessToPremiumSuggestions ||
+        userData.plan !== plan ||
+        !userData.tokenState ||
+        userData.tokenState.plan !== plan;
+      
+      if (needsUpdate) {
+        firestoreDB.collection('users').doc(userData.id).update({
+          hasAccessToAPI: updates.hasAccessToAPI,
+          hasAccessToAdvancedAnalytics: updates.hasAccessToAdvancedAnalytics,
+          hasAccessToPremiumSuggestions: updates.hasAccessToPremiumSuggestions,
+          plan: plan,
+          tokenState: this.tokenState
+        }).catch(err => {
+          console.warn('[TokenManager] Impossible de synchroniser les flags:', err);
+        });
+      }
+    }
+    
     // Sauvegarder dans Firestore pour corriger les anciens utilisateurs
     const firestoreDB = getDB();
     if (userData.id && firestoreDB) {

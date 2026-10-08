@@ -777,52 +777,73 @@
     
     <!-- Script de vérification d'accès -->
     <script>
-        // Vérifier si l'utilisateur a accès au Conseiller IA (plan advisor uniquement)
-        document.addEventListener('DOMContentLoaded', function() {
+        // Fonction centralisée pour vérifier l'accès advisor
+        function hasAdvisorAccess() {
+            // Vérifier TokenManager (source principale)
+            if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
+                const plan = TokenManager.tokenState.plan;
+                const hasAPIAccess = TokenManager.tokenState.hasAccessToAPI;
+                const hasAdvisorFlag = TokenManager.tokenState.hasAccessToPremiumSuggestions;
+                const isAdvisor = TokenManager.isAdvisorAllowed && TokenManager.isAdvisorAllowed();
+                
+                return plan === 'advisor' || hasAPIAccess === true || hasAdvisorFlag === true || isAdvisor === true;
+            }
+            
+            // Fallback : vérifier window.currentUserData
+            if (typeof window !== 'undefined' && window.currentUserData) {
+                const userData = window.currentUserData;
+                return userData.plan === 'advisor' || 
+                       userData.hasAccessToAPI === true ||
+                       userData.hasAccessToAdvancedAnalytics === true ||
+                       userData.hasAccessToPremiumSuggestions === true;
+            }
+            
+            return false;
+        }
+        
+        // Fonction pour mettre à jour l'UI d'accès
+        function updateAdvisorAccessUI() {
             const accessCheck = document.getElementById('advisorAccessCheck');
             const advisorChat = document.getElementById('advisorChat');
+            const hasAccess = hasAdvisorAccess();
             
-            // Vérifier si l'utilisateur est connecté et a le bon plan
-            if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
-                const userPlan = TokenManager.tokenState.plan;
-                
-                if (userPlan === 'advisor') {
-                    // L'utilisateur a accès - masquer la bannière et afficher le chat
-                    if (accessCheck) accessCheck.style.display = 'none';
-                    if (advisorChat) advisorChat.style.display = 'block';
+            if (accessCheck && advisorChat) {
+                if (hasAccess) {
+                    accessCheck.style.display = 'none';
+                    advisorChat.style.display = 'block';
                 } else {
-                    // L'utilisateur n'a pas accès - afficher la bannière et masquer le chat
-                    if (accessCheck) accessCheck.style.display = 'block';
-                    if (advisorChat) advisorChat.style.display = 'none';
+                    accessCheck.style.display = 'block';
+                    advisorChat.style.display = 'none';
                 }
-            } else {
-                // Utilisateur non connecté - afficher la bannière
-                if (accessCheck) accessCheck.style.display = 'block';
-                if (advisorChat) advisorChat.style.display = 'none';
             }
+        }
+        
+        // Initialiser au chargement
+        document.addEventListener('DOMContentLoaded', function() {
+            // Vérifier immédiatement
+            updateAdvisorAccessUI();
+            
+            // Re-vérifier toutes les 500ms pendant 10 secondes (pour donner le temps à TokenManager de s'initialiser)
+            const interval = setInterval(updateAdvisorAccessUI, 500);
+            setTimeout(() => clearInterval(interval), 10000);
         });
         
         // Écouter les changements d'authentification
+        window.addEventListener('authStateChanged', function(event) {
+            const { user, userData } = event.detail;
+            if (user && userData) {
+                window.currentUserData = userData;
+            }
+            updateAdvisorAccessUI();
+        });
+        
+        // Écouter les changements de TokenManager
         if (typeof TokenManager !== 'undefined') {
-            TokenManager.addListener(function() {
-                const accessCheck = document.getElementById('advisorAccessCheck');
-                const advisorChat = document.getElementById('advisorChat');
-                
-                if (TokenManager.tokenState) {
-                    const userPlan = TokenManager.tokenState.plan;
-                    if (userPlan === 'advisor') {
-                        if (accessCheck) accessCheck.style.display = 'none';
-                        if (advisorChat) advisorChat.style.display = 'block';
-                    } else {
-                        if (accessCheck) accessCheck.style.display = 'block';
-                        if (advisorChat) advisorChat.style.display = 'none';
-                    }
-                } else {
-                    if (accessCheck) accessCheck.style.display = 'block';
-                    if (advisorChat) advisorChat.style.display = 'none';
-                }
-            });
+            TokenManager.addListener(updateAdvisorAccessUI);
         }
+        
+        // Vérification périodique
+        setInterval(updateAdvisorAccessUI, 30000);
     </script>
 </body>
 </html>

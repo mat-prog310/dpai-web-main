@@ -1023,6 +1023,7 @@
 
     <script src="/js/main.js"></script>
     <script src="/js/dashboard.js"></script>
+    <script src="/js/fix-advisor-flags.js"></script>
     <script>
         // Load dashboard data (defined in dashboard.js)
         async function loadDashboardData() {
@@ -1037,47 +1038,106 @@
             const { user, userData } = event.detail;
             if (user && userData) {
                 loadDashboardData();
+                // Stocker les données utilisateur pour le script de vérification
+                window.currentUserData = userData;
+                
+                // Si l'utilisateur a le plan advisor, vérifier les flags
+                const plan = userData.subscription?.plan || userData.plan || 'free';
+                if (plan === 'advisor') {
+                    // Vérifier et corriger automatiquement les flags après un délai
+                    setTimeout(async () => {
+                        try {
+                            const status = await window.checkCurrentUserAdvisorStatus();
+                            const needsFix = status && (
+                                status.hasAccessToAPI !== true ||
+                                status.hasAccessToAdvancedAnalytics !== true ||
+                                status.hasAccessToPremiumSuggestions !== true
+                            );
+                            if (needsFix) {
+                                console.log('🔧 Correction des flags advisor nécessaire...');
+                                await window.fixCurrentUserAdvisorFlags();
+                            }
+                        } catch (e) {
+                            console.error('Erreur vérification flags:', e);
+                        }
+                    }, 3000);
+                }
             }
         });
     </script>
     
     <!-- Script pour bloquer/débloquer le bouton Conseiller IA -->
     <script>
-        // Attendre que TokenManager soit chargé
+        // Fonction améliorée pour vérifier l'accès au Conseiller IA
         function checkAdvisorAccess() {
+            const advisorLockOverlay = document.getElementById('advisorLockOverlay');
+            const advisorBtn = document.getElementById('advisorBtn');
+            
+            if (!advisorLockOverlay || !advisorBtn) return;
+            
+            let shouldUnlock = false;
+            
+            // Vérifier d'abord TokenManager (source principale)
             if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
-                const userPlan = TokenManager.tokenState.plan;
-                const advisorLockOverlay = document.getElementById('advisorLockOverlay');
-                const advisorBtn = document.getElementById('advisorBtn');
+                const plan = TokenManager.tokenState.plan;
+                const hasAccess = TokenManager.tokenState.hasAccessToAPI;
+                const hasAdvisor = TokenManager.isAdvisorAllowed && TokenManager.isAdvisorAllowed();
                 
-                if (advisorLockOverlay && advisorBtn) {
-                    // Bloquer le bouton si l'utilisateur n'a pas le plan advisor
-                    if (userPlan === 'advisor') {
-                        advisorLockOverlay.style.display = 'none';
-                        advisorBtn.style.pointerEvents = 'auto';
-                        advisorBtn.style.opacity = '1';
-                    } else {
-                        advisorLockOverlay.style.display = 'flex';
-                        advisorBtn.style.pointerEvents = 'none';
-                        advisorBtn.style.opacity = '0.7';
-                    }
+                shouldUnlock = plan === 'advisor' || hasAccess === true || hasAdvisor === true;
+            }
+            
+            // Vérifier aussi les données utilisateur globales (fallback)
+            if (!shouldUnlock && typeof window !== 'undefined' && window.currentUserData) {
+                const userData = window.currentUserData;
+                shouldUnlock = userData.plan === 'advisor' || 
+                              userData.hasAccessToAPI === true ||
+                              userData.hasAccessToAdvancedAnalytics === true ||
+                              userData.hasAccessToPremiumSuggestions === true;
+            }
+            
+            // Appliquer le verrouillage/déverrouillage
+            if (shouldUnlock) {
+                advisorLockOverlay.style.display = 'none';
+                advisorBtn.style.pointerEvents = 'auto';
+                advisorBtn.style.opacity = '1';
+                // S'assurer que le lien pointe vers la bonne page
+                if (advisorBtn.href !== 'conseiller-dpai.html' && advisorBtn.href !== window.location.origin + '/conseiller-dpai.html') {
+                    advisorBtn.href = 'conseiller-dpai.html';
                 }
+            } else {
+                advisorLockOverlay.style.display = 'flex';
+                advisorBtn.style.pointerEvents = 'none';
+                advisorBtn.style.opacity = '0.7';
             }
         }
         
-        // Vérifier au chargement de la page
+        // Vérifier immédiatement et régulièrement
         document.addEventListener('DOMContentLoaded', function() {
-            // Attendre un court délai pour que TokenManager soit initialisé
-            setTimeout(checkAdvisorAccess, 1000);
+            // Vérifier immédiatement
+            checkAdvisorAccess();
+            
+            // Re-vérifier toutes les 500ms pendant 10 secondes (pour donner le temps à TokenManager de s'initialiser)
+            const interval = setInterval(checkAdvisorAccess, 500);
+            setTimeout(() => clearInterval(interval), 10000);
         });
         
-        // Vérifier périodiquement (au cas où le plan change)
-        setInterval(checkAdvisorAccess, 5000);
-        
-        // Écouter les changements de plan (si applicable)
+        // Écouter les changements de token/plan
         if (typeof TokenManager !== 'undefined') {
             TokenManager.addListener(checkAdvisorAccess);
         }
+        
+        // Écouter les changements d'authentification
+        window.addEventListener('authStateChanged', function(event) {
+            const { user, userData } = event.detail;
+            if (user && userData) {
+                // Stocker les données utilisateur pour le fallback
+                window.currentUserData = userData;
+                checkAdvisorAccess();
+            }
+        });
+        
+        // Vérifier périodiquement au cas où
+        setInterval(checkAdvisorAccess, 30000);
     </script>
 </body>
 </html>
