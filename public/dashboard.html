@@ -536,11 +536,24 @@
                     </div>
                     <div class="card-body">
                         <div class="quick-actions">
-                            <!-- Bouton Conseiller IA - visible uniquement avec plan advisor -->
-                            <div id="advisorQuickAction" style="display: none; margin-bottom: 1rem;">
-                                <a href="conseiller-dpai.html" class="btn btn-advisor btn-lg" style="width: 100%; text-align: center;">
+                            <!-- Bouton Conseiller IA - bloqué sauf si plan advisor -->
+                            <div id="advisorQuickAction" style="margin-bottom: 1rem; position: relative;">
+                                <a href="conseiller-dpai.html" class="btn btn-advisor btn-lg" id="advisorBtn" style="width: 100%; text-align: center;">
                                     <i class="fas fa-robot"></i> Conseiller IA
                                 </a>
+                                <div id="advisorLockOverlay" class="lock-overlay" style="display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.85); border-radius: 8px; z-index: 1000; display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; padding: 1rem;">
+                                    <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                        <i class="fas fa-lock" style="color: #fbbf24; font-size: 1.5rem;"></i>
+                                        <i class="fas fa-lock" style="color: #fbbf24; font-size: 1.5rem;"></i>
+                                        <i class="fas fa-lock" style="color: #fbbf24; font-size: 1.5rem;"></i>
+                                    </div>
+                                    <div style="font-size: 0.875rem; font-weight: 600; text-align: center;">
+                                        Réservé au plan Conseiller IA
+                                    </div>
+                                    <div style="font-size: 0.75rem; opacity: 0.9; text-align: center; margin-top: 0.25rem;">
+                                        Souscrivez pour accéder
+                                    </div>
+                                </div>
                             </div>
                             <!-- Les autres boutons seront générés dynamiquement par dashboard.js -->
                         </div>
@@ -1028,17 +1041,26 @@
         });
     </script>
     
-    <!-- Script pour afficher/masquer le bouton Conseiller IA -->
+    <!-- Script pour bloquer/débloquer le bouton Conseiller IA -->
     <script>
         // Attendre que TokenManager soit chargé
         function checkAdvisorAccess() {
             if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
                 const userPlan = TokenManager.tokenState.plan;
-                const advisorBtn = document.getElementById('advisorQuickAction');
+                const advisorLockOverlay = document.getElementById('advisorLockOverlay');
+                const advisorBtn = document.getElementById('advisorBtn');
                 
-                if (advisorBtn) {
-                    // Afficher uniquement si l'utilisateur a le plan advisor
-                    advisorBtn.style.display = (userPlan === 'advisor') ? 'block' : 'none';
+                if (advisorLockOverlay && advisorBtn) {
+                    // Bloquer le bouton si l'utilisateur n'a pas le plan advisor
+                    if (userPlan === 'advisor') {
+                        advisorLockOverlay.style.display = 'none';
+                        advisorBtn.style.pointerEvents = 'auto';
+                        advisorBtn.style.opacity = '1';
+                    } else {
+                        advisorLockOverlay.style.display = 'flex';
+                        advisorBtn.style.pointerEvents = 'none';
+                        advisorBtn.style.opacity = '0.7';
+                    }
                 }
             }
         }
@@ -1048,6 +1070,9 @@
             // Attendre un court délai pour que TokenManager soit initialisé
             setTimeout(checkAdvisorAccess, 1000);
         });
+        
+        // Vérifier périodiquement (au cas où le plan change)
+        setInterval(checkAdvisorAccess, 5000);
         
         // Écouter les changements de plan (si applicable)
         if (typeof TokenManager !== 'undefined') {
