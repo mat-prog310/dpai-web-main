@@ -1060,14 +1060,14 @@ const quickServices = {
     ideal_sector: { id: 'ideal_sector', name: 'Secteur idéal', icon: 'fa-globe', tokens: 40, requiredPlan: 'free' },
     maturity_score: { id: 'maturity_score', name: 'Score de maturité', icon: 'fa-chart-line', tokens: 25, requiredPlan: 'free' },
     // BLOQUÉS - AVEC CADENAS
-    competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: 45, requiredPlan: 'blocked' },
-    benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: 40, requiredPlan: 'blocked' },
-    modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: 70, requiredPlan: 'blocked' },
-    due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: 80, requiredPlan: 'blocked' },
-    valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: 100, requiredPlan: 'blocked' },
-    synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: 60, requiredPlan: 'blocked' },
-    integration_matrix: { id: 'integration_matrix', name: 'Matrice intégration', icon: 'fa-th', tokens: 60, requiredPlan: 'blocked' },
-    valuation_simulator: { id: 'valuation_simulator', name: 'Simulateur valorisation', icon: 'fa-euro-sign', tokens: 100, requiredPlan: 'blocked' }
+    competitive: { id: 'competitive', name: 'Analyse Concurrentielle', icon: 'fa-users', tokens: 45, requiredPlan: 'advisor' },
+    benchmark: { id: 'benchmark', name: 'Benchmarking', icon: 'fa-chart-bar', tokens: 40, requiredPlan: 'advisor' },
+    modeling: { id: 'modeling', name: 'Modélisation', icon: 'fa-cubes', tokens: 70, requiredPlan: 'advisor' },
+    due_diligence: { id: 'due_diligence', name: 'Due Diligence', icon: 'fa-check-square', tokens: 80, requiredPlan: 'advisor' },
+    valuation: { id: 'valuation', name: 'Valorisation', icon: 'fa-euro-sign', tokens: 100, requiredPlan: 'advisor' },
+    synergy: { id: 'synergy', name: 'Analyse des Synergies', icon: 'fa-link', tokens: 60, requiredPlan: 'advisor' },
+    integration_matrix: { id: 'integration_matrix', name: 'Matrice intégration', icon: 'fa-th', tokens: 60, requiredPlan: 'advisor' },
+    valuation_simulator: { id: 'valuation_simulator', name: 'Simulateur valorisation', icon: 'fa-euro-sign', tokens: 100, requiredPlan: 'advisor' }
 };
 
 // Initialiser les actions rapides
@@ -1093,7 +1093,7 @@ function initQuickActions() {
             const btn = document.createElement('button');
             
             // Vérifier si le service est accessible
-            const isAccessible = !service.requiredPlan || service.requiredPlan === 'free';
+            const isAccessible = !service.requiredPlan || service.requiredPlan === 'free' || (service.requiredPlan === 'advisor' && (userPlan === 'advisor' || userPlan === 'api_monthly'));
             
             btn.className = 'quick-action-btn' + (isAccessible ? '' : ' locked');
             
@@ -1115,7 +1115,7 @@ function initQuickActions() {
             
             // Formater les tokens pour l'affichage
             let tokensDisplay = service.tokens + ' tokens';
-            if (service.requiredPlan === 'blocked') {
+            if (service.requiredPlan === 'advisor') {
                 tokensDisplay = 'Sur devis';
             }
             
