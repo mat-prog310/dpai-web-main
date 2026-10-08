@@ -1,0 +1,19 @@
+# Dépendances pour le serveur API Flask de l'IA Locale DPAI
+# Utiliser: pip install -r requirements_api.txt
+
+Flask==3.0.0
+Flask-CORS==4.0.0
+scikit-learn==1.3.0
+numpy==1.24.3
+pandas==2.0.3
+scipy==1.11.1
+joblib==1.3.1
+
+# Dépendances pour la vectorisation et l'IA
+nltk==3.8.1
+
+# Pour le traitement des données JSON
+simplejson==3.19.1
+
+# Pour le logging
+colorlog==6.8.0

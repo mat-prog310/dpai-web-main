@@ -1,0 +1,14 @@
+[
+  {
+    "question": "Quelles sont les meilleures pratiques pour reussir une integration post-acquisition ?",
+    "answer": "Guide DPAI Integration Post-Acquisition. Phase 1 (J-60 a J-1): Nommer chef de projet, creer comite de pilotage, definir objectifs SMART, cartographier processus. Phase 2 (J0 a J+30): Annonce officielle, nomination responsables, securisation operations, audits rapides. Phase 3 (J+31 a J+100): Harmonisation processus, migration systemes IT, consolidation fonctions support, realisation synergies. Phase 4 (J+101 a J+365): Evaluation resultats, optimisation continue, integration culturelle. Synergies typiques: Reduction couts 10-20%, Cross-selling +5-15% CA, Upselling +3-8% CA. KPI a suivre: Synergies realisees, Taux de service >95%, Turnover talents cles <10%, Satisfaction employes >85%.",
+    "source": "dpai_integration_guide",
+    "tags": ["integration", "post_acquisition", "m_and_a", "best_practices", "synergies"]
+  },
+  {
+    "question": "Comment structurer un deal de croissance externe Build-Up ?",
+    "answer": "Strategie DPAI Build-Up pour croissance externe. Objectifs: Atteindre taille critique, diversifier produits/marches, eliminer concurrence, beneficier economies echelle. Avantages vs croissance organique: Vitesse rapide, synergies elevees. Critères de selection cibles: Secteur identique, CA 10-50M EUR, EBITDA >15%, compatibilite culturelle >80%, synergies >15% CA. Structure financement: Fonds propres 20-40%, Dette senior 40-60%, Dette mezzanine 10-20%, Vendor loan 5-10%. Facteurs de succes: Commencer petit, focus synergies, integrer rapidement, communiquer, impliquer equipes.",
+    "source": "dpai_build_up_strategy",
+    "tags": ["build_up", "external_growth", "m_and_a", "strategy", "acquisition"]
+  }
+]

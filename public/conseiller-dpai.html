@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Votre Conseiller DPAI - IA LOCALE 100% DPAI | Analyse Stratégique Intelligente</title>
+    
+    <!-- Meta SEO -->
+    <meta name="description" content="Accédez à votre Conseiller IA LOCALE DPAI. Une intelligence artificielle 100% LOCALE entraînée sur l'expertise DPAI, disponible 24/7 pour vos questions sur fusions, acquisitions, valorisations. PAS de Mistral - uniquement l'IA locale DPAI.">
+    <meta name="keywords" content="conseiller IA, DPAI, IA locale, croissance externe, fusions acquisitions, valorisation, due diligence, M&A, analyse stratégique, intelligence artificielle locale, cas d'école">
+    <meta name="author" content="DPAI Strategy">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://dpaiweb.com/conseiller-dpai.html" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/tokens.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/local-ai-client.js"></script>
+    
+    <style>
+        /* Styles spécifiques pour le Conseiller DPAI */
+        .advisor-dpai-header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            padding: var(--spacing-3xl) 0;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .advisor-dpai-header .container {
+            text-align: center;
+        }
+        
+        .advisor-dpai-header h1 {
+            font-size: var(--font-size-4xl);
+            font-weight: 800;
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .advisor-dpai-header .subtitle {
+            font-size: var(--font-size-xl);
+            opacity: 0.95;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .ai-model-badge {
+            display: inline-block;
+            background: rgba(255, 255, 255, 0.2);
+            padding: var(--spacing-xs) var(--spacing-md);
+            border-radius: var(--border-radius-full);
+            font-size: var(--font-size-sm);
+            margin-left: var(--spacing-sm);
+        }
+        
+        .chat-container-dpai {
+            display: flex;
+            gap: var(--spacing-xl);
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        .chat-sidebar-dpai {
+            width: 300px;
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+            padding: var(--spacing-lg);
+            height: fit-content;
+        }
+        
+        .chat-main-dpai {
+            flex: 1;
+            background: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header-dpai {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--gray-200);
+        }
+        
+        .sidebar-header-dpai h3 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+        }
+        
+        .conversations-list-dpai {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .conversation-item-dpai {
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            margin-bottom: var(--spacing-sm);
+            border-left: 3px solid transparent;
+        }
+        
+        .conversation-item-dpai:hover {
+            background: var(--gray-50);
+        }
+        
+        .conversation-item-dpai.active {
+            background: var(--primary-bg);
+            border-left-color: var(--primary);
+        }
+        
+        .conversation-preview-dpai {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+        }
+        
+        .conversation-preview-dpai i {
+            color: var(--primary);
+            margin-top: 2px;
+        }
+        
+        .conversation-preview-dpai strong {
+            display: block;
+            font-size: var(--font-size-sm);
+            margin-bottom: 2px;
+        }
+        
+        .conversation-preview-dpai p {
+            font-size: var(--font-size-xs);
+            color: var(--gray-500);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .conversation-date-dpai {
+            font-size: var(--font-size-xs);
+            color: var(--gray-400);
+            display: block;
+            margin-top: var(--spacing-xs);
+        }
+        
+        .chat-messages-dpai {
+            flex: 1;
+            padding: var(--spacing-xl);
+            overflow-y: auto;
+            background: var(--gray-50);
+        }
+        
+        .welcome-message-dpai {
+            text-align: center;
+            padding: var(--spacing-3xl);
+            background: linear-gradient(135deg, var(--primary-bg) 0%, var(--secondary-light) 10% 100%);
+            border-radius: var(--border-radius-lg);
+            margin: var(--spacing-xl);
+        }
+        
+        .advisor-avatar-dpai {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto var(--spacing-lg);
+            font-size: var(--font-size-3xl);
+            color: var(--white);
+        }
+        
+        .welcome-content-dpai h2 {
+            font-size: var(--font-size-2xl);
+            margin-bottom: var(--spacing-md);
+            color: var(--gray-900);
+        }
+        
+        .welcome-content-dpai p {
+            color: var(--gray-600);
+            margin-bottom: var(--spacing-md);
+            line-height: 1.6;
+        }
+        
+        .welcome-content-dpai ul {
+            list-style: none;
+            text-align: left;
+            max-width: 500px;
+            margin: var(--spacing-lg) auto;
+        }
+        
+        .welcome-content-dpai li {
+            padding: var(--spacing-sm) 0;
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+        }
+        
+        .welcome-content-dpai li i {
+            color: var(--primary);
+            margin-top: 2px;
+            min-width: 20px;
+        }
+        
+        .chat-input-dpai {
+            padding: var(--spacing-lg);
+            background: var(--white);
+            border-top: 1px solid var(--gray-200);
+        }
+        
+        .input-container-dpai {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: flex-end;
+        }
+        
+        .input-container-dpai textarea {
+            flex: 1;
+            padding: var(--spacing-md);
+            border: 1px solid var(--gray-300);
+            border-radius: var(--border-radius-md);
+            font-family: var(--font-family);
+            font-size: var(--font-size-base);
+            resize: none;
+            max-height: 150px;
+            transition: border-color var(--transition-fast);
+        }
+        
+        .input-container-dpai textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .input-container-dpai textarea::placeholder {
+            color: var(--gray-400);
+        }
+        
+        .send-btn-dpai {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all var(--transition-fast);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .send-btn-dpai:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .send-btn-dpai:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .message-dpai {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-bottom: var(--spacing-lg);
+            max-width: 85%;
+        }
+        
+        .message-dpai.user {
+            align-self: flex-end;
+            flex-direction: row-reverse;
+        }
+        
+        .message-dpai.assistant {
+            align-self: flex-start;
+        }
+        
+        .message-avatar-dpai {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .message-avatar-dpai.user {
+            background: var(--primary);
+            color: var(--white);
+        }
+        
+        .message-avatar-dpai.advisor {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+        }
+        
+        .message-content-dpai {
+            background: var(--white);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            position: relative;
+        }
+        
+        .message-dpai.user .message-content-dpai {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 var(--border-radius-lg);
+        }
+        
+        .message-dpai.assistant .message-content-dpai {
+            border-radius: var(--border-radius-lg) var(--border-radius-lg) var(--border-radius-lg) 0;
+        }
+        
+        .message-content-dpai h3,
+        .message-content-dpai h4 {
+            color: var(--gray-900);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .message-dpai.user .message-content-dpai h3,
+        .message-dpai.user .message-content-dpai h4 {
+            color: var(--white);
+        }
+        
+        .message-content-dpai ul {
+            margin: var(--spacing-sm) 0;
+            padding-left: var(--spacing-lg);
+        }
+        
+        .message-content-dpai li {
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .message-time-dpai {
+            font-size: var(--font-size-xs);
+            color: var(--gray-500);
+            display: block;
+            margin-top: var(--spacing-xs);
+        }
+        
+        .message-dpai.user .message-time-dpai {
+            color: rgba(255, 255, 255, 0.7);
+        }
+        
+        .typing-indicator-dpai {
+            padding: var(--spacing-md) var(--spacing-lg);
+            color: var(--gray-500);
+            font-style: italic;
+        }
+        
+        .typing-indicator-dpai i {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .model-info-dpai {
+            font-size: var(--font-size-xs);
+            color: var(--gray-400);
+            text-align: center;
+            margin-top: var(--spacing-sm);
+        }
+        
+        .example-questions-dpai {
+            margin-top: var(--spacing-xl);
+        }
+        
+        .example-questions-dpai h2 {
+            font-size: var(--font-size-xl);
+            margin-bottom: var(--spacing-lg);
+            color: var(--gray-900);
+        }
+        
+        .question-grid-dpai {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--spacing-md);
+        }
+        
+        .question-btn-dpai {
+            padding: var(--spacing-lg);
+            background: var(--white);
+            border: 2px solid var(--gray-200);
+            border-radius: var(--border-radius-lg);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .question-btn-dpai:hover {
+            border-color: var(--primary);
+            background: var(--primary-bg);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .question-btn-dpai i {
+            color: var(--primary);
+            font-size: var(--font-size-lg);
+        }
+        
+        .question-btn-dpai span {
+            font-weight: 500;
+            color: var(--gray-800);
+        }
+        
+        .access-banner-dpai {
+            background: linear-gradient(135deg, var(--error-bg) 0%, #fee2e2 100%);
+            border: 1px solid var(--error-light);
+            border-radius: var(--border-radius-lg);
+            padding: var(--spacing-xl);
+            text-align: center;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .access-banner-dpai i {
+            font-size: var(--font-size-3xl);
+            color: var(--error);
+            margin-bottom: var(--spacing-md);
+        }
+        
+        .access-banner-dpai h3 {
+            color: var(--gray-900);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .access-banner-dpai p {
+            color: var(--gray-600);
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .access-buttons-dpai {
+            display: flex;
+            justify-content: center;
+            gap: var(--spacing-md);
+            flex-wrap: wrap;
+        }
+        
+        .access-buttons-dpai .btn {
+            min-width: 200px;
+        }
+        
+        .new-chat-btn-dpai {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            cursor: pointer;
+            font-size: var(--font-size-sm);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            transition: all var(--transition-fast);
+        }
+        
+        .new-chat-btn-dpai:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+        
+        .new-chat-btn-dpai i {
+            font-size: var(--font-size-sm);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .chat-container-dpai {
+                flex-direction: column;
+            }
+            
+            .chat-sidebar-dpai {
+                width: 100%;
+            }
+            
+            .message-dpai {
+                max-width: 90%;
+            }
+            
+            .chat-messages-dpai {
+                padding: var(--spacing-lg);
+            }
+            
+            .welcome-message-dpai {
+                padding: var(--spacing-xl);
+            }
+        }
+        
+        /* Animation de chargement */
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s infinite;
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>DPAI</span>
+            </a>
+            
+            <ul class="nav-links">
+                <li><a href="/#features">Fonctionnalités</a></li>
+                <li><a href="services.html">Services</a></li>
+                <li><a href="pricing.html">Tarifs</a></li>
+                <li><a href="conseiller-dpai.html" class="active"><i class="fas fa-robot"></i> Votre Conseiller DPAI</a></li>
+            </ul>
+            
+            <div class="nav-actions">
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                        <span id="userName">Compte</span>
+                    </button>
+                    <div class="user-dropdown">
+                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
+                        <a href="pricing.html"><i class="fas fa-coins"></i> Tarifs</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                    </div>
+                </div>
+                <a href="login.html" class="btn btn-ghost" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
+                </a>
+                <a href="register.html" class="btn btn-primary" id="registerBtn">
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </a>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Header -->
+    <section class="advisor-dpai-header">
+        <div class="container">
+            <h1><i class="fas fa-robot"></i> Votre Conseiller DPAI</h1>
+            <p class="subtitle">
+                <strong>Une IA 100% LOCALE DPAI</strong>, entraînée sur notre expertise en croissance externe.<br>
+                <strong>Posez n'importe quelle question sur les fusions, acquisitions, valorisations...</strong>
+                <span class="ai-model-badge">✅ IA Locale - Pas de Mistral</span>
+            </p>
+        </div>
+    </section>
+
+    <!-- Main Content -->
+    <section class="advisor-section">
+        <div class="container">
+            <!-- Access Check -->
+            <div id="advisorAccessCheck" class="access-banner-dpai" style="display: none;">
+                <i class="fas fa-lock"></i>
+                <h3>Accès réservé aux abonnés Conseiller IA</h3>
+                <p>Pour accéder à votre Conseiller IA personnel, souscrivez à notre abonnement Conseiller IA (499 €/mois).</p>
+                <div class="access-buttons-dpai">
+                    <a href="pricing.html#advisor" class="btn btn-primary">
+                        <i class="fas fa-crown"></i> Voir l'offre Conseiller IA
+                    </a>
+                    <a href="mailto:duprey.conseil@gmail.com?subject=Souscription%20Conseiller%20IA%20(499%20€/mois)&body=Bonjour,%0A%0AJe%20souhaite%20souscrire%20au%20Conseiller%20IA%20DPAI%20pour%20499%20€/mois.%0A%0AMon%20email%20de%20compte%20DPAI%20:%20" class="btn btn-outline-primary">
+                        <i class="fas fa-paper-plane"></i> Nous contacter
+                    </a>
+                </div>
+            </div>
+
+            <!-- Chat Interface -->
+            <div id="advisorChat" style="display: none;">
+                <div class="chat-container-dpai">
+                    <!-- Sidebar: Conversations -->
+                    <div class="chat-sidebar-dpai">
+                        <div class="sidebar-header-dpai">
+                            <h3><i class="fas fa-comments"></i> Historique</h3>
+                            <button id="newChatBtn" class="new-chat-btn-dpai">
+                                <i class="fas fa-plus"></i> Nouveau
+                            </button>
+                        </div>
+                        
+                        <div id="conversationsList" class="conversations-list-dpai">
+                            <p class="no-conversations">Aucune conversation. Commencez en posant une question !</p>
+                        </div>
+                        
+                        <div class="model-info-dpai">
+                            <i class="fas fa-info-circle"></i> IA LOCALE DPAI - 100% entraînée sur vos données - PAS de Mistral
+                        </div>
+                    </div>
+
+                    <!-- Main Chat Area -->
+                    <div class="chat-main-dpai">
+                        <div id="chatMessages" class="chat-messages-dpai">
+                            <div class="welcome-message-dpai">
+                                <div class="advisor-avatar-dpai">
+                                    <i class="fas fa-robot"></i>
+                                </div>
+                                <div class="welcome-content-dpai">
+                                    <h2>Bonjour ! Je suis votre Conseiller IA <strong>LOCALE DPAI</strong>.</h2>
+                                    <p><strong>🎯 Votre assistant stratégique 100% LOCAL, entraîné sur notre expertise en croissance externe.</strong></p>
+                                    <p><strong>❗ IMPORTANT: Je suis une IA COMPLÈTEMENT LOCALE, sans aucun lien avec Mistral.</strong></p>
+                                    <p>Mistral est utilisé UNIQUEMENT pour les analyses rapides dans le dashboard.</p>
+                                    <p>Je peux vous aider avec :</p>
+                                    <ul>
+                                        <li><i class="fas fa-check"></i> <strong>Stratégies de fusions/acquisitions</strong></li>
+                                        <li><i class="fas fa-check"></i> <strong>Valorisation</strong> d'entreprises (DCF, multiples)</li>
+                                        <li><i class="fas fa-check"></i> <strong>Due Diligence</strong> (financière, juridique, stratégique)</li>
+                                        <li><i class="fas fa-check"></i> <strong>Négociation</strong> et rédaction de LOI</li>
+                                        <li><i class="fas fa-check"></i> <strong>Financement</strong> (LBO, dette, fonds propres)</li>
+                                        <li><i class="fas fa-check"></i> <strong>Benchmark sectoriel</strong> et analyses concurrentielles</li>
+                                        <li><i class="fas fa-check"></i> <strong>Cas d'école DPAI</strong> et bonnes pratiques</li>
+                                    </ul>
+                                    <p><em>Posez-moi votre première question !</em></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="chat-input-dpai">
+                            <div class="input-container-dpai">
+                                <textarea id="chatInput" placeholder="Exemple : 'Comment valoriser une entreprise avec un EBITDA de 1M€ ?' ou 'Raconte-moi le cas CASE-001 TechFlow' - IA LOCALE uniquement" rows="1"></textarea>
+                                <button id="sendBtn" class="send-btn-dpai">
+                                    <i class="fas fa-paper-plane"></i>
+                                </button>
+                            </div>
+                            <p class="typing-indicator-dpai" id="typingIndicator" style="display: none;">
+                                <i class="fas fa-ellipsis-h"></i> Le Conseiller DPAI réfléchit<span class="loading-dots"></span>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Example Questions Section -->
+            <div id="exampleQuestionsSection" class="example-questions-dpai" style="display: none;">
+                <h2>Exemples de questions</h2>
+                <div class="question-grid-dpai">
+                    <button class="question-btn-dpai" onclick="askQuestion('Comment valoriser une entreprise de SaaS avec 10M€ de CA et 3M€ d\'EBITDA ?')">
+                        <i class="fas fa-calculator"></i>
+                        <span>Valorisation SaaS</span>
+                    </button>
+                    <button class="question-btn-dpai" onclick="askQuestion('Quels sont les pièges à éviter dans une Due Diligence financière ?')">
+                        <i class="fas fa-search"></i>
+                        <span>Due Diligence</span>
+                    </button>
+                    <button class="question-btn-dpai" onclick="askQuestion('Comment structurer un LBO pour une acquisition à 20M€ ?')">
+                        <i class="fas fa-layer-group"></i>
+                        <span>Structure LBO</span>
+                    </button>
+                    <button class="question-btn-dpai" onclick="askQuestion('Quelle stratégie pour racheter un concurrent dans l\'EdTech ?')">
+                        <i class="fas fa-bullseye"></i>
+                        <span>Stratégie EdTech</span>
+                    </button>
+                    <button class="question-btn-dpai" onclick="askQuestion('Comment négocier une clause de non-concurrence ?')">
+                        <i class="fas fa-handshake"></i>
+                        <span>Négociation</span>
+                    </button>
+                    <button class="question-btn-dpai" onclick="askQuestion('Quels sont les synergies possibles dans une fusion ?')">
+                        <i class="fas fa-project-diagram"></i>
+                        <span>Synergies</span>
+                    </button>
+                    <button class="question-btn-dpai" onclick="askQuestion('Raconte-moi le cas CASE-001 TechFlow')">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Cas d'école DPAI</span>
+                    </button>
+                    <button class="question-btn-dpai" onclick="askQuestion('Quelles sont les bonnes pratiques DPAI en M&A ?')">
+                        <i class="fas fa-star"></i>
+                        <span>Bonnes pratiques</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
+                        <i class="fas fa-chart-line"></i>
+                        <span>DPAI</span>
+                    </a>
+                    <p>Votre partenaire en croissance externe et analyse stratégique.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Fonctionnalités</h4>
+                    <ul>
+                        <li><a href="/#phases">Phases 1 & 2</a></li>
+                        <li><a href="/#services">Phases 3 & 4</a></li>
+                        <li><a href="conseiller-dpai.html">Conseiller IA</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Ressources</h4>
+                    <ul>
+                        <li><a href="pricing.html">Tarifs</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="plus-de-tokens.html">Plus de tokens</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Compte</h4>
+                    <ul>
+                        <li><a href="login.html">Connexion</a></li>
+                        <li><a href="register.html">Inscription</a></li>
+                        <li><a href="dashboard.html">Tableau de bord</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 DPAI Strategy. Tous droits réservés.</p>
+                <div class="footer-legal">
+                    <a href="cgu.html">CGU</a>
+                    <a href="politique-de-confidentialite.html">Politique de confidentialité</a>
+                    <a href="cookies.html">Politique cookies</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Error Modal -->
+    <div id="aiError" class="modal error-modal" style="display: none;">
+        <div class="modal-content">
+            <i class="fas fa-exclamation-triangle"></i>
+            <p id="errorMessage"></p>
+            <button onclick="document.getElementById('aiError').style.display='none'" class="btn btn-primary">OK</button>
+        </div>
+    </div>
+
+    <!-- Loading Indicator -->
+    <div id="aiLoading" class="modal loading-modal" style="display: none;">
+        <div class="modal-content">
+            <div class="spinner"></div>
+            <p>Chargement du Conseiller DPAI...</p>
+        </div>
+    </div>
+</body>
+</html>

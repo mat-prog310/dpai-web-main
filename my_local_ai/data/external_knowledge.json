@@ -1,0 +1,26 @@
+[
+  {
+    "question": "Quels sont les multiples moyens par secteur en France 2024 ?",
+    "answer": "Multiples de Valorisation par Secteur en France 2024 - DPAI Analysis. Technologie (SaaS): EV/EBITDA 8-18x, EV/Revenue 3-8x. Sante: EV/EBITDA 10-25x, EV/Revenue 4-12x. Industrie: EV/EBITDA 5-10x, EV/Revenue 0.8-1.5x. Distribution: EV/EBITDA 4-8x, EV/Revenue 0.3-0.8x. Facteurs d'ajustement: Croissance >25% +2-3x, Retention >90% +1x, Marge brute >80% +0.5x.",
+    "source": "dpai_sector_analysis",
+    "tags": ["valuation", "multiples", "sector", "benchmark", "france", "2024"]
+  },
+  {
+    "question": "Comment calculer un DCF pour une PME ?",
+    "answer": "Methodologie DCF DPAI pour PME. Formule: Valeur = sum(FCF_t / (1 + WACC)^t). FCF = EBIT * (1 - Taux IS) + DandA - DeltaBFR - CapEx. WACC typiques: Technologie 8-14%, Industrie 7-11%, Services 8-13%. Valeur terminale: FCF_n * (1 + g) / (WACC - g) avec g=2.5%. Parametres DPAI: Periode 5 ans, WACC 9-11%, Multiple sortie = secteur - 1x.",
+    "source": "dpai_financial_modeling",
+    "tags": ["dcf", "valuation", "financial_modeling", "pme", "wacc"]
+  },
+  {
+    "question": "Quelles sont les differences entre LBO, MBO, BIMBO et OBO ?",
+    "answer": "LBO: Acquisition financee majoritairement par dette (60-80%), par fonds Private Equity. MBO: Acquisition par management existant (20-40% apports management). BIMBO: MBO + nouveaux managers externes. OBO: Proprietaire actuel rachete parts minoritaires. Structure type 20M EUR: Fonds propres 25%, Dette senior 60%, Dette mezzanine 15%. Avantages: LBO effet de levier, MBO continuite manageriale, BIMBO nouvelles competences, OBO conservation controle.",
+    "source": "dpai_lbo_guide",
+    "tags": ["lbo", "mbo", "bimbo", "obo", "leveraged_buyout", "acquisition"]
+  },
+  {
+    "question": "Quels sont les indicateurs cles a analyser avant une acquisition ?",
+    "answer": "Checklist DPAI Due Diligence Pre-Acquisition. Analyse Financiere: CA croissance >5%, EBITDA marge >15%, ROE >15%, Dette/EBITDA <3x, Current Ratio >1.2. Analyse Operationnelle: Taux de service >95%, Rotation stocks >6x, Productivite >100k EUR/employe. Analyse RH: Turnover <10%, Satisfaction >85%. Analyse Juridique: 0 litiges >10% valorisation, Conformite RGPD, Propriete intellectuelle protegee. Red Flags: Fraude, Dette non declaree >20% CA, Cash-flows negatifs persistants.",
+    "source": "dpai_due_diligence_guide",
+    "tags": ["due_diligence", "checklist", "kpi", "acquisition", "risk_assessment"]
+  }
+]

@@ -1,0 +1,68 @@
+[
+  {
+    "question": "Quels sont les types de transactions M&A que DPAI accompagne ?",
+    "answer": "Types de transactions accompagnées par DPAI : 1) LBO (Leveraged BuyOut) : Acquisition avec effet de levier (60-70% dette). 2) Build-up : Acquisition stratégique pour croissance externe. 3) Transmission : Vente d'entreprise familiale ou PME. 4) Fusion : Combinaison de deux entreprises. 5) OPA/OPE : Offre publique d'achat/échange. 6) Capital développement : Entrée au capital d'un investisseur. Répartition : 45% LBO, 30% Build-up, 15% Transmission, 10% Autres. Taille moyenne : 10-50M€.",
+    "source": "dpai_m&a",
+    "tags": ["m&a", "transaction", "type", "lbo", "build_up"]
+  },
+  {
+    "question": "Quelle est la structure type d'un deal M&A selon DPAI ?",
+    "answer": "Structure type DPAI pour deal M&A à 20M€ : 1) Equity : 25% (5M€) - Apport personnel 10% (2M€) + PE 15% (3M€). 2) Dette senior : 60% (12M€) - Taux 4-6%, durée 5-7 ans, garanties : actifs cible. 3) Dette mezzanine : 15% (3M€) - Taux 8-12%, durée 5-8 ans, subordonnée. 4) Earn-out : 10% (2M€) sur 3 ans si performance. 5) Rétention : 5-10% (1-2M€) sur compte séquestre. Total : 100%. Leverage Ratio : 4-5x. Covenants : EBITDA/Charges financières > 1.25x.",
+    "source": "dpai_m&a",
+    "tags": ["structure", "deal", "m&a", "financement"]
+  },
+  {
+    "question": "Quels sont les pièges juridiques dans une transaction M&A ?",
+    "answer": "Top 5 pièges juridiques M&A selon DPAI : 1) Garantie de passif insuffisante : Couverture <24 mois, montant <10% du prix. Solution : 24 mois + 15% du prix. 2) Clauses de non-concurrence : Non appliquées aux associés sortants. Solution : Contrats individuels + pénalités. 3) Propriété intellectuelle : Brevets/licences non vérifiés. Solution : Audit PI spécifique. 4) Contrats clients : Clauses de changement de contrôle. Solution : Renégociation préalable. 5) Litiges cachés : Procédures judiciaires non déclarées. Solution : Audit juridique complet. Budget préventif : 10-15k€.",
+    "source": "dpai_m&a",
+    "tags": ["juridique", "piege", "m&a", "garantie", "contrat"]
+  },
+  {
+    "question": "Comment DPAI négocie un earn-out ?",
+    "answer": "Stratégie DPAI pour earn-out : 1) Montant : 10-20% du prix total. 2) Durée : 2-3 ans. 3) Critères : CA, EBITDA, synergies réalisées. 4) Seuil : 80-90% des objectifs. 5) Paiement : Cash ou actions. 6) Garantie : Audit annuel indépendant. Exemple : Earn-out de 2M€ (10% de 20M€) si EBITDA >4M€ en année 3. Avantages : Aligne les intérêts, réduit le risque pour l'acheteur. Inconvénients : Complexité, conflits potentiels. Alternative : Rétention + bonus.",
+    "source": "dpai_m&a",
+    "tags": ["earn_out", "negociation", "m&a", "critere", "paiement"]
+  },
+  {
+    "question": "Quels sont les coûts cachés dans une transaction M&A ?",
+    "answer": "Coûts cachés M&A identifiés par DPAI : 1) Due Diligence : 30-60k€ (souvent sous-estimé). 2) Conseils : Avocats (20-40k€), banques (10-20k€). 3) Intégration : 5-10% du prix d'achat. 4) Restructuration : Coûts IT, RH, processus. 5) Financement : Frais de dossier (1-2%), assurances. 6) Impôts : Droits d'enregistrement, plus-values. Total moyen : 8-12% du prix d'acquisition. Exemple : Transaction à 20M€ = 1.6-2.4M€ de coûts cachés. Recommandation : Prévoir un buffer de 10%.",
+    "source": "dpai_m&a",
+    "tags": ["cout", "cache", "m&a", "transaction", "budget"]
+  },
+  {
+    "question": "Comment DPAI structure une LOI (Letter of Intent) ?",
+    "answer": "Template LOI DPAI : 1) Parties : Acheteur, Vendeur, Cible. 2) Objet : Description de la transaction. 3) Prix : Montant, modalités de paiement. 4) Conditions suspensives : Due Diligence, accord banques, approbations. 5) Garanties : Passif, représentation, conformité. 6) Exclusivité : Période (30-60 jours). 7) Confidentialité : Obligations des parties. 8) Frais : Répartition. 9) Loi applicable : Juridiction. 10) Signature : Date, modalités. Conseils DPAI : Toujours faire relire par un avocat spécialisé M&A.",
+    "source": "dpai_m&a",
+    "tags": ["loi", "letter_of_intent", "m&a", "structure", "template"]
+  },
+  {
+    "question": "Quels sont les indicateurs de succès d'une acquisition ?",
+    "answer": "Indicateurs de succès post-acquisition DPAI : 1) Financier : ROI >20% sur 5 ans, synergies réalisées >80%. 2) Opérationnel : Intégration complète en 12-18 mois, processus harmonisés. 3) Humain : Rétention talents >90%, climat social positif. 4) Commercial : Croissance CA >10%/an, satisfaction clients >8/10. 5) Stratégique : Objectifs atteints, positionnement renforcé. Mesure : Tableau de bord mensuel les 6 premiers mois, puis trimestriel. Seuil de succès : 70% des indicateurs au vert à 12 mois.",
+    "source": "dpai_m&a",
+    "tags": ["indicateur", "succes", "acquisition", "mesure", "kpi"]
+  },
+  {
+    "question": "Comment DPAI gère les conflits post-acquisition ?",
+    "answer": "Méthode DPAI de résolution de conflits : 1) Prévention : Communication transparente, implication précoce des équipes. 2) Identification : Audit culturel pré-acquisition, cartographie des résistances. 3) Résolution : Médiation interne, ateliers de team-building. 4) Escalade : Intervention du chef de projet intégration. 5) Documentation : Procédures claires, matrices RACI. Taux de conflits : 30% sans méthode DPAI, 5% avec. Coût moyen par conflit : 50-100k€. Budget prévention : 20-30k€.",
+    "source": "dpai_m&a",
+    "tags": ["conflit", "post_acquisition", "resolution", "prevention", "mediation"]
+  },
+  {
+    "question": "Quels sont les critères de sélection d'une cible M&A ?",
+    "answer": "Critères DPAI pour sélection d'une cible M&A : 1) Financiers : CA 1-50M€, EBITDA >15%, croissance >5%/an, rentable. 2) Stratégiques : Complémentarité produits/services, synergies >10% du CA, positionnement marché. 3) Opérationnels : Processus matures, système IT compatible, équipe compétente. 4) Juridiques : Pas de litiges majeurs, contrats solides, propriété IP claire. 5) Culturels : Culture compatible, management motivé. 6) Prix : Multiple <10x EBITDA, potentiel de croissance. Score minimum : 80/100 pour validation.",
+    "source": "dpai_m&a",
+    "tags": ["critere", "selection", "cible", "m&a", "evaluation"]
+  },
+  {
+    "question": "Comment DPAI valorise une entreprise pour acquisition ?",
+    "answer": "Méthode DPAI de valorisation pour acquisition : 1) Multiples : Sectoriel (SaaS 10-15x, Industrie 6-10x, Services 5-8x). 2) DCF : Valeur actuelle des flux futurs (taux 10-15%). 3) Approche asset-based : Valeur des actifs - dettes. 4) Ajustements : Croissance, risques, synergies, marché. 5) Fourchette : -20%/+20% autour de la valeur centrale. 6) Justification : Benchmark sectoriel, analyse concurrentielle. Outil : Modèle Excel DPAI avec 3 méthodes intégrées. Exemple : SaaS (CA 10M€, EBITDA 3M€) = 40-50M€.",
+    "source": "dpai_m&a",
+    "tags": ["valorisation", "acquisition", "methode", "multiple", "dcf"]
+  },
+  {
+    "question": "Quelle est la timeline type d'une transaction M&A avec DPAI ?",
+    "answer": "Timeline DPAI pour transaction M&A (20M€) : Semaine 1-2 : Identification cible + premier contact. Semaine 3-4 : Due Diligence préliminaire. Semaine 5-6 : LOI + accord de principe. Semaine 7-8 : Due Diligence complète + négociation. Semaine 9-10 : Finalisation financement + signature. Semaine 11-12 : Clôture. Post-clôture : Intégration (3-12 mois). Délai moyen : 3-4 mois. Délai record DPAI : 6 semaines. Facteurs de délai : Complexité, nombre de parties, Due Diligence.",
+    "source": "dpai_m&a",
+    "tags": ["timeline", "m&a", "transaction", "delai", "etapes"]
+  }
+]

@@ -1,0 +1,62 @@
+[
+  {
+    "question": "Quelle est la méthodologie complète DPAI pour une analyse SWOT ?",
+    "answer": "Méthodologie DPAI SWOT en 6 étapes : 1) Collecte des données : Financières (3 ans), marché (positionnement, concurrence), internes (processus, équipes). 2) Identification Forces : Avantages concurrentiels, ressources uniques, compétences clés. 3) Identification Faiblesses : Lacunes internes, dépendances, risques. 4) Identification Opportunités : Tendances marché, faiblesses concurrents, nouveaux segments. 5) Identification Menaces : Concurrence, réglementation, changements technologiques. 6) Priorisation : Matrice impact/probabilité, top 3 par catégorie. Livrable : Rapport SWOT + recommandations stratégiques + roadmap.",
+    "source": "dpai_methodology",
+    "tags": ["swot", "methodologie", "analyse", "strategie"]
+  },
+  {
+    "question": "Comment DPAI réalise une analyse Porter 5 Forces ?",
+    "answer": "Méthode DPAI Porter 5 Forces : Pour chaque force (1) Pouvoir clients, (2) Pouvoir fournisseurs, (3) Nouveaux entrants, (4) Produits de substitution, (5) Rivalité : 1) Évaluer le niveau (Faible/Modéré/Élevé), 2) Identifier les facteurs clés, 3) Analyser l'impact sur l'entreprise, 4) Formuler des recommandations. Outil : Matrice de scoring (1-5) pour chaque facteur. Résultat : Évaluation de l'attrait sectoriel et positionnement stratégique. Cas typique : Niveau Élevé sur 3+ forces = secteur difficile.",
+    "source": "dpai_methodology",
+    "tags": ["porter", "5_forces", "analyse", "strategie"]
+  },
+  {
+    "question": "Quelle est la méthode DPAI pour une valorisation DCF ?",
+    "answer": "Méthode DPAI DCF : 1) Projection des flux : CA, EBITDA, capex, working capital sur 5-10 ans. 2) Calcul du Free Cash Flow : EBITDA - capex - Δworking capital - taxes. 3) Taux d'actualisation : WACC = (Ke * E/V) + (Kd * D/V * (1-T)). Pour PME : 10-15%. 4) Valeur terminale : Méthode de croissance perpétuelle (g=2-5%) ou multiple de sortie. 5) Valeur actuelle : Σ(FCFt/(1+r)^t) + VT/(1+r)^n. 6) Sensibilité : Analyser ±10% sur taux et croissance. Outil : Template Excel DPAI avec calculs automatiques.",
+    "source": "dpai_methodology",
+    "tags": ["dcf", "valorisation", "finance", "projection"]
+  },
+  {
+    "question": "Comment DPAI fait une Due Diligence financière ?",
+    "answer": "Checklist DPAI Due Diligence financière (50+ points) : 1) Historique : Comptes certifiés (3 ans), ratios clés, tendances. 2) Qualité du CA : % récurrent, concentration clients, contrats. 3) Coûts : Structure, tendances, coûts cachés. 4) Trésorerie : Cash flow, BFR, besoins en fonds de roulement. 5) Dettes : Montant, échéances, covenants. 6) Fiscalité : Impôts, reports déficitaires. 7) Prévisions : Hypothèses, réalisme. 8) Benchmark : Comparaison avec concurrents. Budget : 20-30k€. Délai : 2-3 semaines. Livrable : Rapport + checklist validée.",
+    "source": "dpai_methodology",
+    "tags": ["due_diligence", "financiere", "checklist", "audit"]
+  },
+  {
+    "question": "Quelle est la méthodologie DPAI pour identifier des cibles d'acquisition ?",
+    "answer": "Méthode DPAI en 6 étapes : 1) Définir critères : CA (1-10M€), marge (>15%), croissance (>10%), secteur, localisation. 2) Sourcing : Bases de données (Xerfi, INSEE), réseau DPAI, veille concurrentielle. 3) Pré-sélection : Exclure endettement >50%, CA en baisse, litiges juridiques. 4) Analyse approfondie : Financière, stratégique, opérationnelle, juridique. 5) Contact : Approche directe/indirecte, message personnalisé. 6) Sélection : Score de synergie (>500k€/an), prix (<10x EBITDA), facilité d'intégration. Taux de succès : 20-30% des cibles contactées.",
+    "source": "dpai_methodology",
+    "tags": ["cible", "acquisition", "sourcing", "methodologie"]
+  },
+  {
+    "question": "Comment DPAI négocie un prix d'acquisition ?",
+    "answer": "Stratégie DPAI de négociation : 1) Préparation : Valorisation (DCF + multiples), identification leviers, fourchette prix (min/max/objectif). 2) Argumentation : Justifier par les synergies, les risques identifiés, les alternatives. 3) Techniques : Ancre haute (commencer par max), concessions progressives, packages (prix + earn-out + garanties). 4) Clauses : Garantie de passif (24 mois), rétention (10%), earn-out (10-20%), clauses de sortie. 5) Fermeture : LOI (Letter of Intent) avec conditions suspensives. Résultat moyen : -5-10% vs prix initial demandés.",
+    "source": "dpai_methodology",
+    "tags": ["negociation", "prix", "acquisition", "strategie"]
+  },
+  {
+    "question": "Quelle est la méthode DPAI pour une intégration post-acquisition ?",
+    "answer": "Méthode DPAI d'intégration en 5 phases : Phase 1 (0-3 mois) : Audit et préparation. Phase 2 (3-6 mois) : Intégration systèmes (ERP, CRM). Phase 3 (6-12 mois) : Harmonisation processus. Phase 4 (12-18 mois) : Fusion équipes. Phase 5 (18-24 mois) : Optimisation. Chef de projet dédié, budget 5-10% du prix d'achat, KPIs clairs par phase. Taux de réussite : 85% avec cette méthodologie (vs 50% sans).",
+    "source": "dpai_methodology",
+    "tags": ["integration", "post_acquisition", "methode", "phase"]
+  },
+  {
+    "question": "Comment DPAI analyse la rentabilité d'une acquisition ?",
+    "answer": "Méthode DPAI d'analyse de rentabilité : 1) Calcul du ROI : (Gain annuel / Investissement) * 100. 2) gains : Synergies (coûts + revenus), économies d'échelle, optimisation fiscale. 3) Investissement : Prix d'achat + coûts d'intégration + coûts de financement. 4) Scénarios : Optimiste (synergies +20%), réaliste (synergies +0%), pessimiste (synergies -20%). 5) Seuil : ROI >20% sur 5 ans = viable. 6) Sensibilité : Analyser ±10% sur tous les paramètres. Outil : Modèle Excel DPAI avec tableaux de bord automatiques.",
+    "source": "dpai_methodology",
+    "tags": ["rentabilite", "roi", "analyse", "scenario"]
+  },
+  {
+    "question": "Quelle est la checklist DPAI pour une Due Diligence complète ?",
+    "answer": "Checklist DPAI Due Diligence complète (100+ points) : FINANCIÈRE (30%) : Comptes, ratios, trésorerie, dettes, fiscalité. JURIDIQUE (20%) : Contrats, propriété intellectuelle, litiges, conformité RGPD. OPÉRATIONNELLE (20%) : Processus, systèmes IT, supply chain. COMMERCIALE (15%) : Clients, contrats, pipeline. TECHNIQUE (10%) : Plateforme, scalabilité, maintenance. CULTURELLE (5%) : Équipe, organisation, valeurs. Chaque catégorie doit avoir un score >80% pour validation. Budget total : 40-60k€. Délai : 3-4 semaines.",
+    "source": "dpai_methodology",
+    "tags": ["checklist", "due_diligence", "complete", "audit"]
+  },
+  {
+    "question": "Comment DPAI évalue les synergies dans une acquisition ?",
+    "answer": "Méthode DPAI d'évaluation des synergies : 1) Identifier les types : Coûts (mutualisation), Revenus (cross-selling), Processus (optimisation). 2) Quantifier : Valeur annuelle, coût de réalisation, délai. 3) Prioriser : Matrice impact/facilité. 4) Valider : Due Diligence spécifique, interviews des managers. 5) Intégrer : Dans le business plan post-acquisition. Exemple : Mutualisation IT = -300k€/an, cross-selling = +500k€/an. Total synergies annuelles : 800k€. ROI synergetique : 400% sur 2 ans.",
+    "source": "dpai_methodology",
+    "tags": ["synergie", "evaluation", "quantification", "integration"]
+  }
+]

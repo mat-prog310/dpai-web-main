@@ -1,0 +1,68 @@
+[
+  {
+    "question": "Quelle est la fiche type d'une entreprise SaaS performante selon DPAI ?",
+    "answer": "Fiche type DPAI - Entreprise SaaS performante : CA 10-50M€, marge EBITDA 25-35%, croissance 20-40%/an, récurrent >90%, churn <5%, LTV/CAC >3x, marge brute 70-85%, burn rate <12 mois. Exemple : SaaSLeader (CA 25M€, EBITDA 8M€, croissance 30%, churn 3%, LTV/CAC 4.2x). Valorisation : 15-20x EBITDA. Points forts : Produit scalable, équipe technique solide, modèle économique récurrent. Points de vigilance : Dépendance aux grands comptes, coût d'acquisition client.",
+    "source": "dpai_company_profile",
+    "tags": ["saas", "fiche", "performance", "metriques"]
+  },
+  {
+    "question": "Quelles sont les caractéristiques d'une PME industrielle idéale pour acquisition ?",
+    "answer": "Fiche type DPAI - PME industrielle idéale : CA 5-20M€, marge EBITDA 15-25%, endettement <30% CA, carnet de commandes >6 mois,Equipment moderne (age moyen <8 ans), taux de rotation stocks >8x, culture d'amélioration continue. Exemple : MechaniX (CA 15M€, EBITDA 3.5M€, carnet 9 mois, equipment age 5 ans). Valorisation : 6-10x EBITDA. Points forts : Stabilité des revenus, actifs tangibles. Points de vigilance : Coûts de maintenance élevés, dépendance aux fournisseurs.",
+    "source": "dpai_company_profile",
+    "tags": ["pme", "industrielle", "fiche", "acquisition"]
+  },
+  {
+    "question": "Comment DPAI analyse une entreprise EdTech ?",
+    "answer": "Fiche type DPAI - EdTech : CA 1-10M€, marge brute 70-90%, croissance 15-30%/an, rétention utilisateurs >80%, coût d'acquisition client (CAC) < 1/3 LTV, partenariats stratégiques (Microsoft, Google, etc.), plateforme scalable. Exemple : TechCorp (CA 5M€, marge brute 85%, croissance 25%, rétention 95%, CAC 200€, LTV 800€). Valorisation : 10-15x revenues. Points forts : Marges élevées, marché en croissance. Points de vigilance : Dépendance aux subventions, concurrence des GAFAM.",
+    "source": "dpai_company_profile",
+    "tags": ["edtech", "fiche", "analyse", "startup"]
+  },
+  {
+    "question": "Quels sont les ratios clés pour évaluer une entreprise selon DPAI ?",
+    "answer": "Ratios clés DPAI par secteur : SaaS - EBITDA margin >25%, LTV/CAC >3x, churn <5%, MRR growth >10%/mois. Industrie - EBITDA margin >15%, asset turnover >2x, inventory turnover >8x. Retail - Gross margin >40%, inventory turnover >12x, same-store sales >2%. Services - EBITDA margin >20%, utilization rate >80%, client retention >90%. Performance optimale : Sector median +20%.",
+    "source": "dpai_ratios",
+    "tags": ["ratios", "evaluation", "secteur", "performance"]
+  },
+  {
+    "question": "Quelle est la fiche d'une entreprise prête pour un LBO ?",
+    "answer": "Fiche DPAI - Entreprise LBO-ready : CA 5-50M€, EBITDA stable >2M€, croissance >5%/an, endettement <3x EBITDA, cash flow positif, actifs >10M€, management solide, marché stable. Exemple : TargetCo (CA 25M€, EBITDA 5M€, dette 8M€, cash flow 3M€, actifs 15M€). Structure LBO possible : Fonds propres 25-30%, dette senior 50-60%, mezzanine 10-20%. Taux de succès : 85% pour les entreprises répondant à ces critères.",
+    "source": "dpai_company_profile",
+    "tags": ["lbo", "fiche", "pret", "critere"]
+  },
+  {
+    "question": "Comment analyser une entreprise de services avec DPAI ?",
+    "answer": "Fiche type DPAI - Entreprise de services : CA 2-15M€, marge EBITDA 20-35%, taux d'utilisation >75%, renewal rate >85%, moyenne durée contrats >2 ans, mix clients diversifié (pas de client >20% CA). Exemple : ConsultPro (CA 10M€, EBITDA 2.8M€, util. 82%, renewal 90%, durée moyenne 2.5 ans). Valorisation : 5-8x EBITDA. Points forts : Revenus récurrents, faible investissement capex. Points de vigilance : Dépendance aux compétences clés,turnover des consultants.",
+    "source": "dpai_company_profile",
+    "tags": ["services", "fiche", "analyse", "consulting"]
+  },
+  {
+    "question": "Quels sont les red flags dans une fiche entreprise ?",
+    "answer": "Red flags DPAI : 1) CA en baisse sur 2+ ans, 2) EBITDA margin <10%, 3) Endettement >60% CA, 4) Client >30% du CA, 5) Churn >10%/an, 6) LTV/CAC <2x, 7) Cash flow négatif, 8) Management en départ, 9) Litiges juridiques, 10) Technologie obsolète. Échec rate : 70% si 3+ red flags présents. Recommandation : Due Diligence approfondie avant toute décision.",
+    "source": "dpai_warnings",
+    "tags": ["red_flag", "risque", "fiche", "vigilance"]
+  },
+  {
+    "question": "Comment DPAI compare deux entreprises d'un même secteur ?",
+    "answer": "Méthode DPAI de comparaison : 1) Ratios financiers (marge, croissance, endettement), 2) Positionnement marché (part de marché, différenciation), 3) Équipe (expérience, stabilité), 4) Technologie (modernité, scalabilité), 5) Clients (diversification, satisfaction). Score sur 100 : Poids - Financier 40%, Marché 25%, Équipe 15%, Tech 10%, Clients 10%. Exemple : SaaS_A (score 85) vs SaaS_B (score 72). Différence de valorisation : +20-30% pour SaaS_A.",
+    "source": "dpai_comparison",
+    "tags": ["comparaison", "benchmark", "secteur", "analyse"]
+  },
+  {
+    "question": "Quelle est la taille idéale d'entreprise pour un rachat ?",
+    "answer": "Recommandation DPAI : Taille idéale pour rachat : CA 5-30M€. Justification : 1) Assez grand pour avoir des processus structurés, 2) Assez petit pour être gérable, 3) Financement accessible (banques + PE), 4) Synergies significatives (>10% du CA), 5) Due Diligence abordable (30-50k€). Exceptions : Startups tech (CA 1-5M€, forte croissance), Grandes entreprises (CA >50M€, équipe dédiée nécessaire).",
+    "source": "dpai_sizing",
+    "tags": ["taille", "rachat", "recommandation", "financement"]
+  },
+  {
+    "question": "Comment DPAI évalue la croissance d'une entreprise ?",
+    "answer": "Méthode DPAI pour évaluer la croissance : 1) Croissance organique vs acquisitive, 2) Taux de croissance moyen sur 3 ans, 3) Croissance par segment, 4) Pipeline de ventes (valeur + probabilité), 5) Taux de conversion, 6) Rétention clients, 7) Churn. Croissance saine : >15%/an organique, pipeline >2x l'objectif, churn <5%. Croissance suspecte : >50%/an (risque de bulle), pipeline <1x l'objectif, churn >10%.",
+    "source": "dpai_growth",
+    "tags": ["croissance", "evaluation", "metriques", "pipeline"]
+  },
+  {
+    "question": "Quels sont les KPIs à suivre après une acquisition selon DPAI ?",
+    "answer": "KPIs post-acquisition DPAI : 1) Intégration - % des systèmes fusionnés (objectif : 100% en 12 mois), 2) Synergies - % des économies réalisées (objectif : 80% en 18 mois), 3) Rétention - % des talents conservés (objectif : >90%), 4) Satisfaction - Score client (objectif : >8/10), 5) Financier - ROI réalisé vs prévu (objectif : >90%). Fréquence : Mensuel les 6 premiers mois, puis trimestriel.",
+    "source": "dpai_kpi",
+    "tags": ["kpi", "post_acquisition", "suivi", "performance"]
+  }
+]

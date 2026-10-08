@@ -1,0 +1,62 @@
+[
+  {
+    "question": "Peux-tu me donner un exemple concret de cas DPAI avec une PME industrielle ?",
+    "answer": "Cas DPAI : MechaniX (CA : 15M€, EBITDA : 3M€, 80 employés). Problème : Rachat d'un concurrent avec coûts de restructuration sous-estimés. Solution DPAI : Audit technique avant offre (budget : 20k€) a révélé 1.2M€ de coûts cachés (machines à remplacer, stock obsolète). Résultat : Renégociation du prix d'achat de 20M€ à 18.5M€. ROI : Économies de 1.5M€ grâce à l'audit préalable. Leçon : Toujours faire un audit technique AVANT la signature.",
+    "source": "dpai_case_study",
+    "tags": ["pme", "industrielle", "audit", "restructuration", "cas_concret"]
+  },
+  {
+    "question": "Quel est le cas DPAI le plus complexe que vous avez traité ?",
+    "answer": "Cas DPAI : Fusion IndusTech (CA : 50M€) et MetalCorp (CA : 30M€). Complexité : Culture d'entreprise radicalement différente (IndusTech = innovante/agile, MetalCorp = traditionnelle/hiérarchique). Solution : Programme d'immersion de 3 mois avec ateliers de co-construction. Résultat : Taux de rétention des talents = 95% (vs 60% sans intervention). Budget : 80k€ pour le programme d'intégration culturelle. Leçon : La culture est aussi importante que les finances dans une fusion.",
+    "source": "dpai_case_study",
+    "tags": ["fusion", "culture", "integration", "cas_complexe"]
+  },
+  {
+    "question": "Avez-vous un exemple de valorisation réussie par DPAI ?",
+    "answer": "Cas DPAI : SaaSPro (CA : 8M€, EBITDA : 2.5M€, croissance +25%/an). Méthodologie : Multiple d'EBITDA de base 12x + ajustements (croissance +20% = +2x, récurrence 95% = +1x, leadership sectoriel = +1x) = 16x. Valorisation DPAI : 40M€. Vente finale : 42M€ avec earn-out de 3M€ sur 3 ans. ROI client : +2M€ vs valorisation initiale. Leçon : Les multiples dans le SaaS peuvent varier de 50% selon les ajustements.",
+    "source": "dpai_case_study",
+    "tags": ["valorisation", "saas", "success", "earn_out"]
+  },
+  {
+    "question": "Comment DPAI a aidé une entreprise à éviter une mauvaise acquisition ?",
+    "answer": "Cas DPAI : EduFuture (CA : 20M€) voulait racheter EdTechStart (CA : 5M€, prix : 15M€ = 30x EBITDA). Analyse DPAI : Due Diligence a révélé 1) CA ponctuel à 60% (vs récurrent annoncé), 2) Dettes cachées de 800k€, 3) Technologie obsolète (coût de migration : 1.2M€). Recommandation : Abandon de l'acquisition. Résultat : Évite une perte estimée de 3-4M€. Budget Due Diligence : 25k€. Leçon : Une Due Diligence approfondie coûte cher, mais moins qu'une mauvaise acquisition.",
+    "source": "dpai_case_study",
+    "tags": ["due_diligence", "acquisition", "risque", "evite"]
+  },
+  {
+    "question": "Quel cas montre l'importance de la synergie dans une acquisition ?",
+    "answer": "Cas DPAI : CloudMerge (CA : 25M€) rachète TechTarget (CA : 8M€). Synergies identifiées par DPAI : 1) Mutualisation des coûts cloud (-300k€/an), 2) Cross-selling (+500k€/an), 3) Réduction des doublons RH/IT (-400k€/an). Total synergies : 1.2M€/an. Prix d'acquisition justifié : 18M€ (au lieu de 12M€ sans synergies). ROI : 6.7x sur 5 ans. Leçon : Les synergies doivent être quantifiées et vérifiables avant l'acquisition.",
+    "source": "dpai_case_study",
+    "tags": ["synergie", "acquisition", "roi", "quantification"]
+  },
+  {
+    "question": "Comment DPAI structure un LBO pour un client sans apport personnel ?",
+    "answer": "Cas DPAI : StartUpX (CA : 12M€, EBITDA : 2M€) sans apport personnel. Structure : Fonds propres 100% Private Equity (Ardian : 4M€ à 25% du capital). Dette senior : 8M€ (70%, taux 5.5%). Dette mezzanine : 2M€ (15%, taux 10%). Total : 14M€. Particularité : Earn-out de 3M€ sur 3 ans (20% du prix) si objectifs atteints. Garanties : Actifs de la cible + caution solidaire des associés. Résultat : Acquisition réussie malgré l'absence d'apport personnel. Leçon : Un bon business plan peut compenser l'absence d'apport.",
+    "source": "dpai_case_study",
+    "tags": ["lbo", "financement", "private_equity", "earn_out"]
+  },
+  {
+    "question": "Peux-tu me raconter un cas d'échec et ce que DPAI en a appris ?",
+    "answer": "Cas DPAI (Échec) : IndusMerge a racheté CompetitorY sans Due Diligence culturelle. Résultat : 40% des employés de CompetitorY ont quitté l'entreprise dans les 6 mois. Coût : 2M€ (recrutement, formation, perte de productivité). Leçon apprise : DPAI a créé un programme d'audit culturel systématique. Aujourd'hui, nous passons 1 semaine dans l'entreprise cible AVANT toute acquisition. Taux de réussite depuis : 92% (vs 75% avant). Budget audit culturel : 15-20k€.",
+    "source": "dpai_case_study",
+    "tags": ["echec", "culture", "lecon", "amélioration"]
+  },
+  {
+    "question": "Comment DPAI a optimisé le financement d'un LBO ?",
+    "answer": "Cas DPAI : GreenTech (CA : 18M€) pour acquisition à 30M€. Structure initiale proposée : Fonds propres 30%, dette 70% (taux moyen 7.5%). Solution DPAI : Négociation avec 3 banques + 2 fonds mezzanine. Résultat : Fonds propres 25%, dette senior 60% (taux 4.2% vs 5.5%), dette mezzanine 15% (taux 8.5% vs 10%). Économies : 450k€/an sur les intérêts. ROI : +15% sur 5 ans. Leçon : Toujours comparer 3-4 offres de financement.",
+    "source": "dpai_case_study",
+    "tags": ["lbo", "financement", "optimisation", "negociation"]
+  },
+  {
+    "question": "Quel est le ROI moyen des acquisitions accompagnées par DPAI ?",
+    "answer": "Statistiques DPAI (2020-2024) : 58 acquisitions accompagnées. ROI moyen : 28%/an sur 5 ans. Répartition : 25% (15-20%), 35% (20-30%), 30% (30-40%), 10% (>40%). Secteur le plus rentable : SaaS (ROI moyen : 35%). Secteur le plus risqué : Industrie traditionnelle (ROI moyen : 22%, mais écart-type élevé). Facteur clé de succès : Due Diligence complète (ROI +5-10%). Leçon : Une bonne préparation réduit le risque de 60%.",
+    "source": "dpai_statistics",
+    "tags": ["roi", "statistiques", "performance", "secteur"]
+  },
+  {
+    "question": "Comment DPAI évalue la qualité d'une cible d'acquisition ?",
+    "answer": "Méthode DPAI en 5 étapes : 1) Analyse financière (marge, croissance, endettement), 2) Audit juridique (litiges, contrats, conformité), 3) Due Diligence technique (plateforme, scalabilité), 4) Évaluation culturelle (équipe, organisation), 5) Analyse des synergies (coûts, revenus). Score minimum pour validation : 75/100. Critères d'exclusion : Endettement > 50% CA, croissance négative sur 3 ans, litiges juridiques en cours, dépendance client > 30% CA. Budget moyen : 30-50k€. Délai : 2-3 semaines.",
+    "source": "dpai_methodology",
+    "tags": ["evaluation", "cible", "due_diligence", "critere"]
+  }
+]

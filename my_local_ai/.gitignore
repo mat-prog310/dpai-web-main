@@ -1,0 +1,45 @@
+# DPAI Local AI - .gitignore
+
+# Environnements virtuels
+venv/
+env/
+.venv/
+
+# Modèles entraînés (peuvent être volumineux)
+models/*.pkl
+models/*.npy
+
+# Cache Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Fichiers temporaires
+*.tmp
+*.temp
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Données sensibles (si tu en ajoutes)
+secrets.json
+config_local.json
+
+# Logs
+*.log
+
+# Données temporaires
+temp_data.json
+converted_*.json
+merged_*.json
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Fichiers de sauvegarde
+*.bak
+*.backup

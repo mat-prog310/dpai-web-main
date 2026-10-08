@@ -1,0 +1,28 @@
+{
+  "name": "dpai_web",
+  "version": "1.0.0",
+  "description": "DPAI Web - Analyse Stratégique et Croissance Externe",
+  "scripts": {
+    "start": "node server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mat-prog310/dpai_web.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mat-prog310/dpai_web/issues"
+  },
+  "homepage": "https://github.com/mat-prog310/dpai_web#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "stripe": "^22.6.2"
+  }
+}

@@ -1,0 +1,8 @@
+[
+  {
+    "question": "Quelle est la checklist complete pour une due diligence financiere avant acquisition ?",
+    "answer": "Checklist DPAI Due Diligence Financiere. Phase 1 Preparation: Definition perimetre, equipe, ressources, documentation. Phase 2 Audit Financier: Analyse comptes annuels 3-5 ans (bilan, compte resultat, flux tresorerie), analyse qualite revenus (recurrent vs ponctuel, concentration clients), analyse couts et marges, analyse BFR, analyse tresorerie, analyse investissements, analyse fiscale. Phase 3 Audit Juridique: Structure juridique, contrats (clients, fournisseurs, travail, commerciaux, immobiliers, financiers), litiges, conformite, propriete intellectuelle. Phase 4 Audit Social: Organisation, contrats de travail, climat social, formation, sante securite. Phase 5 Audit Operationnel: Production, supply chain, qualite, R and D, systemes information, commercial. Phase 6 Analyse Synergies: Identification, quantification, validation. Phase 7 Modelisation: Normalisation comptes, projections, valorisation (DCF, Multiples). Phase 8 Rapport Final: Synthese, analyses, recommandations.",
+    "source": "dpai_due_diligence_checklist",
+    "tags": ["due_diligence", "checklist", "financial", "audit", "m_and_a", "acquisition"]
+  }
+]

@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Balises SEO de base -->
+    <title>Services Stratégiques GRATUITS | DPAI Strategy - Analyse SWOT, Porter, PESTEL</title>
+    <meta name="description" content="Découvrez tous nos services d'analyse stratégique GRATUITS avec vos 500 tokens (125€). SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence, benchmark, valuation. Phases 1 & 2 accessibles immédiatement.">
+    <meta name="keywords" content="services analyse stratégique, SWOT gratuit, Porter 5 Forces, PESTEL analyse, analyse concurrentielle, due diligence, benchmark stratégique, valuation entreprise, fusion acquisition, croissance externe, tokens gratuits 500">
+    <meta name="author" content="DPAI Strategy">
+    <meta name="robots" content="index, follow, max-snippet:-1, max-image-preview:large">
+    <link rel="canonical" href="https://dpai-strategy.com/services.html" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dpai-strategy.com/services.html" />
+    <meta property="og:title" content="Services Stratégiques GRATUITS | DPAI Strategy - SWOT, Porter, PESTEL" />
+    <meta property="og:description" content="Tous nos services d'analyse stratégique GRATUITS avec 500 tokens (125€). SWOT, Porter 5 Forces, PESTEL, benchmark, valuation, due diligence." />
+    <meta property="og:image" content="https://dpai-strategy.com/images/services-og.jpg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="DPAI Strategy" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Services Stratégiques GRATUITS | DPAI Strategy" />
+    <meta name="twitter:description" content="SWOT, Porter 5 Forces, PESTEL, benchmark, valuation - Tous GRATUITS avec 500 tokens (125€)" />
+    <meta name="twitter:image" content="https://dpai-strategy.com/images/services-og.jpg" />
+    <meta name="twitter:site" content="@DPAIStrategy" />
+    
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Services Stratégiques DPAI",
+      "description": "Liste complète des services d'analyse stratégique disponibles avec 500 tokens gratuits",
+      "url": "https://dpai-strategy.com/services.html",
+      "numberOfItems": "20",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Analyse SWOT",
+          "description": "Identifiez forces, faiblesses, opportunités et menaces"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Porter 5 Forces",
+          "description": "Analyse de compétitivité sectorielle"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Analyse PESTEL",
+          "description": "Évaluation des facteurs macro-économiques"
+        },
+        {
+          "@type": "ListItem",
+          "position": 4,
+          "name": "Analyse Concurrentielle",
+          "description": "Comparaison avec vos concurrents directs"
+        },
+        {
+          "@type": "ListItem",
+          "position": 5,
+          "name": "Due Diligence",
+          "description": "Audit complet avant acquisition"
+        },
+        {
+          "@type": "ListItem",
+          "position": 6,
+          "name": "Valuation",
+          "description": "Évaluation d'entreprise"
+        }
+      ]
+    }
+    </script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/protocol-check.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>DPAI</span>
+            </a>
+            
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
+                <li><a href="services.html" class="nav-link active">Services</a></li>
+                <li><a href="pricing.html" class="nav-link">Tarifs</a></li>
+            </ul>
+            
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-ghost" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
+                </a>
+                <a href="register.html" class="btn btn-primary" id="registerBtn">
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </a>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                        <span id="userName">Compte</span>
+                    </button>
+                    <div class="user-dropdown">
+                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
+                        <a href="plus-de-tokens.html"><i class="fas fa-coins"></i> Plus de tokens</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Page Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Accueil</a>
+                <i class="fas fa-chevron-right"></i>
+                <span>Services</span>
+            </div>
+            <h1>Nos Services</h1>
+            <p class="section-subtitle">Les services Phases 1 & 2 de base sont <strong>GRATUITS</strong> avec vos 500 tokens d'une valeur de 125 euros</p>
+        </div>
+    </section>
+
+    <!-- PHASE 1 & 2 - Services gratuits -->
+    <section class="services-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">PHASES 1 & 2</span>
+                <h2 class="section-title">
+                    Services gratuits <i class="fas fa-unlock" style="color: #28a745;"></i>
+                </h2>
+                <p class="section-subtitle">Accès aux services de base avec votre solde de 500 tokens d'une valeur de 125 euros. Chaque analyse déduit des tokens de votre solde.</p>
+            </div>
+            
+            <div class="services-grid">
+                <!-- Analyse SWOT -->
+                <article class="service-card" data-service="swot">
+                    <div class="service-icon">
+                        <i class="fas fa-swimming-pool"></i>
+                    </div>
+                    <h3 class="service-title">Analyse SWOT</h3>
+                    <p class="service-description">Identifiez les forces, faiblesses, opportunités et menaces de votre entreprise ou de vos cibles d'acquisition.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 40 tokens</span>
+                        <span class="service-access"><i class="fas fa-check-circle" style="color: #28a745;"></i> Accès gratuit</span>
+                    </div>
+                </article>
+
+                <!-- Porter 5 Forces -->
+                <article class="service-card" data-service="porter">
+                    <div class="service-icon">
+                        <i class="fas fa-project-diagram"></i>
+                    </div>
+                    <h3 class="service-title">Porter 5 Forces</h3>
+                    <p class="service-description">Analysez la compétitivité d'un secteur en évaluant les cinq forces qui déterminent la rentabilité.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 120 tokens</span>
+                        <span class="service-access"><i class="fas fa-check-circle" style="color: #28a745;"></i> Accès gratuit</span>
+                    </div>
+                </article>
+
+                <!-- Analyse PESTEL -->
+                <article class="service-card" data-service="pestel">
+                    <div class="service-icon">
+                        <i class="fas fa-globe-americas"></i>
+                    </div>
+                    <h3 class="service-title">Analyse PESTEL</h3>
+                    <p class="service-description">Évaluez l'impact des facteurs politiques, économiques, socioculturels, technologiques, environnementaux et légaux.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 80 tokens</span>
+                        <span class="service-access"><i class="fas fa-check-circle" style="color: #28a745;"></i> Accès gratuit</span>
+                    </div>
+                </article>
+
+                <!-- Analyse Concurrentielle -->
+                <article class="service-card" data-service="competitive">
+                    <div class="service-icon">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h3 class="service-title">Analyse Concurrentielle</h3>
+                    <p class="service-description">Comparez vos performances avec celles de vos concurrents directs et identifiez vos avantages concurrentiels.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 120 tokens</span>
+                        <span class="service-access"><i class="fas fa-check-circle" style="color: #28a745;"></i> Accès gratuit</span>
+                    </div>
+                </article>
+
+                <!-- Rapports Détaillés -->
+                <article class="service-card" data-service="detailed_report">
+                    <div class="service-icon">
+                        <i class="fas fa-file-alt"></i>
+                    </div>
+                    <h3 class="service-title">Rapports Détaillés</h3>
+                    <p class="service-description">Obtenez des rapports complets et détaillés sur vos analyses stratégiques.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 160 tokens</span>
+                        <span class="service-access"><i class="fas fa-check-circle" style="color: #28a745;"></i> Accès gratuit</span>
+                    </div>
+                </article>
+
+                <!-- Secteur d'activité idéal -->
+                <article class="service-card" data-service="ideal_sector">
+                    <div class="service-icon">
+                        <i class="fas fa-bullseye"></i>
+                    </div>
+                    <h3 class="service-title">Secteur d'activité idéal</h3>
+                    <p class="service-description">Identifiez le secteur d'activité le plus adapté à votre croissance externe.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 35 tokens</span>
+                        <span class="service-access"><i class="fas fa-check-circle" style="color: #28a745;"></i> Accès gratuit</span>
+                    </div>
+                </article>
+
+                <!-- Score de maturité -->
+                <article class="service-card" data-service="maturity_score">
+                    <div class="service-icon">
+                        <i class="fas fa-tachometer-alt"></i>
+                    </div>
+                    <h3 class="service-title">Score de maturité</h3>
+                    <p class="service-description">Évaluez le niveau de maturité de votre entreprise pour la croissance externe.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 50 tokens</span>
+                        <span class="service-access"><i class="fas fa-check-circle" style="color: #28a745;"></i> Accès gratuit</span>
+                    </div>
+                </article>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- PHASE 3 & 4 - Services premium (contact requis) -->
+    <section class="premium-services-section" style="background: #f8f9fa;">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">PHASES 3 & 4</span>
+                <h2 class="section-title">
+                    Services Premium <i class="fas fa-lock" style="color: #dc3545;"></i>
+                </h2>
+                <p class="section-subtitle">Ces services nécessitent une analyse personnalisée. Contactez-nous pour un devis adapté.</p>
+            </div>
+            
+            <div class="services-grid premium-grid">
+                <article class="service-card premium-card" data-service="loi_generator">
+                    <div class="service-icon">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                    <h3 class="service-title">Générateur de LOI</h3>
+                    <p class="service-description">Générez une Letter of Intent professionnelle et complète avec notre outil dédié.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> Sur devis</span>
+                        <span class="service-access"><i class="fas fa-lock" style="color: #dc3545;"></i> Contact requis</span>
+                    </div>
+                    <a href="plus-de-tokens.html" class="service-link service-link-btn premium-btn">
+                        <i class="fas fa-envelope"></i> Demander un devis
+                    </a>
+                </article>
+
+                <article class="service-card premium-card" data-service="negotiation_simulator">
+                    <div class="service-icon">
+                        <i class="fas fa-handshake"></i>
+                    </div>
+                    <h3 class="service-title">Simulateur de négociation</h3>
+                    <p class="service-description">Entraînez-vous à négocier avec notre simulateur interactif. Préparez vos arguments et anticipez les objections.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> Sur devis</span>
+                        <span class="service-access"><i class="fas fa-lock" style="color: #dc3545;"></i> Contact requis</span>
+                    </div>
+                    <a href="plus-de-tokens.html" class="service-link service-link-btn premium-btn">
+                        <i class="fas fa-envelope"></i> Demander un devis
+                    </a>
+                </article>
+
+                <article class="service-card premium-card" data-service="action_plan_100_days">
+                    <div class="service-icon">
+                        <i class="fas fa-route"></i>
+                    </div>
+                    <h3 class="service-title">Plan d'action 100 jours</h3>
+                    <p class="service-description">Créez une feuille de route opérationnelle détaillée pour les 100 premiers jours post-acquisition.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> Sur devis</span>
+                        <span class="service-access"><i class="fas fa-lock" style="color: #dc3545;"></i> Contact requis</span>
+                    </div>
+                    <a href="plus-de-tokens.html" class="service-link service-link-btn premium-btn">
+                        <i class="fas fa-envelope"></i> Demander un devis
+                    </a>
+                </article>
+
+                <article class="service-card premium-card" data-service="post_acquisition_dashboard">
+                    <div class="service-icon">
+                        <i class="fas fa-chart-area"></i>
+                    </div>
+                    <h3 class="service-title">Dashboard Post-Acquisition</h3>
+                    <p class="service-description">Surveillez la performance de votre acquisition en temps réel avec notre dashboard dédié.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> Sur devis</span>
+                        <span class="service-access"><i class="fas fa-lock" style="color: #dc3545;"></i> Contact requis</span>
+                    </div>
+                    <a href="plus-de-tokens.html" class="service-link service-link-btn premium-btn">
+                        <i class="fas fa-envelope"></i> Demander un devis
+                    </a>
+                </article>
+
+                <!-- Modélisation -->
+                <article class="service-card premium-card" data-service="modeling">
+                    <div class="service-icon">
+                        <i class="fas fa-cubes"></i>
+                    </div>
+                    <h3 class="service-title">Modélisation</h3>
+                    <p class="service-description">Créez des modèles financiers et stratégiques pour évaluer les scénarios d'acquisition.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 240 tokens</span>
+                        <span class="service-access"><i class="fas fa-lock" style="color: #dc3545;"></i> Contact requis</span>
+                    </div>
+                    <a href="plus-de-tokens.html" class="service-link service-link-btn premium-btn">
+                        <i class="fas fa-envelope"></i> Demander un devis
+                    </a>
+                </article>
+
+                <!-- Due Diligence -->
+                <article class="service-card premium-card" data-service="due_diligence">
+                    <div class="service-icon">
+                        <i class="fas fa-check-square"></i>
+                    </div>
+                    <h3 class="service-title">Due Diligence (de base)</h3>
+                    <p class="service-description">Évaluation complète des risques et opportunités avant une transaction d'acquisition.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 280 tokens</span>
+                        <span class="service-access"><i class="fas fa-lock" style="color: #dc3545;"></i> Contact requis</span>
+                    </div>
+                    <a href="plus-de-tokens.html" class="service-link service-link-btn premium-btn">
+                        <i class="fas fa-envelope"></i> Demander un devis
+                    </a>
+                </article>
+
+                <!-- Valorisation -->
+                <article class="service-card premium-card" data-service="valuation">
+                    <div class="service-icon">
+                        <i class="fas fa-euro-sign"></i>
+                    </div>
+                    <h3 class="service-title">Valorisation (de base)</h3>
+                    <p class="service-description">Estimation de la valeur d'une entreprise cible basé sur plusieurs méthodologies.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 320 tokens</span>
+                        <span class="service-access"><i class="fas fa-lock" style="color: #dc3545;"></i> Contact requis</span>
+                    </div>
+                    <a href="plus-de-tokens.html" class="service-link service-link-btn premium-btn">
+                        <i class="fas fa-envelope"></i> Demander un devis
+                    </a>
+                </article>
+
+                <!-- Synergies -->
+                <article class="service-card premium-card" data-service="synergy">
+                    <div class="service-icon">
+                        <i class="fas fa-link"></i>
+                    </div>
+                    <h3 class="service-title">Analyse des Synergies</h3>
+                    <p class="service-description">Identifiez les synergies potentielles entre votre entreprise et la cible d'acquisition.</p>
+                    <div class="service-meta">
+                        <span class="service-tokens"><i class="fas fa-coins"></i> 200 tokens</span>
+                        <span class="service-access"><i class="fas fa-lock" style="color: #dc3545;"></i> Contact requis</span>
+                    </div>
+                    <a href="plus-de-tokens.html" class="service-link service-link-btn premium-btn">
+                        <i class="fas fa-envelope"></i> Demander un devis
+                    </a>
+                </article>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Prêt à lancer vos analyses ?</h2>
+                <p>Les services Phases 1 & 2 de base sont accessibles gratuitement avec vos 500 tokens d'une valeur de 125 euros.</p>
+                <p>Pour les services avancés Phases 3 & 4, contactez-nous pour un devis personnalisé.</p>
+                <div class="cta-actions">
+                    <a href="register.html" class="btn btn-primary btn-lg">
+                        <i class="fas fa-user-plus"></i> Créer un compte gratuit
+                    </a>
+                    <a href="plus-de-tokens.html" class="btn btn-outline btn-lg">
+                        <i class="fas fa-coins"></i> Besoin de plus de tokens ?
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
+                        <i class="fas fa-chart-line"></i>
+                        <span>DPAI</span>
+                    </a>
+                    <p>Conseil en croissance externe et analyse stratégique avancée.</p>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Produit</h4>
+                    <ul>
+                        <li><a href="/#features">Fonctionnalités</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="pricing.html">Tarifs</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Compte</h4>
+                    <ul>
+                        <li><a href="login.html">Connexion</a></li>
+                        <li><a href="register.html">Inscription</a></li>
+                        <li><a href="dashboard.html">Tableau de bord</a></li>
+                        <li><a href="plus-de-tokens.html">Plus de tokens</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Légal</h4>
+                    <ul>
+                        <li><a href="terms.html">Conditions générales</a></li>
+                        <li><a href="privacy.html">Politique de confidentialité</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 DPAI. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="/js/auth.js"></script>
+    <script src="/js/tokens.js"></script>
+    <script src="/js/service-modal.js"></script>
+    <script src="/js/main.js"></script>
+    <script src="/js/analytics.js"></script>
+</body>
+</html>

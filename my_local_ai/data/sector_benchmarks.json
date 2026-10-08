@@ -1,0 +1,14 @@
+[
+  {
+    "question": "Quels sont les benchmarks financiers et operationnels par secteur en France pour 2024 ?",
+    "answer": "Benchmarks Sectoriels DPAI France 2024. Technologie: CA moyen PME 10M EUR, Marge EBITDA 15-25%, Croissance 15-30%, Productivite 120-180k EUR/employe, EV/EBITDA 8-18x. Sante: CA 15M EUR, Marge EBITDA 10-25%, Croissance 10-20%, Productivite 100-150k EUR/employe, EV/EBITDA 10-30x. Industrie: CA 12M EUR, Marge EBITDA 8-20%, Croissance 5-10%, Productivite 80-120k EUR/employe, EV/EBITDA 5-12x. Distribution: CA 8M EUR, Marge EBITDA 5-15%, Croissance 3-7%, Productivite 60-100k EUR/employe, EV/EBITDA 4-12x. Services: CA 5M EUR, Marge EBITDA 10-25%, Croissance 5-15%, Productivite 80-120k EUR/employe, EV/EBITDA 4-15x.",
+    "source": "dpai_sector_benchmarks",
+    "tags": ["benchmarks", "sector", "financial", "kpi", "france", "2024"]
+  },
+  {
+    "question": "Quels sont les ratios financiers cles a surveiller pour une PME en croissance ?",
+    "answer": "Ratios Financiers Cles DPAI pour PME. Rentabilite: ROE 10-20%, ROA 5-10%, Marge EBITDA 10-25%, Marge Nette 5-10%. Liquidite: Current Ratio 1.2-2.0, Quick Ratio 1.0-1.5, DSO 30-60 jours. Endettement: D/E 0.5-1.5, Debt/EBITDA 2-4x, DSCR 1.2-2.0. Efficacite: Asset Turnover 0.8-1.5, Inventory Turnover 6-12x. Croissance: CA Growth 5-20%, EBITDA Growth 5-15%. Signaux alerte: Current Ratio <1.0, DSCR <1.0, Solvency Ratio <1.0, ROE <8%, Debt/EBITDA >5x.",
+    "source": "dpai_financial_ratios",
+    "tags": ["ratios", "financial", "kpi", "pme", "profitability", "liquidity"]
+  }
+]

@@ -1,0 +1,9 @@
+google-site-verification: [REMPLACER_PAR_VOTRE_CODE]
+# Pour obtenir votre code de vérification Google Search Console :
+# 1. Allez sur https://search.google.com/search-console
+# 2. Ajoutez votre propriété (https://dpai-strategy.com)
+# 3. Choisissez la méthode de vérification "Fichier HTML"
+# 4. Téléchargez le fichier fourni par Google
+# 5. Renommez ce fichier avec le nom exact fourni par Google
+# 6. Placez-le à la racine de votre site (public/)
+# 7. Cliquez sur "Vérifier" dans Google Search Console

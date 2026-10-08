@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <!-- Balises SEO de base -->
+    <title>Connexion | DPAI Strategy - Accédez à vos 500 Tokens Gratuits (125€)</title>
+    <meta name="description" content="Connectez-vous à votre compte DPAI pour accéder à vos analyses stratégiques et gérer vos 500 tokens gratuits (valeur 125€). SWOT, Porter, PESTEL, analyse concurrentielle.">
+    <meta name="keywords" content="connexion, login, accès compte, tableau de bord, gestion tokens, DPAI connexion, se connecter, accéder analyses, tokens gratuits">
+    <meta name="author" content="DPAI Strategy">
+    <meta name="robots" content="index, follow, noarchive">
+    <link rel="canonical" href="https://dpai-strategy.com/login.html" />
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://dpai-strategy.com/login.html" />
+    <meta property="og:title" content="Connexion DPAI Strategy - Accès à vos Tokens" />
+    <meta property="og:description" content="Connectez-vous pour gérer vos analyses stratégiques et vos 500 tokens gratuits (125€)" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta property="og:site_name" content="DPAI Strategy" />
+    
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Connexion DPAI Strategy" />
+    <meta name="twitter:description" content="Accédez à vos analyses et tokens gratuits" />
+    <meta name="twitter:site" content="@DPAIStrategy" />
+    
+    <!-- Schema.org JSON-LD -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Connexion DPAI Strategy",
+      "description": "Page de connexion sécurisée pour accéder aux services d'analyse stratégique",
+      "url": "https://dpai-strategy.com/login.html"
+    }
+    </script>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Styles -->
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="stylesheet" href="/css/components.css">
+    <link rel="stylesheet" href="/css/responsive.css">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
+    <script src="/js/firebase-config.js"></script>
+    <script src="/js/protocol-check.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/login.js"></script>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="container">
+            <a href="/" class="logo">
+                <i class="fas fa-chart-line"></i>
+                <span>DPAI</span>
+            </a>
+            
+            <ul class="nav-links" id="navLinks">
+                <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
+                <li><a href="services.html" class="nav-link">Services</a></li>
+                <li><a href="pricing.html" class="nav-link">Tarifs</a></li>
+            </ul>
+            
+            <div class="nav-actions">
+                <a href="login.html" class="btn btn-ghost" id="loginBtn">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
+                </a>
+                <a href="register.html" class="btn btn-primary" id="registerBtn">
+                    <i class="fas fa-user-plus"></i> S'inscrire
+                </a>
+                <div class="user-menu" id="userMenu" style="display: none;">
+                    <button class="user-btn" id="userBtn">
+                        <i class="fas fa-user"></i>
+                        <span id="userName">Compte</span>
+                    </button>
+                    <div class="user-dropdown">
+                        <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
+                        <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
+                        <a href="plus-de-tokens.html"><i class="fas fa-coins"></i> Plus de tokens</a>
+                        <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
+                    </div>
+                </div>
+            </div>
+            
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Login Header -->
+    <section class="page-header">
+        <div class="container">
+            <div class="breadcrumb">
+                <a href="/">Accueil</a>
+                <i class="fas fa-chevron-right"></i>
+                <span>Connexion</span>
+            </div>
+            <h1>Se connecter</h1>
+            <p class="section-subtitle">Accédez à votre compte pour lancer des analyses et suivre vos tokens</p>
+        </div>
+    </section>
+
+    <!-- Login Form Section -->
+    <section class="auth-section">
+        <div class="container">
+            <div class="auth-container">
+                <!-- Login Form -->
+                <div class="auth-form-card" id="loginFormCard">
+                    <div class="auth-card-header">
+                        <h2><i class="fas fa-sign-in-alt"></i> Connexion</h2>
+                        <p>Connectez-vous avec votre email et mot de passe</p>
+                    </div>
+                    
+                    <!-- Alert Error -->
+                    <div id="loginError" class="alert alert-error" style="display: none;">
+                        <i class="fas fa-exclamation-circle"></i>
+                        <div class="alert-content">
+                            <span class="alert-title" id="loginErrorTitle">Erreur</span>
+                            <span class="alert-message" id="loginErrorMessage"></span>
+                        </div>
+                        <button type="button" id="loginErrorClose" class="alert-close"><i class="fas fa-times"></i></button>
+                    </div>
+                    
+                    <!-- Alert Success -->
+                    <div id="loginSuccess" class="alert alert-success" style="display: none;">
+                        <i class="fas fa-check-circle"></i>
+                        <div class="alert-content">
+                            <span class="alert-title">Succès</span>
+                            <span class="alert-message" id="loginSuccessMessage">Redirection en cours...</span>
+                        </div>
+                    </div>
+                    
+                    <form id="loginForm" class="auth-form">
+                        <div class="form-group">
+                            <label class="form-label" for="loginEmail">Email</label>
+                            <input type="email" class="form-input" id="loginEmail" placeholder="votre@email.com" required autocomplete="email">
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="loginPassword">Mot de passe</label>
+                            <div class="input-group">
+                                <input type="password" class="form-input" id="loginPassword" placeholder="Votre mot de passe" required autocomplete="current-password" minlength="6">
+                                <button type="button" class="input-group-btn toggle-password" onclick="togglePasswordVisibility('loginPassword', this)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="remember-forgot">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="rememberMe">
+                                    <span class="checkmark"></span>
+                                    <span>Se souvenir de moi</span>
+                                </label>
+                                <a href="#" id="forgotPasswordBtn" class="forgot-link">Mot de passe oublié ?</a>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block btn-lg" id="loginBtnForm">
+                            <i class="fas fa-sign-in-alt"></i> Se connecter
+                        </button>
+                        
+                        <div class="form-divider">
+                            <span>ou</span>
+                        </div>
+                        
+                        <button type="button" class="btn btn-google btn-block" id="googleLoginBtn">
+                            <i class="fab fa-google"></i> Se connecter avec Google
+                        </button>
+                    </form>
+                    
+                    <div class="auth-footer">
+                        <p>Vous n'avez pas de compte ? <a href="register.html">Créer un compte gratuitement</a></p>
+                    </div>
+                </div>
+
+                <!-- Forgot Password Form (hidden by default) -->
+                <div class="auth-form-card" id="forgotPasswordCard" style="display: none;">
+                    <div class="auth-card-header">
+                        <h2><i class="fas fa-key"></i> Mot de passe oublié</h2>
+                        <p>Entrez votre email pour recevoir un lien de réinitialisation</p>
+                    </div>
+                    
+                    <form id="forgotPasswordForm" class="auth-form">
+                        <div class="form-group">
+                            <label class="form-label" for="forgotEmail">Email</label>
+                            <input type="email" class="form-input" id="forgotEmail" placeholder="votre@email.com" required>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary btn-block btn-lg">
+                            <i class="fas fa-paper-plane"></i> Envoyer le lien
+                        </button>
+                        
+                        <button type="button" class="btn btn-ghost btn-block" id="backToLogin">
+                            <i class="fas fa-arrow-left"></i> Retour à la connexion
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="auth-info-card">
+                <div class="auth-info-icon">
+                    <i class="fas fa-gift"></i>
+                </div>
+                <h3>Nouveau sur DPAI ?</h3>
+                <p>Créez un compte gratuitement et recevez <strong>500 tokens</strong> d'une valeur de 125 euros pour commencer immédiatement vos analyses.</p>
+                <ul class="auth-info-features">
+                    <li><i class="fas fa-check-circle"></i> 500 tokens gratuits d'une valeur de 125 euros</li>
+                    <li><i class="fas fa-check-circle"></i> Accès à tous les services Phases 1 & 2</li>
+                    <li><i class="fas fa-check-circle"></i> Pas de carte bancaire requise</li>
+                    <li><i class="fas fa-check-circle"></i> Connexion avec Google disponible</li>
+                </ul>
+                <a href="register.html" class="btn btn-primary btn-block">
+                    <i class="fas fa-user-plus"></i> Créer un compte gratuit
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="/" class="logo">
+                        <i class="fas fa-chart-line"></i>
+                        <span>DPAI</span>
+                    </a>
+                    <p>Conseil en croissance externe et analyse stratégique avancée.</p>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Produit</h4>
+                    <ul>
+                        <li><a href="/#features">Fonctionnalités</a></li>
+                        <li><a href="services.html">Services</a></li>
+                        <li><a href="pricing.html">Tarifs</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Compte</h4>
+                    <ul>
+                        <li><a href="login.html">Connexion</a></li>
+                        <li><a href="register.html">Inscription</a></li>
+                        <li><a href="plus-de-tokens.html">Plus de tokens</a></li>
+                    </ul>
+                </div>
+                
+                <div class="footer-links">
+                    <h4>Légal</h4>
+                    <ul>
+                        <li><a href="terms.html">Conditions générales</a></li>
+                        <li><a href="privacy.html">Politique de confidentialité</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <p>&copy; 2026 DPAI. Tous droits réservés.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        // Fonction pour basculer la visibilité du mot de passe
+        function togglePasswordVisibility(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    button.innerHTML = '<i class="fas fa-eye-slash"></i>';
+                } else {
+                    input.type = 'password';
+                    button.innerHTML = '<i class="fas fa-eye"></i>';
+                }
+            }
+        }
+    </script>
+    <script src="/js/analytics.js"></script>
+</body>
+</html>

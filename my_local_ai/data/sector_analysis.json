@@ -1,0 +1,62 @@
+[
+  {
+    "question": "Quelle est l'analyse sectorielle DPAI pour le SaaS en France 2024 ?",
+    "answer": "Analyse sectorielle DPAI - SaaS France 2024 : 1) Taille marché : 15-20 Md€, croissance +15-20%/an. 2) Multiples : EBITDA 10-15x (12-18x pour croissance >20%). 3) Marges : Brute 70-85%, EBITDA 20-35%. 4) Rétention : >90% = excellent, <80% = à risque. 5) Croissance : +20% = top quartile. 6) Churn : <5% = excellent, >10% = problème. 7) Concurrence : Salesforce, HubSpot, Microsoft, SAP. 8) Tendances : IA intégrée, cloud souverain, RPA. 9) Risques : Concentration marché, dépendance aux grands comptes. 10) Opportunités : Digitalisation, RGPD, subventions. Valorisation moyenne : 12x EBITDA.",
+    "source": "dpai_sector",
+    "tags": ["saas", "secteur", "analyse", "france", "2024"]
+  },
+  {
+    "question": "Comment DPAI analyse le secteur industriel français ?",
+    "answer": "Analyse sectorielle DPAI - Industrie France 2024 : 1) Taille : 200 Md€, 10% du PIB. 2) Multiples : EBITDA 6-10x. 3) Marges : Brute 30-45%, EBITDA 10-20%. 4) Investissements : Capex 5-10% du CA. 5) Stocks : Rotation >8x = bon. 6) Clientèle : B2B (70%), B2C (30%). 7) Concurrence : Allemagne, Chine, Europe de l'Est. 8) Tendances : Robotisation, transition écologique, relocalisation. 9) Risques : Coûts énergétiques, pénurie main-d'œuvre, réglementation environnementale. 10) Opportunités : Subventions transition écologique, innovation. Valorisation : 7-9x EBITDA.",
+    "source": "dpai_sector",
+    "tags": ["industrie", "secteur", "analyse", "france", "manufacturing"]
+  },
+  {
+    "question": "Quelle est la méthodologie DPAI pour l'EdTech ?",
+    "answer": "Analyse sectorielle DPAI - EdTech Europe 2024 : 1) Taille marché : 5 Md€, croissance +18%/an. 2) Multiples : Revenue 8-12x (10-15x pour croissance >30%). 3) Marges : Brute 75-90%, EBITDA 15-25%. 4) Modèle : B2B (écoles) = 60%, B2C = 30%, B2G = 10%. 5) Rétention : >85% = excellent. 6) CAC : <1/3 LTV. 7) Concurrence : US (Coursera, Udemy), France (OpenClassrooms, Fun MOOC). 8) Tendances : Apprentissage adaptatif, micro-learning, certifications. 9) Risques : Dépendance subventions, concurrence GAFAM. 10) Opportunités : Digitalisation écoles, reconversion professionnelle. Valorisation : 10-12x revenus.",
+    "source": "dpai_sector",
+    "tags": ["edtech", "secteur", "analyse", "europe", "education"]
+  },
+  {
+    "question": "Comment DPAI compare les secteurs pour investissement ?",
+    "answer": "Matrice de comparaison sectorielle DPAI : Axes : 1) Croissance marché, 2) Rentabilité, 3) Stabilité, 4) Barrières à l'entrée. Scoring 1-5. Résultats 2024 : SaaS (4.2/5) = ✅ Meilleur, EdTech (3.8/5) = ✅ Bon, Industrie (3.5/5) = ⚠️ Moyen, Retail (3.2/5) = ⚠️ Risqué, Services (3.7/5) = ✅ Bon. Recommandation : Investir dans secteurs score >3.5. Stratégie : Diversification (2-3 secteurs) pour réduire le risque.",
+    "source": "dpai_sector",
+    "tags": ["comparaison", "secteur", "matrice", "investissement", "strategie"]
+  },
+  {
+    "question": "Quels sont les risques sectoriels selon DPAI ?",
+    "answer": "Risques sectoriels DPAI 2024 : 1) SaaS : Dépendance aux grands comptes, concurrence GAFAM, cyber-sécurité. 2) Industrie : Coûts énergétiques, pénurie main-d'œuvre, transition écologique. 3) EdTech : Dépendance subventions, concurrence internationale, adoption lente. 4) Retail : E-commerce, marges compressées, change des habitudes. 5) Services : Dépendance compétences, turnover, concurrence prix. 6) BTP : Fluctuation prix matériaux, réglementation, pénurie main-d'œuvre. Mitigation : Diversification, assurances, veille concurrentielle.",
+    "source": "dpai_sector",
+    "tags": ["risque", "secteur", "2024", "mitigation", "analyse"]
+  },
+  {
+    "question": "Quelles sont les opportunités sectorielles en 2024 selon DPAI ?",
+    "answer": "Opportunités sectorielles DPAI 2024 : 1) SaaS : IA intégrée, cloud souverain, automatisation. 2) Industrie : Robotisation, transition écologique, relocalisation. 3) EdTech : Digitalisation écoles, reconversion pro, certifications. 4) Santé : Télémédecine, données patients, prévention. 5) Énergie : Renouvelables, stockage, smart grid. 6) Retail : Omnicanal, personnalisation, expérience client. 7) Services : Digitalisation, externalisation, niche markets. 8) BTP : Matériaux durables, modulaire, rénovation énergétique. Focus DPAI : Secteurs avec croissance >10% + margins >15%.",
+    "source": "dpai_sector",
+    "tags": ["opportunite", "secteur", "2024", "tendance", "croissance"]
+  },
+  {
+    "question": "Comment DPAI analyse la maturité d'un secteur ?",
+    "answer": "Méthode DPAI analyse maturité sectorielle : 1) Cycle de vie : Introduction (0-5 ans), Croissance (5-15 ans), Maturité (15-30 ans), Déclin (>30 ans). 2) Taux de croissance : >20% = Croissance, 5-20% = Maturité, <5% = Déclin. 3) Nombre d'acteurs : <10 = Émergent, 10-50 = Croissance, >50 = Mature. 4) Barrières à l'entrée : Faibles = Mature, Fortes = Émergent. 5) Innovation : >15% CA en R&D = Croissance. Exemple : SaaS France = Croissance avancée, Industrie traditionnelle = Maturité.",
+    "source": "dpai_sector",
+    "tags": ["maturite", "secteur", "analyse", "cycle_vie", "croissance"]
+  },
+  {
+    "question": "Quels sont les multiples par secteur selon DPAI ?",
+    "answer": "Multiples sectoriels DPAI 2024 : 1) SaaS : 10-15x EBITDA (12-18x pour croissance >20%). 2) Industrie : 6-10x EBITDA. 3) EdTech : 8-12x Revenus. 4) Santé : 12-18x EBITDA. 5) Services : 5-8x EBITDA. 6) Retail : 4-6x EBITDA. 7) BTP : 3-5x EBITDA. Facteurs d'ajustement : Croissance (+1-3x), taille (+0.5-1x >50M€ CA), positionnement (+1-2x leader). Benchmark : Base de données DPAI de 500+ transactions.",
+    "source": "dpai_sector",
+    "tags": ["multiple", "secteur", "valorisation", "ebitda", "benchmark"]
+  },
+  {
+    "question": "Comment DPAI identifie les leaders sectoriels ?",
+    "answer": "Critères DPAI pour identifier un leader sectoriel : 1) Part de marché : >15% = Leader, 5-15% = Challenger. 2) Croissance : >2x moyenne secteur. 3) Rentabilité : >25% EBITDA margin. 4) Technologie : Produit/service supérieur. 5) Talents : Meilleure équipe du secteur. 6) Clients : Portefeuille premium, satisfaction >9/10. 7) Innovation : >20% CA en R&D. 8) Financier : Accès privilégié au capital. Exemple : Leader SaaS = part marché 20%, croissance 30%, marge 30%. valorisation : +2-3x vs moyenne secteur.",
+    "source": "dpai_sector",
+    "tags": ["leader", "secteur", "identification", "critere", "benchmark"]
+  },
+  {
+    "question": "Quelle est l'analyse DPAI pour le secteur retail en 2024 ?",
+    "answer": "Analyse DPAI - Retail France 2024 : 1) Taille : 400 Md€, croissance +3-5%/an. 2) Multiples : 4-6x EBITDA. 3) Marges : Brute 35-45%, EBITDA 8-12%. 4) Modèle : Omnicanal (40% e-commerce), Physical (60%). 5) Rotation stocks : >12x = excellent. 6) Concurrence : Amazon, pure players, grandes surfaces. 7) Tendances : Personnalisation, expérience client, durabilité. 8) Risques : Marges compressées, concurrence prix, change habitudes. 9) Opportunités : Digitalisation points de vente, data analytics. 10) Spécificités : BFR élevé (25-35% CA), saisonnalité forte. Valorisation : 4-6x EBITDA.",
+    "source": "dpai_sector",
+    "tags": ["retail", "secteur", "analyse", "france", "distribution"]
+  }
+]

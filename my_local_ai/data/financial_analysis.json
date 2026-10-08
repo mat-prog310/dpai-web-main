@@ -1,0 +1,62 @@
+[
+  {
+    "question": "Comment calculer le WACC selon la méthodologie DPAI ?",
+    "answer": "Formule DPAI WACC (Weighted Average Cost of Capital) : WACC = (Ke * E/V) + (Kd * D/V * (1-T)). Où : Ke = Coût des capitaux propres (12-18% pour PME), Kd = Coût de la dette (4-8%), E = Valeur des fonds propres, D = Valeur de la dette, V = E+D, T = Taux d'impôt (25-33%). Exemple : Entreprise avec E=60%, D=40%, Ke=15%, Kd=6%, T=25%. WACC = (0.15*0.6) + (0.06*0.4*0.75) = 11.1%. Utilisation : Taux d'actualisation pour DCF, évaluation de projets.",
+    "source": "dpai_financial",
+    "tags": ["wacc", "calcul", "finance", "coup_capital"]
+  },
+  {
+    "question": "Quels sont les ratios financiers clés pour DPAI ?",
+    "answer": "Ratios clés DPAI par catégorie : 1) Rentabilité : Marge brute (>60%), EBITDA margin (>15%), ROI (>10%), ROE (>15%). 2) Liquidité : Current ratio (>1.5), Quick ratio (>1.0), Cash ratio (>0.5). 3) Efficience : Asset turnover (>1.0), Inventory turnover (>8), Days sales outstanding (<45). 4) Leverage : Debt/EBITDA (<3.5), Debt/Equity (<1.5), Interest coverage (>3). 5) Valorisation : EV/EBITDA (secteur dépendant), P/E (15-25). Benchmark : Comparaison avec moyenne secteur +20%.",
+    "source": "dpai_financial",
+    "tags": ["ratio", "financier", "analyse", "rentabilite"]
+  },
+  {
+    "question": "Comment DPAI analyse un bilan ?",
+    "answer": "Analyse bilan DPAI en 5 axes : 1) Structure : Actif (immobilisé/circulant), Passif (capitaux propres/dettes). Équilibre : Actif circulant > Passif circulant. 2) Liquidité : Trésorerie + créances > dettes à CT. 3) Solvabilité : Capitaux propres > 30% total bilan. 4) Efficience : Rotation stocks (>8x), BFR (<20% CA). 5) Rentabilité : ROE (>15%), ROI (>10%). Outil : Analyse par ratios + benchmark sectoriel. Exemple : Entreprise avec ROE 20%, rotation stocks 10x, solvabilité 40% = Excellent.",
+    "source": "dpai_financial",
+    "tags": ["bilan", "analyse", "finance", "structure"]
+  },
+  {
+    "question": "Quelle est la méthode DPAI pour analyser un compte de résultat ?",
+    "answer": "Méthode DPAI analyse compte de résultat : 1) Tendances : Évolution CA, marge, EBITDA sur 3 ans. 2) Structure : % CA par poste (COGS, SG&A, R&D, etc.). 3) Rentabilité : Marge brute, EBITDA margin, net margin. Benchmark : Comparaison avec secteur. 4) Qualité : % CA récurrent, concentration clients. 5) Coûts : Fixes vs variables, coûts cachés. Outil : Analyse verticale (en % du CA) + horizontale (évolution). Exemple : SaaS avec marge brute 80%, EBITDA margin 25% = Très bon.",
+    "source": "dpai_financial",
+    "tags": ["compte_resultat", "analyse", "rentabilite", "tendance"]
+  },
+  {
+    "question": "Comment DPAI calcule les synergies financières ?",
+    "answer": "Calcul synergies DPAI : 1) Synergies de coûts : a) Mutualisation (sièges, services) : -200-500k€/an. b) Optimisation achats : -100-300k€/an. c) Réduction doublons : -300-800k€/an. 2) Synergies de revenus : a) Cross-selling : +500k€-2M€/an. b) Upselling : +200-500k€/an. c) Nouvelle clientèle : +300k€-1M€/an. 3) Synergies fiscales : Optimisation structure : +100-400k€/an. Total moyen : 1-3M€/an pour acquisition de 20M€. ROI : 3-5x sur 3-5 ans.",
+    "source": "dpai_financial",
+    "tags": ["synergie", "calcul", "financiere", "optimisation"]
+  },
+  {
+    "question": "Quels sont les indicateurs de santé financière selon DPAI ?",
+    "answer": "Indicateurs santé financière DPAI : 1) Trésorerie : >3 mois de cash flow opérationnel. 2) Rentabilité : EBITDA margin >15%, ROI >10%. 3) Liquidité : Current ratio >1.5, Quick ratio >1.0. 4) Solvabilité : Debt/EBITDA <3.5, Interest coverage >3. 5) Croissance : CA growth >5%/an, EBITDA growth >10%/an. 6) Qualité : % CA récurrent >70%, churn <5%. Score santé : 0-100. Seuil alerte : <70. Seuil excellent : >90. Fréquence : Mensuelle pour PME, hebdomadaire pour startups.",
+    "source": "dpai_financial",
+    "tags": ["indicateurs", "sante", "financiere", "score"]
+  },
+  {
+    "question": "Comment DPAI analyse la rentabilité d'un investissement ?",
+    "answer": "Méthode DPAI analyse rentabilité investissement : 1) Calcul VAN : Σ(FCFt/(1+r)^t) - Investissement initial. 2) Taux d'actualisation : WACC + prime de risque projet. 3) Calcul TIR : Taux qui rend VAN=0. 4) Délai de récupération : Nombre d'années pour récupérer l'investissement. 5) Indice de profitabilité : VAN/Investissement. Seuil : VAN>0, TIR>15%, délai<5 ans, IP>1.2. Outil : Template Excel DPAI avec calculs automatiques et analyse de sensibilité.",
+    "source": "dpai_financial",
+    "tags": ["rentabilite", "investissement", "van", "tir", "analyse"]
+  },
+  {
+    "question": "Quelle est la méthodologie DPAI pour un audit financier ?",
+    "answer": "Checklist audit financier DPAI (80+ points) : 1) Vérification comptes : Exactitude, exhaustivité, cohérence. 2) Analyse ratios : Comparaison avec historique et secteur. 3) Revue processus : Comptabilité, reporting, contrôle interne. 4) Évaluation risques : Fraude, erreurs, non-conformité. 5) Recommandations : Améliorations, optimisations. 6) Benchmark : Comparaison avec best practices. Budget : 15-25k€. Délai : 2-3 semaines. Livrable : Rapport détaillé + checklist validée + recommandations priorisées.",
+    "source": "dpai_financial",
+    "tags": ["audit", "financier", "checklist", "verification"]
+  },
+  {
+    "question": "Comment DPAI gère les working capital ?",
+    "answer": "Gestion working capital DPAI : 1) Calcul BFR : Stocks + Créances clients - Dettes fournisseurs. 2) Ratio BFR/CA : <20% = Excellent, 20-30% = Bon, >30% = À améliorer. 3) Days Sales Outstanding (DSO) : <45 jours = Optimal. 4) Days Payables Outstanding (DPO) : 30-60 jours. 5) Inventory turnover : >8x = Très bon. Optimisation : a) Négocier délais paiement fournisseurs, b) Réduire stocks (méthode JIT), c) Accélérer encaissements (escompte 2%). Impact : Réduction BFR de 10-20% = +500k€-1M€ de trésorerie.",
+    "source": "dpai_financial",
+    "tags": ["working_capital", "bfr", "gestion", "tresorerie"]
+  },
+  {
+    "question": "Quels sont les pièges dans l'analyse financière selon DPAI ?",
+    "answer": "Top 10 pièges analyse financière DPAI : 1) CA ponctuel vs récurrent : Vérifier % récurrent (>70%). 2) One-off items : Exclure les éléments exceptionnels. 3) Saisonnalité : Analyser sur 12 mois glissants. 4) Inflation : Ajuster les données historiques. 5) Comptabilité créative : Vérifier les principes comptables. 6) Dettes hors bilan : Leasing, engagements. 7) Provisions : Sous/sur-estimées. 8) Stocks : Obsolescence, surévaluation. 9) Créances : Créances douteuses non provisionnées. 10) Investissements : Capex vs Opex. Solution : Audit financier complet + benchmark.",
+    "source": "dpai_financial",
+    "tags": ["piege", "analyse", "financiere", "vigilance", "risque"]
+  }
+]

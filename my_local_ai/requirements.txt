@@ -1,0 +1,21 @@
+# DPAI Local AI - Dépendances
+# =============================
+
+# Base
+numpy>=1.21.0
+scikit-learn>=1.0.0
+scipy>=1.7.0
+
+# Pour la sauvegarde des modèles
+pickle-mixin>=1.0.0
+
+# Pour les performances
+joblib>=1.0.0
+
+# Optionnel: pour des vectorisations plus avancées (installer si besoin)
+# sentence-transformers>=2.0.0
+# torch>=1.10.0
+
+# Pour l'interface terminal (optionnel)
+# colorama>=0.4.0
+# prompt-toolkit>=3.0.0
