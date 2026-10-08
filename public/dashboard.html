@@ -404,6 +404,17 @@
                 grid-template-columns: 1fr;
             }
         }
+        /* Conseiller IA Button */
+        .btn-advisor {
+            background: linear-gradient(135deg, #9b59b6 0%, #667eea 100%);
+            color: white;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .btn-advisor:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(155, 89, 182, 0.4);
+        }
     </style>
 </head>
 <body>
@@ -525,7 +536,13 @@
                     </div>
                     <div class="card-body">
                         <div class="quick-actions">
-                            <!-- Les boutons seront générés dynamiquement par dashboard.js -->
+                            <!-- Bouton Conseiller IA - visible uniquement avec plan advisor -->
+                            <div id="advisorQuickAction" style="display: none; margin-bottom: 1rem;">
+                                <a href="conseiller-dpai.html" class="btn btn-advisor btn-lg" style="width: 100%; text-align: center;">
+                                    <i class="fas fa-robot"></i> Conseiller IA
+                                </a>
+                            </div>
+                            <!-- Les autres boutons seront générés dynamiquement par dashboard.js -->
                         </div>
                         <div class="quick-actions-info" style="margin-top: 1rem; text-align: center;">
                             <p style="color: #718096; font-size: 0.875rem;">
@@ -1009,6 +1026,33 @@
                 loadDashboardData();
             }
         });
+    </script>
+    
+    <!-- Script pour afficher/masquer le bouton Conseiller IA -->
+    <script>
+        // Attendre que TokenManager soit chargé
+        function checkAdvisorAccess() {
+            if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
+                const userPlan = TokenManager.tokenState.plan;
+                const advisorBtn = document.getElementById('advisorQuickAction');
+                
+                if (advisorBtn) {
+                    // Afficher uniquement si l'utilisateur a le plan advisor
+                    advisorBtn.style.display = (userPlan === 'advisor') ? 'block' : 'none';
+                }
+            }
+        }
+        
+        // Vérifier au chargement de la page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Attendre un court délai pour que TokenManager soit initialisé
+            setTimeout(checkAdvisorAccess, 1000);
+        });
+        
+        // Écouter les changements de plan (si applicable)
+        if (typeof TokenManager !== 'undefined') {
+            TokenManager.addListener(checkAdvisorAccess);
+        }
     </script>
 </body>
 </html>
