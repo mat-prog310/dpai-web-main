@@ -74,6 +74,13 @@ async function loadUserData(userId) {
         if (typeof TokenManager !== 'undefined') {
             TokenManager.init({ id: userId, ...userData });
         }
+
+        
+        // Initialiser TokenManager avec les données utilisateur
+        // C'est CRUCIAL pour que le plan advisor soit détecté correctement
+        if (typeof TokenManager !== 'undefined') {
+            TokenManager.init({ id: userId, ...userData });
+        }
         // Mettre à jour l'UI utilisateur
         const userName = userData.displayName || userData.email || 'Utilisateur';
         const welcomeEl = document.getElementById('welcomeUserName');
@@ -90,6 +97,45 @@ async function loadUserData(userId) {
         if (userData.tokenState) {
             updateTokenDisplay(userData.tokenState);
         }
+    
+    // Ajouter un listener pour les changements futurs
+    db.collection('users').doc(userId).onSnapshot((doc) => {
+        if (doc.exists) {
+            const updatedUserData = doc.data();
+            console.log('[Dashboard] User data updated:', updatedUserData.subscription?.plan || updatedUserData.plan);
+            
+            // Recharger TokenManager avec les nouvelles données
+            if (typeof TokenManager !== 'undefined') {
+                TokenManager.init({ id: userId, ...updatedUserData });
+            }
+            
+            // Forcer tokens illimités si plan advisor
+            const userPlan = updatedUserData.subscription?.plan || updatedUserData.plan || 'free';
+            if (userPlan === 'advisor' && updatedUserData.tokenState) {
+                if (updatedUserData.tokenState.plan !== 'advisor' || 
+                    updatedUserData.tokenState.totalTokens !== -1) {
+                    db.collection('users').doc(userId).update({
+                        'tokenState.plan': 'advisor',
+                        'tokenState.baseTokens': -1,
+                        'tokenState.totalTokens': -1,
+                        'tokenState.availableTokens': -1,
+                        'tokenState.usedTokens': 0,
+                        'plan': 'advisor'
+                    });
+                }
+            }
+            
+            // Forcer la vérification de l'accès advisor
+            if (typeof checkAdvisorAccess !== 'undefined') {
+                checkAdvisorAccess();
+            }
+            
+            // Recharger initQuickActions si nécessaire
+            if (typeof initQuickActions !== 'undefined') {
+                initQuickActions();
+            }
+        }
+    });
     }
     
     // Charger les données de l'entreprise (si collection séparée)
