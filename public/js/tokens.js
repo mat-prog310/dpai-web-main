@@ -270,7 +270,6 @@ class TokenManager {
     this.userData = userData;
     
     // Déterminer le plan avec priorité : tokenState.plan > subscription.plan > userData.plan > 'free'
-    // CORRECTION: Ne jamais forcer 'free' si advisor est déjà défini
     let plan = userData.tokenState?.plan || 
                userData.subscription?.plan || 
                userData.plan || 
@@ -281,6 +280,16 @@ class TokenManager {
         (userData.tokenState?.availableTokens === -1 || userData.totalTokens === -1)) {
       plan = 'advisor';
       console.log('[TokenManager] Correction: utilisateur premium avec tokens illimités -> plan advisor');
+    }
+    
+    // CORRECTION CRITIQUE: Si tokenState a un plan valide, TOUJOURS l'utiliser comme source de vérité
+    if (userData.tokenState && userData.tokenState.plan) {
+      // Vérifier la cohérence avec le plan déterminé
+      if (userData.tokenState.plan !== plan) {
+        console.log('[TokenManager] Incohérence de plan détectée: tokenState.plan=' + userData.tokenState.plan + ', plan calculé=' + plan);
+        // TOUJOURS faire confiance à tokenState.plan si il existe
+        plan = userData.tokenState.plan;
+      }
     }
     
     const expectedBaseTokens = TokenConfig.baseTokenLimits[plan] || TokenConfig.baseTokenLimits.free;
@@ -382,47 +391,58 @@ class TokenManager {
     this.tokenState.hasAccessToAdvancedAnalytics = updates.hasAccessToAdvancedAnalytics;
     this.tokenState.hasAccessToPremiumSuggestions = updates.hasAccessToPremiumSuggestions;
     
-    // Mettre à jour dans Firestore si les flags diffèrent
+    // Mettre à jour dans Firestore UNE SEULE FOIS si nécessaire
     let firestoreDB = getDB();
     if (firestoreDB && userData.id) {
-      const needsUpdate = 
+      // Vérifier si une correction est nécessaire (une seule fois par session)
+      const needsCorrection = 
         userData.hasAccessToAPI !== updates.hasAccessToAPI ||
         userData.hasAccessToAdvancedAnalytics !== updates.hasAccessToAdvancedAnalytics ||
         userData.hasAccessToPremiumSuggestions !== updates.hasAccessToPremiumSuggestions ||
         userData.plan !== currentPlan ||
         !userData.tokenState ||
-        userData.tokenState.plan !== currentPlan;
+        userData.tokenState.plan !== currentPlan ||
+        (currentPlan === 'advisor' && (
+          this.tokenState.totalTokens !== -1 ||
+          this.tokenState.availableTokens !== -1 ||
+          this.tokenState.baseTokens !== -1
+        ));
       
-      if (needsUpdate) {
-        // CORRECTION: Toujours inclure subscription.plan dans la mise à jour pour éviter la réinitialisation
+      if (needsCorrection) {
+        // CORRECTION MAJEURE: Une seule mise à jour avec TOUS les champs nécessaires
         const updateData = {
+          // Champs racine
+          plan: currentPlan,
+          isPremium: currentPlan !== 'free',
+          availableTokens: this.tokenState.availableTokens,
+          tokensUsed: this.tokenState.usedTokens,
+          totalTokens: this.tokenState.totalTokens,
+          
+          // Flags d'accès
           hasAccessToAPI: updates.hasAccessToAPI,
           hasAccessToAdvancedAnalytics: updates.hasAccessToAdvancedAnalytics,
           hasAccessToPremiumSuggestions: updates.hasAccessToPremiumSuggestions,
-          plan: currentPlan,
+          
+          // Subscription
           'subscription.plan': currentPlan,
+          'subscription.status': currentPlan !== 'free' ? 'active' : undefined,
+          
+          // TokenState complet
           tokenState: this.tokenState
         };
+        
+        // Nettoyer les champs undefined
+        Object.keys(updateData).forEach(key => {
+          if (updateData[key] === undefined) {
+            delete updateData[key];
+          }
+        });
+        
+        console.log('[TokenManager] Correction Firestore nécessaire pour:', userData.id);
         firestoreDB.collection('users').doc(userData.id).update(updateData).catch(err => {
-          console.warn('[TokenManager] Impossible de synchroniser les flags:', err);
+          console.warn('[TokenManager] Impossible de corriger:', err);
         });
       }
-    }
-    
-    // Sauvegarder dans Firestore pour corriger les anciens utilisateurs
-    // CORRECTION: Toujours inclure plan et subscription.plan pour éviter la réinitialisation
-    if (userData.id && firestoreDB) {
-      const correctionData = {
-        tokenState: this.tokenState,
-        plan: currentPlan,
-        'subscription.plan': currentPlan,
-        availableTokens: this.tokenState.availableTokens,
-        tokensUsed: this.tokenState.usedTokens,
-        totalTokens: this.tokenState.totalTokens
-      };
-      firestoreDB.collection('users').doc(userData.id).update(correctionData).catch(err => {
-        console.warn('[TokenManager] Impossible de corriger tokenState:', err);
-      });
     }
     
     this.loyaltyInfo = userData.loyaltyInfo || LoyaltySystem.create(userData.id);
@@ -651,20 +671,145 @@ class TokenManager {
     const unusedTokens = this.tokenState.totalTokens - this.tokenState.usedTokens;
     newState.availableTokens += Math.min(unusedTokens, newState.baseTokens);
     
+    // Synchroniser les flags d'accès avec le nouveau plan
+    const planConfig = PLAN_CONFIG.free;
+    const configForPlan = PLAN_CONFIG[newPlan] || planConfig;
+    newState.hasAccessToAPI = configForPlan.hasAI;
+    newState.hasAccessToAdvancedAnalytics = configForPlan.hasAdvisor;
+    newState.hasAccessToPremiumSuggestions = configForPlan.hasAdvisor;
+    
     const firestoreDB = getDB();
     if (firestoreDB && this.userData && this.userData.id) {
+      // Calculer la date d'expiration si c'est un plan payant
+      let expiryDate = null;
+      if (newPlan !== 'free') {
+        expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+      }
+      
       await firestoreDB.collection('users').doc(this.userData.id).update({
         tokenState: newState,
         plan: newPlan,
+        isPremium: newPlan !== 'free',
         'subscription.plan': newPlan,
+        'subscription.status': newPlan !== 'free' ? 'active' : 'free',
+        'subscription.expiresAt': expiryDate,
         availableTokens: newState.availableTokens,
         tokensUsed: newState.usedTokens,
-        totalTokens: newState.totalTokens
+        totalTokens: newState.totalTokens,
+        hasAccessToAPI: configForPlan.hasAI,
+        hasAccessToAdvancedAnalytics: configForPlan.hasAdvisor,
+        hasAccessToPremiumSuggestions: configForPlan.hasAdvisor
       });
     }
 
     this.tokenState = newState;
     this.notifyListeners();
+  }
+
+  /**
+   * Méthode admin pour changer le plan d'un utilisateur
+   * Cette méthode est conçue pour être appelée par les administrateurs
+   * via Firebase Console ou Cloud Functions
+   */
+  static async adminChangePlan(userId, newPlan, adminUserId = null) {
+    try {
+      const planConfig = PLAN_CONFIG[newPlan];
+      
+      if (!planConfig) {
+        throw new Error(`Plan invalide: ${newPlan}`);
+      }
+      
+      const firestoreDB = getDB();
+      if (!firestoreDB) {
+        throw new Error('Firestore non disponible');
+      }
+      
+      const userRef = firestoreDB.collection('users').doc(userId);
+      const userDoc = await userRef.get();
+      
+      if (!userDoc.exists) {
+        throw new Error(`Utilisateur non trouvé: ${userId}`);
+      }
+      
+      const userData = userDoc.data();
+      const oldPlan = userData.subscription?.plan || userData.plan || userData.tokenState?.plan || 'free';
+      
+      // Calculer les valeurs pour le nouveau plan
+      const totalTokens = planConfig.baseTokens;
+      const usedTokens = Math.min(
+        userData.tokenState?.usedTokens || userData.tokensUsed || 0,
+        totalTokens === -1 ? Infinity : totalTokens
+      );
+      const availableTokens = totalTokens === -1 ? -1 : totalTokens - usedTokens;
+      
+      // Calculer la date d'expiration (30 jours pour les plans payants)
+      let expiryDate = null;
+      if (newPlan !== 'free') {
+        expiryDate = new Date();
+        expiryDate.setDate(expiryDate.getDate() + 30);
+      }
+      
+      // Créer le nouveau tokenState
+      const newTokenState = {
+        userId: userId,
+        plan: newPlan,
+        baseTokens: totalTokens,
+        bonusTokens: 0,
+        totalTokens: totalTokens,
+        availableTokens: availableTokens,
+        usedTokens: usedTokens,
+        lastTokenUpdate: new Date().toISOString(),
+        firstAnalysisDone: userData.tokenState?.firstAnalysisDone || userData.firstAnalysisDone || false,
+        monthlyTokensUsed: userData.tokenState?.monthlyTokensUsed || userData.monthlyTokensUsed || 0,
+        lastMonthlyReset: new Date().toISOString(),
+        expiresAt: expiryDate?.toISOString() || null,
+        isExpired: false,
+        hasAccessToAPI: planConfig.hasAI,
+        hasAccessToAdvancedAnalytics: planConfig.hasAdvisor,
+        hasAccessToPremiumSuggestions: planConfig.hasAdvisor
+      };
+      
+      // Mettre à jour dans Firestore
+      const updateData = {
+        tokenState: newTokenState,
+        plan: newPlan,
+        isPremium: planConfig.isPremium,
+        'subscription.plan': newPlan,
+        'subscription.status': newPlan !== 'free' ? 'active' : 'free',
+        'subscription.price': planConfig.price,
+        subscription: {
+          plan: newPlan,
+          status: newPlan !== 'free' ? 'active' : 'free',
+          price: planConfig.price,
+          expiresAt: expiryDate?.toISOString() || null,
+          lastPaymentDate: new Date().toISOString(),
+          paymentReceived: true
+        },
+        availableTokens: availableTokens,
+        tokensUsed: usedTokens,
+        totalTokens: totalTokens,
+        hasAccessToAPI: planConfig.hasAI,
+        hasAccessToAdvancedAnalytics: planConfig.hasAdvisor,
+        hasAccessToPremiumSuggestions: planConfig.hasAdvisor
+      };
+      
+      await userRef.update(updateData);
+      
+      console.log(`[TokenManager] Plan changé avec succès pour ${userId}: ${oldPlan} -> ${newPlan}`);
+      
+      return {
+        success: true,
+        message: `Plan changé de ${oldPlan} à ${newPlan}`,
+        userId: userId,
+        oldPlan: oldPlan,
+        newPlan: newPlan
+      };
+      
+    } catch (error) {
+      console.error('[TokenManager] Erreur adminChangePlan:', error);
+      throw error;
+    }
   }
 
   static async applyReferralSponsorBonus() {
