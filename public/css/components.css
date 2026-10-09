@@ -6755,3 +6755,26 @@
     transform: translateY(-2px);
     box-shadow: 0 10px 25px rgba(155, 89, 182, 0.4);
 }
+
+/* Advisor Section */
+.advisor-section {
+    margin: 1.5rem 0;
+}
+
+.advisor-section .card {
+    background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+    border: 1px solid #e2e8f0;
+}
+
+.advisor-section .card-header {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.advisor-section .card-header h3 {
+    color: #667eea;
+}
+
+.advisor-section .card-header i {
+    color: #9b59b6;
+}

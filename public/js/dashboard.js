@@ -1165,56 +1165,7 @@ function initQuickActions() {
     // Obtenir le plan de l'utilisateur
     const userPlan = (typeof TokenManager !== 'undefined' && TokenManager.tokenState) ? TokenManager.tokenState.plan : 'free';
     
-    // Ajouter le bouton Conseiller IA en premier
-    const advisorWrapper = document.createElement('div');
-    advisorWrapper.id = 'advisorQuickAction';
-    advisorWrapper.style.marginBottom = '1rem';
-    advisorWrapper.style.position = 'relative';
-    
-    const advisorBtn = document.createElement('a');
-    advisorBtn.href = 'conseiller-dpai.html';
-    advisorBtn.className = 'btn btn-advisor btn-lg';
-    advisorBtn.id = 'advisorBtn';
-    advisorBtn.style.width = '100%';
-    advisorBtn.style.textAlign = 'center';
-    advisorBtn.innerHTML = '<i class="fas fa-robot"></i> Conseiller IA';
-    
-    const lockOverlay = document.createElement('div');
-    lockOverlay.id = 'advisorLockOverlay';
-    lockOverlay.className = 'lock-overlay';
-    lockOverlay.style.display = 'none';
-    lockOverlay.style.position = 'absolute';
-    lockOverlay.style.top = '0';
-    lockOverlay.style.left = '0';
-    lockOverlay.style.right = '0';
-    lockOverlay.style.bottom = '0';
-    lockOverlay.style.background = 'rgba(0, 0, 0, 0.85)';
-    lockOverlay.style.borderRadius = '8px';
-    lockOverlay.style.zIndex = '1000';
-    lockOverlay.style.flexDirection = 'column';
-    lockOverlay.style.alignItems = 'center';
-    lockOverlay.style.justifyContent = 'center';
-    lockOverlay.style.color = 'white';
-    lockOverlay.style.padding = '1rem';
-    lockOverlay.innerHTML = `
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
-            <i class="fas fa-lock" style="color: #fbbf24; font-size: 1.5rem;"></i>
-            <i class="fas fa-lock" style="color: #fbbf24; font-size: 1.5rem;"></i>
-            <i class="fas fa-lock" style="color: #fbbf24; font-size: 1.5rem;"></i>
-        </div>
-        <div style="font-size: 0.875rem; font-weight: 600; text-align: center;">
-            Réservé au plan Conseiller IA
-        </div>
-        <div style="font-size: 0.75rem; opacity: 0.9; text-align: center; margin-top: 0.25rem;">
-            Souscrivez pour accéder
-        </div>
-    `;
-    
-    advisorWrapper.appendChild(advisorBtn);
-    advisorWrapper.appendChild(lockOverlay);
-    container.appendChild(advisorWrapper);
-    
-    // Générer les autres boutons
+    // Générer les boutons
     const servicesOrder = ['swot', 'porter', 'pestel', 'competitive', 'reports', 'benchmark', 'modeling', 'due_diligence', 'valuation', 'synergy', 'ideal_sector', 'maturity_score', 'integration_matrix', 'valuation_simulator'];
     
     servicesOrder.forEach(serviceId => {
