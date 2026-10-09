@@ -2,16 +2,30 @@
   "site": {
     "name": "DPAI Strategy",
     "url": "https://dpai-strategy.com",
-    "defaultTitle": "DPAI Strategy | Analyse Stratégique Gratuite - 500 Tokens Offerts (125€)",
-    "defaultDescription": "DPAI Strategy : Plateforme N°1 d'analyse stratégique pour la croissance externe. 500 tokens GRATUITS (valeur 125€) pour démarrer. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle.",
-    "defaultKeywords": "analyse stratégique, croissance externe, fusion acquisition, SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, conseil stratégie, tokens gratuits, M&A, due diligence",
+    "defaultTitle": "DPAI Strategy | Analyse Stratégique Gratuite - 500 Tokens Offerts (125€) | N°1 Croissance Externe M&A",
+    "defaultDescription": "DPAI Strategy : Plateforme N°1 d'analyse stratégique pour la croissance externe, fusion acquisition et M&A. 500 tokens GRATUITS (valeur 125€) pour démarrer. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence. Tous services Phases 1 & 2 accessibles immédiatement sans carte bancaire.",
+    "defaultKeywords": "analyse stratégique, croissance externe, fusion acquisition, SWOT analyse, Porter 5 Forces, PESTEL analyse, analyse concurrentielle, conseil stratégie entreprise, tokens gratuits 500, M&A conseil, due diligence acquisition, benchmark stratégique, valorisation entreprise, stratégie croissance, analyse marché, intelligence stratégique, analyse secteur, Audit entreprise, diagnostic stratégique, évaluation entreprise, conseil en fusion, acquisition stratégique, développement entreprise, expansion marché, stratégie d'entreprise, conseil en stratégie",
+    "defaultNewsKeywords": "analyse stratégique, croissance externe, fusion acquisition, SWOT, Porter 5 Forces, PESTEL, M&A, due diligence, conseil stratégie, tokens gratuits",
     "author": "DPAI Strategy",
+    "designer": "DPAI Strategy",
+    "publisher": "DPAI Strategy",
+    "copyright": "DPAI Strategy 2026",
     "language": "fr",
     "locale": "fr_FR",
     "currency": "EUR",
     "pricePerToken": 0.25,
     "freeTokens": 500,
-    "freeTokensValue": 125
+    "freeTokensValue": 125,
+    "tokenPackPrices": {
+      "100": 25,
+      "500": 112.50,
+      "1000": 212.50
+    },
+    "premiumPrice": 499,
+    "category": "Business Services, Strategic Consulting, Market Analysis, M&A Advisory",
+    "classification": "Business, Strategy, Consulting, Financial Services, Market Analysis",
+    "coverage": "France, Europe, International",
+    "targetAudience": "Entreprises, PME, Startups, Investisseurs, Conseillers en stratégie, Directeurs généraux, Responsables développement"
   },
   "social": {
     "twitterHandle": "@DPAIStrategy",
@@ -49,10 +63,59 @@
     },
     "login": {
       "title": "Connexion | DPAI Strategy - Accédez à vos 500 Tokens Gratuits (125€)",
-      "description": "Connectez-vous à votre compte DPAI pour accéder à vos analyses stratégiques et gérer vos 500 tokens gratuits (valeur 125€).",
+      "description": "Connectez-vous à votre compte DPAI pour accéder à vos analyses stratégiques et gérer vos 500 tokens gratuits (valeur 125€). Accès instantané à SWOT, Porter 5 Forces, PESTEL.",
+      "keywords": "connexion DPAI, login analyse stratégique, accéder tokens gratuits, compte DPAI, tableau de bord",
       "priority": 0.8,
-      "changefreq": "weekly",
+      "changefreq": "daily",
       "ogImage": "/images/login-og.jpg"
+    },
+    "register": {
+      "title": "Inscription GRATUITE | DPAI Strategy - 500 Tokens Offerts (125€) - Démarrez Immédiatement",
+      "description": "Inscription gratuite en 30 secondes ! Recevez 500 tokens d'une valeur de 125€ pour accéder immédiatement à tous les services Phases 1 & 2. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle. Sans carte bancaire.",
+      "keywords": "inscription gratuite, créer compte DPAI, 500 tokens gratuits, démarrage immédiat, analyse stratégique inscription, SWOT gratuit, Porter 5 Forces gratuit, PESTEL gratuit",
+      "priority": 0.95,
+      "changefreq": "daily",
+      "ogImage": "/images/register-og.jpg"
+    },
+    "plus-de-tokens": {
+      "title": "Acheter Plus de Tokens | DPAI Strategy - Tokens à 0,25€ - Packs Avantageux",
+      "description": "Achetez des tokens supplémentaires DPAI à 0,25€/unité. Packs avantageux : 100 tokens (25€), 500 tokens (112,50€ - 10% réduction), 1000 tokens (212,50€ - 15% réduction). Paiement sécurisé.",
+      "keywords": "acheter tokens, tokens supplémentaires, prix tokens, pack tokens, réduction tokens, paiement sécurisé, Stripe",
+      "priority": 0.85,
+      "changefreq": "weekly",
+      "ogImage": "/images/tokens-og.jpg"
+    },
+    "dashboard": {
+      "title": "Tableau de Bord | DPAI Strategy - Gérez vos 500 Tokens Gratuits",
+      "description": "Tableau de bord DPAI Strategy : gérez vos tokens, consultez vos analyses, suivez vos performances stratégiques. Accès à tous vos rapports et outils d'analyse.",
+      "keywords": "tableau de bord, gestion tokens, historiques analyses, rapports stratégiques, suivi performance",
+      "priority": 0.7,
+      "changefreq": "daily",
+      "ogImage": "/images/dashboard-og.jpg"
+    },
+    "analysis-form": {
+      "title": "Formulaire d'Analyse | DPAI Strategy - Lancez votre Analyse Stratégique",
+      "description": "Formulaire pour lancer vos analyses stratégiques avec DPAI. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle. Utilisez vos tokens pour obtenir des résultats instantanés.",
+      "keywords": "formulaire analyse, lancer analyse SWOT, Porter 5 Forces formulaire, PESTEL analyse, utilisation tokens",
+      "priority": 0.7,
+      "changefreq": "weekly",
+      "ogImage": "/images/analysis-form-og.jpg"
+    },
+    "analysis-results": {
+      "title": "Résultats d'Analyse | DPAI Strategy - Vos Rapports Stratégiques",
+      "description": "Consultez vos résultats d'analyse stratégique DPAI. Rapports détaillés avec recommandations actionnables pour la croissance externe, fusion acquisition et M&A.",
+      "keywords": "résultats analyse, rapports stratégiques, recommandations croissance, résultats SWOT, Porter 5 Forces résultats",
+      "priority": 0.6,
+      "changefreq": "weekly",
+      "ogImage": "/images/analysis-results-og.jpg"
+    },
+    "conseiller-dpai": {
+      "title": "Conseiller IA | DPAI Strategy - IA Proprietary pour la Stratégie (499€/mois)",
+      "description": "Conseiller IA DPAI : IA proprietary 100% DPAI entraînée sur notre expertise en croissance externe. Tokens illimités, chat illimité, recherches approfondies, support prioritaire 2h. Service premium à 499€/mois.",
+      "keywords": "Conseiller IA, IA stratégique, IA proprietary DPAI, tokens illimités, chat illimité, support prioritaire, abonnement premium, 499 euros",
+      "priority": 0.9,
+      "changefreq": "weekly",
+      "ogImage": "/images/conseiller-ia-og.jpg"
     }
   },
   "schemaTypes": {
@@ -69,15 +132,100 @@
       }
     },
     "Organization": {
-      "@type": "Organization",
+      "@type": ["Organization", "ProfessionalService"],
       "name": "DPAI Strategy",
+      "alternateName": ["DPAI", "DPAI Strategy Consulting"],
       "url": "https://dpai-strategy.com/",
       "logo": "/images/logo-dpai.png",
-      "description": "Conseil en croissance externe et analyse stratégique avancée pour les entreprises.",
+      "foundingDate": "2024",
+      "description": "DPAI Strategy est la plateforme N°1 de conseil en croissance externe et analyse stratégique avancée pour les entreprises en France et en Europe. Expertise en fusion acquisition, M&A, SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence.",
       "address": {
         "@type": "PostalAddress",
-        "addressCountry": "FR"
+        "addressCountry": "FR",
+        "addressLocality": "Paris",
+        "postalCode": "75000",
+        "streetAddress": "Siège Social"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "48.8566",
+        "longitude": "2.3522"
+      },
+      "telephone": "+33-1-XX-XX-XX-XX",
+      "email": "contact@dpai-strategy.com",
+      "hasMap": "https://www.google.com/maps?q=DPAI+Strategy+Paris",
+      "openingHours": "Mo,Tu,We,Th,Fr 09:00-18:00",
+      "sameAs": [
+        "https://www.linkedin.com/company/dpai-strategy",
+        "https://twitter.com/DPAIStrategy",
+        "https://www.facebook.com/DPAIStrategy",
+        "https://www.instagram.com/DPAIStrategy"
+      ],
+      "areaServed": [
+        {"@type": "Country", "name": "France"},
+        {"@type": "Country", "name": "Belgium"},
+        {"@type": "Country", "name": "Switzerland"},
+        {"@type": "Country", "name": "Luxembourg"},
+        {"@type": "Country", "name": "Canada"}
+      ]
+    },
+    "LocalBusiness": {
+      "@type": "LocalBusiness",
+      "name": "DPAI Strategy",
+      "description": "Conseil en croissance externe et analyse stratégique avancée pour les entreprises",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "FR",
+        "addressLocality": "Paris",
+        "postalCode": "75000"
+      },
+      "telephone": "+33-1-XX-XX-XX-XX",
+      "email": "contact@dpai-strategy.com",
+      "priceRange": "0€ - 499€/mois",
+      "openingHours": "Mo,Tu,We,Th,Fr 09:00-18:00",
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "48.8566",
+        "longitude": "2.3522"
       }
+    },
+    "FAQPage": {
+      "@type": "FAQPage",
+      "name": "Questions Fréquentes DPAI Strategy",
+      "description": "Réponses aux questions les plus fréquentes sur DPAI Strategy, nos services et notre tarification",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Qu'est-ce que DPAI Strategy?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "DPAI Strategy est la plateforme N°1 d'analyse stratégique pour la croissance externe, fusion acquisition et M&A. Nous combinons IA proprietary et expertise humaine pour offrir des analyses précises et actionnables."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Combien coûtent les services DPAI?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tous les services Phases 1 & 2 sont GRATUITS avec 500 tokens offerts (valeur 125€). Aucun frais, aucune carte bancaire requise. Vous ne payez que pour les tokens supplémentaires ou le Conseiller IA premium."
+          }
+        }
+      ]
+    }
+  },
+  "metadata": {
+    "verification": {
+      "google": "Fb-66EKY6wiPTYsQHWW2keoJGM6RvcpGg05NuomxG4Q",
+      "bing": "BING_VERIFICATION_CODE",
+      "yandex": "YANDEX_VERIFICATION_CODE",
+      "pinterest": "PINTEREST_VERIFICATION_CODE"
+    },
+    "social": {
+      "facebookAppId": "1234567890",
+      "twitterHandle": "@DPAIStrategy",
+      "linkedInUrl": "https://www.linkedin.com/company/dpai-strategy",
+      "facebookUrl": "https://www.facebook.com/DPAIStrategy",
+      "instagramUrl": "https://www.instagram.com/DPAIStrategy"
     }
   }
 }

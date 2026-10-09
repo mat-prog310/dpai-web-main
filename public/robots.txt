@@ -26,9 +26,23 @@ Allow: /pricing.html
 Allow: /register.html
 Allow: /login.html
 Allow: /plus-de-tokens.html
+Allow: /conseiller-dpai.html
+Allow: /analysis-form.html
 Allow: /terms.html
 Allow: /privacy.html
 Allow: /cookies.html
+
+# Autoriser explicitement le blog pour le SEO
+Allow: /blog/
+Allow: /blog/index.html
+Allow: /blog/10-erreurs-croissance-externe.html
+Allow: /blog/analyse-swot-ma.html
+Allow: /blog/porter-5-forces-guide.html
+Allow: /blog/due-diligence-checklist.html
+Allow: /blog/tokenisation-analyse.html
+Allow: /blog/category-strategie.html
+Allow: /blog/category-ma.html
+Allow: /blog/category-analysis.html
 
 # Crawl-delay pour éviter de surcharger le serveur
 Crawl-delay: 2

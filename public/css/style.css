@@ -1487,3 +1487,18 @@ section {
     background: var(--success-bg);
     color: var(--success);
 }
+
+
+/* Style pour le lien Blog discret dans le footer */
+.blog-link {
+    color: var(--gray-500) !important;
+    font-size: 0.875rem !important;
+    opacity: 0.8;
+    transition: all 0.3s ease;
+}
+
+.blog-link:hover {
+    color: var(--primary) !important;
+    opacity: 1;
+}
+
