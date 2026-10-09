@@ -693,6 +693,7 @@ exports.setUserPlan = functions.https.onRequest(async (req, res) => {
 
             // Mettre à jour le plan et les tokens
             const updates = {
+                plan: plan,
                 'subscription.plan': plan,
                 'subscription.advisorAccess': plan === 'advisor',
                 'subscription.lastPlanChange': admin.firestore.FieldValue.serverTimestamp()
@@ -791,6 +792,7 @@ exports.activateSubscription = functions.https.onRequest(async (req, res) => {
 
             // Mettre à jour dans Firestore
             const updates = {
+                plan: plan,
                 tokenState: tokenStateUpdates,
                 'subscription.plan': plan,
                 'subscription.status': 'active',

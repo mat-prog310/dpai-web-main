@@ -111,6 +111,8 @@ async function fixTokenState(userId, email) {
         // Mettre à jour dans Firestore
         console.log(`\n🔧 Mise à jour du tokenState...`);
         await db.collection('users').doc(userId).update({
+            plan: plan,
+            'subscription.plan': plan,
             tokenState: correctedTokenState,
             availableTokens: availableTokens,
             tokensUsed: usedTokens,

@@ -46,6 +46,7 @@ async function fixUserAdvisorAccess(userId) {
       hasAccessToPremiumSuggestions: true,
       plan: 'advisor',
       isPremium: true
+      'subscription.plan': 'advisor',
     };
     
     // Si tokenState existe, le mettre à jour aussi
