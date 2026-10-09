@@ -1038,6 +1038,8 @@
             const { user, userData } = event.detail;
             if (user && userData) {
                 loadDashboardData();
+                // Appeler checkAdvisorAccess après chargement du dashboard
+                setTimeout(checkAdvisorAccess, 1000);
                 // Stocker les données utilisateur pour le script de vérification
                 window.currentUserData = userData;
                 
