@@ -369,7 +369,7 @@ class TokenManager {
     this.tokenState.hasAccessToPremiumSuggestions = updates.hasAccessToPremiumSuggestions;
     
     // Mettre à jour dans Firestore si les flags diffèrent
-    const firestoreDB = getDB();
+    let firestoreDB = getDB();
     if (firestoreDB && userData.id) {
       const needsUpdate = 
         userData.hasAccessToAPI !== updates.hasAccessToAPI ||
@@ -393,7 +393,6 @@ class TokenManager {
     }
     
     // Sauvegarder dans Firestore pour corriger les anciens utilisateurs
-    const firestoreDB = getDB();
     if (userData.id && firestoreDB) {
       firestoreDB.collection('users').doc(userData.id).update({
         tokenState: this.tokenState,
