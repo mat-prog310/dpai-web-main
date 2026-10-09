@@ -269,12 +269,26 @@ class TokenManager {
   static init(userData) {
     this.userData = userData;
     
-    const expectedBaseTokens = TokenConfig.baseTokenLimits.free; // 500
+    // Déterminer le plan avec priorité : tokenState.plan > subscription.plan > userData.plan > 'free'
+    // CORRECTION: Ne jamais forcer 'free' si advisor est déjà défini
+    let plan = userData.tokenState?.plan || 
+               userData.subscription?.plan || 
+               userData.plan || 
+               'free';
+    
+    // Si l'utilisateur a isPremium=true mais plan='free', vérifier si c'est un advisor
+    if (userData.isPremium && plan === 'free' && 
+        (userData.tokenState?.availableTokens === -1 || userData.totalTokens === -1)) {
+      plan = 'advisor';
+      console.log('[TokenManager] Correction: utilisateur premium avec tokens illimités -> plan advisor');
+    }
+    
+    const expectedBaseTokens = TokenConfig.baseTokenLimits[plan] || TokenConfig.baseTokenLimits.free;
     
     // TOUJOURS créer un tokenState valide
     let usedTokens = 0;
-    let availableTokens = 500;
-    let totalTokens = 500;
+    let availableTokens = expectedBaseTokens === -1 ? -1 : expectedBaseTokens;
+    let totalTokens = expectedBaseTokens;
     let firstAnalysisDone = false;
     let monthlyTokensUsed = 0;
     let lastTokenUpdate = new Date().toISOString();
@@ -286,23 +300,23 @@ class TokenManager {
     if (userData.tokenState) {
       usedTokens = userData.tokenState.usedTokens || 0;
       availableTokens = userData.tokenState.availableTokens || 0;
-      totalTokens = userData.tokenState.totalTokens || 500;
+      totalTokens = userData.tokenState.totalTokens || expectedBaseTokens;
       firstAnalysisDone = userData.tokenState.firstAnalysisDone || false;
       monthlyTokensUsed = userData.tokenState.monthlyTokensUsed || 0;
       lastTokenUpdate = userData.tokenState.lastTokenUpdate || new Date().toISOString();
       lastMonthlyReset = userData.tokenState.lastMonthlyReset || new Date().toISOString();
       expiresAt = userData.tokenState.expiresAt || null;
       subscriptionExpiresAt = userData.subscription?.expiresAt || userData.subscription?.endDate || null;
-      console.log('[TokenManager] tokenState chargé depuis userData');
+      console.log('[TokenManager] tokenState chargé depuis userData, plan:', plan);
     }
     // Priorité 2: Récupérer depuis les champs racine
     else if (userData.availableTokens !== undefined) {
       usedTokens = userData.tokensUsed || 0;
       availableTokens = userData.availableTokens || 0;
-      totalTokens = userData.totalTokens || 500;
+      totalTokens = userData.totalTokens || expectedBaseTokens;
       firstAnalysisDone = (userData.totalAnalyses || 0) > 0;
       subscriptionExpiresAt = userData.subscription?.expiresAt || userData.subscription?.endDate || null;
-      console.log('[TokenManager] tokenState calculé depuis champs racine');
+      console.log('[TokenManager] tokenState calculé depuis champs racine, plan:', plan);
     }
     
     // Corriger les incohérences: availableTokens = totalTokens - usedTokens
@@ -341,7 +355,7 @@ class TokenManager {
     // Créer le tokenState
     this.tokenState = {
       userId: userData.id,
-      plan: userData.subscription?.plan || 'free',
+      plan: plan,  // Utiliser le plan déterminé plus haut
       baseTokens: expectedBaseTokens,
       bonusTokens: 0,
       totalTokens: totalTokens,
@@ -351,16 +365,16 @@ class TokenManager {
       firstAnalysisDone: firstAnalysisDone,
       monthlyTokensUsed: monthlyTokensUsed,
       lastMonthlyReset: lastMonthlyReset,
-      expiresAt: expiresAt || this.calculateExpiryDate(userData.subscription?.plan),
+      expiresAt: expiresAt || this.calculateExpiryDate(plan),
       isExpired: isExpired
     };
     
     // Synchroniser les flags d'accès avec le plan
-    const plan = this.tokenState.plan;
+    const currentPlan = this.tokenState.plan;
     const updates = {
-      hasAccessToAPI: plan === 'advisor' || plan === 'api_monthly',
-      hasAccessToAdvancedAnalytics: plan === 'advisor',
-      hasAccessToPremiumSuggestions: plan === 'advisor'
+      hasAccessToAPI: currentPlan === 'advisor' || currentPlan === 'api_monthly',
+      hasAccessToAdvancedAnalytics: currentPlan === 'advisor',
+      hasAccessToPremiumSuggestions: currentPlan === 'advisor'
     };
     
     // Mettre à jour localement
@@ -375,31 +389,38 @@ class TokenManager {
         userData.hasAccessToAPI !== updates.hasAccessToAPI ||
         userData.hasAccessToAdvancedAnalytics !== updates.hasAccessToAdvancedAnalytics ||
         userData.hasAccessToPremiumSuggestions !== updates.hasAccessToPremiumSuggestions ||
-        userData.plan !== plan ||
+        userData.plan !== currentPlan ||
         !userData.tokenState ||
-        userData.tokenState.plan !== plan;
+        userData.tokenState.plan !== currentPlan;
       
       if (needsUpdate) {
-        firestoreDB.collection('users').doc(userData.id).update({
+        // CORRECTION: Toujours inclure subscription.plan dans la mise à jour pour éviter la réinitialisation
+        const updateData = {
           hasAccessToAPI: updates.hasAccessToAPI,
           hasAccessToAdvancedAnalytics: updates.hasAccessToAdvancedAnalytics,
           hasAccessToPremiumSuggestions: updates.hasAccessToPremiumSuggestions,
-          plan: plan,
+          plan: currentPlan,
+          'subscription.plan': currentPlan,
           tokenState: this.tokenState
-        }).catch(err => {
+        };
+        firestoreDB.collection('users').doc(userData.id).update(updateData).catch(err => {
           console.warn('[TokenManager] Impossible de synchroniser les flags:', err);
         });
       }
     }
     
     // Sauvegarder dans Firestore pour corriger les anciens utilisateurs
+    // CORRECTION: Toujours inclure plan et subscription.plan pour éviter la réinitialisation
     if (userData.id && firestoreDB) {
-      firestoreDB.collection('users').doc(userData.id).update({
+      const correctionData = {
         tokenState: this.tokenState,
+        plan: currentPlan,
+        'subscription.plan': currentPlan,
         availableTokens: this.tokenState.availableTokens,
         tokensUsed: this.tokenState.usedTokens,
         totalTokens: this.tokenState.totalTokens
-      }).catch(err => {
+      };
+      firestoreDB.collection('users').doc(userData.id).update(correctionData).catch(err => {
         console.warn('[TokenManager] Impossible de corriger tokenState:', err);
       });
     }
@@ -509,12 +530,15 @@ class TokenManager {
     // Si tokens illimités (advisor), on ne déduit pas, on met juste à jour le timestamp
     if (this.isTokensUnlimited()) {
       const newState = { ...this.tokenState };
+      const currentPlan = newState.plan;
       newState.lastTokenUpdate = new Date().toISOString();
       
       const firestoreDB = getDB();
       if (firestoreDB && this.userData && this.userData.id) {
         await firestoreDB.collection('users').doc(this.userData.id).update({
           tokenState: newState,
+          plan: currentPlan,
+          'subscription.plan': currentPlan,
           lastAnalysisAt: firestoreDB.FieldValue.serverTimestamp()
         });
       }
@@ -523,6 +547,7 @@ class TokenManager {
     }
 
     const newState = { ...this.tokenState };
+    const currentPlan = newState.plan;
     newState.usedTokens += amount;
     newState.availableTokens -= amount;
     newState.monthlyTokensUsed += amount;
@@ -540,6 +565,8 @@ class TokenManager {
     // Sauvegarder dans Firestore (tokenState + champs racine pour compatibilité)
     const updateData = {
       tokenState: newState,
+      plan: currentPlan,
+      'subscription.plan': currentPlan,
       loyaltyInfo: this.loyaltyInfo,
       availableTokens: newState.availableTokens,
       tokensUsed: newState.usedTokens,
@@ -558,6 +585,7 @@ class TokenManager {
 
   static async addTokens(amount, reason = 'achat') {
     const newState = { ...this.tokenState };
+    const currentPlan = newState.plan;
     newState.availableTokens += amount;
     newState.totalTokens += amount;
     
@@ -566,6 +594,8 @@ class TokenManager {
     if (firestoreDB && this.userData && this.userData.id) {
       await firestoreDB.collection('users').doc(this.userData.id).update({
         tokenState: newState,
+        plan: currentPlan,
+        'subscription.plan': currentPlan,
         availableTokens: newState.availableTokens,
         totalTokens: newState.totalTokens
       });
@@ -577,11 +607,17 @@ class TokenManager {
   }
 
   static async resetMonthlyTokens() {
-    const totalTokens = TokenConfig.baseTokenLimits.free; // 500 tokens
+    // CORRECTION: Utiliser le plan actuel pour déterminer les tokens
+    const currentPlan = this.tokenState?.plan || 'free';
+    const baseTokens = TokenConfig.baseTokenLimits[currentPlan] || TokenConfig.baseTokenLimits.free;
+    const totalTokens = baseTokens === -1 ? -1 : baseTokens; // Conserver l'illimité pour advisor
     
     const newState = {
       ...this.tokenState,
-      availableTokens: totalTokens,
+      plan: currentPlan, // Conserver le plan actuel (advisor, api_monthly, ou free)
+      baseTokens: baseTokens,
+      totalTokens: totalTokens,
+      availableTokens: totalTokens, // Réinitialiser aux tokens de base du plan
       usedTokens: 0,
       monthlyTokensUsed: 0,
       lastMonthlyReset: new Date().toISOString(),
@@ -596,6 +632,8 @@ class TokenManager {
       await firestoreDB.collection('users').doc(this.userData.id).update({
         tokenState: newState,
         loyaltyInfo: this.loyaltyInfo,
+        plan: currentPlan,
+        'subscription.plan': currentPlan,
         availableTokens: newState.availableTokens,
         tokensUsed: newState.usedTokens,
         totalTokens: newState.totalTokens
@@ -618,6 +656,7 @@ class TokenManager {
       await firestoreDB.collection('users').doc(this.userData.id).update({
         tokenState: newState,
         plan: newPlan,
+        'subscription.plan': newPlan,
         availableTokens: newState.availableTokens,
         tokensUsed: newState.usedTokens,
         totalTokens: newState.totalTokens
@@ -634,6 +673,7 @@ class TokenManager {
     }
 
     const newState = { ...this.tokenState };
+    const currentPlan = newState.plan;
     newState.availableTokens += TokenConfig.referralBonusSponsor;
     newState.totalTokens += TokenConfig.referralBonusSponsor;
     
@@ -641,6 +681,8 @@ class TokenManager {
     if (firestoreDB && this.userData && this.userData.id) {
       await firestoreDB.collection('users').doc(this.userData.id).update({
         tokenState: newState,
+        plan: currentPlan,
+        'subscription.plan': currentPlan,
         'referralInfo.status': 'rewarded',
         'referralInfo.rewardedAt': new Date().toISOString(),
         availableTokens: newState.availableTokens,
@@ -836,10 +878,16 @@ Analyse ${type} pour ${data.name || 'cette entreprise'} dans le secteur ${data.s
     }
 
     // Mettre à jour dans Firestore
+    // CORRECTION: Toujours inclure plan et subscription.plan pour éviter réinitialisation
     const updates = {
       tokenState: newState,
+      plan: plan,
+      'subscription.plan': plan,
       'subscription.expiresAt': newExpiryDate,
       'subscription.lastRenewalDate': new Date().toISOString(),
+      availableTokens: newState.availableTokens,
+      tokensUsed: newState.usedTokens,
+      totalTokens: newState.totalTokens,
       lastAnalysisAt: firestoreDB.FieldValue.serverTimestamp()
     };
 
@@ -848,6 +896,7 @@ Analyse ${type} pour ${data.name || 'cette entreprise'} dans le secteur ${data.s
     this.tokenState = newState;
     this.userData.subscription = {
       ...this.userData.subscription,
+      plan: plan,
       expiresAt: newExpiryDate.toISOString(),
       lastRenewalDate: new Date().toISOString()
     };
@@ -893,6 +942,7 @@ Analyse ${type} pour ${data.name || 'cette entreprise'} dans le secteur ${data.s
 
     const updates = {
       tokenState: tokenStateUpdates,
+      plan: plan,  // CORRECTION: Mettre à jour le champ racine plan
       'subscription.plan': plan,
       'subscription.status': 'active',
       'subscription.expiresAt': expiryDate,
