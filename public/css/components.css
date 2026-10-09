@@ -6743,3 +6743,15 @@
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     color: var(--white);
 }
+
+/* Conseiller IA Button */
+.btn-advisor {
+    background: linear-gradient(135deg, #9b59b6 0%, #667eea 100%);
+    color: white;
+    border: none;
+    transition: all 0.3s ease;
+}
+.btn-advisor:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px rgba(155, 89, 182, 0.4);
+}
