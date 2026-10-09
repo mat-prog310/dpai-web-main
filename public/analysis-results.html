@@ -1,42 +1,34 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Balises SEO - Noindex car page privée -->
-    <title>Résultats d'Analyse | DPAI Strategy - Vos Rapports Stratégiques</title>
-    <meta name="description" content="Consultez les résultats détaillés de vos analyses stratégiques DPAI. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle avec recommandations actionnables.">
-    <meta name="keywords" content="résultats analyse, rapports stratégiques, SWOT résultats, Porter analysis, PESTEL results, analyse concurrentielle résultats, DPAI rapports">
+
+    <!-- SEO -->
+    <title>Résultats d'Analyse | DPAI Strategy</title>
+    <meta name="description" content="Consultez les résultats détaillés de vos analyses stratégiques DPAI.">
     <meta name="robots" content="noindex, nofollow">
     <meta name="author" content="DPAI Strategy">
-    
-    <!-- Favicon -->
+
     <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    
-    <!-- Open Graph - Noindex -->
-    <meta property="og:title" content="Résultats d'Analyse DPAI - Rapports Stratégiques" />
-    <meta property="og:description" content="Résultats détaillés de vos analyses stratégiques" />
-    <meta property="og:robots" content="noindex" />
-    
-    <!-- Firebase -->
-    
+
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    
+
     <!-- Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <!-- Styles -->
+
+    <!-- Styles globaux -->
     <link rel="stylesheet" href="/css/style.css">
     <link rel="stylesheet" href="/css/components.css">
     <link rel="stylesheet" href="/css/responsive.css">
+
     <style>
-        body {
-            background-color: var(--bg-color);
-        }
+        /* ====== Page ====== */
+        body { background-color: var(--bg-color); }
+
         .results-header {
             background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
             color: white;
@@ -55,12 +47,19 @@
         .results-header .breadcrumb {
             opacity: 0.9;
             font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
         }
+        .results-header .breadcrumb a { color: rgba(255,255,255,0.85); text-decoration: none; }
+        .results-header .breadcrumb a:hover { color: white; }
+
         .results-container {
             max-width: 1200px;
             margin: 0 auto;
             padding: 0 var(--spacing-md) var(--spacing-xl);
         }
+
         .results-card {
             background: white;
             border-radius: var(--border-radius-lg);
@@ -68,191 +67,295 @@
             padding: var(--spacing-lg);
             margin-bottom: var(--spacing-lg);
         }
+
+        /* ====== Actions ====== */
+        .results-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--spacing-sm);
+            margin-bottom: var(--spacing-lg);
+        }
+        .back-button, .print-button, .share-button, .rerun-button {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border: none;
+            border-radius: var(--border-radius-sm);
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+            color: white;
+        }
+        .back-button { background: var(--primary-color); }
+        .back-button:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .print-button { background: var(--success-color); }
+        .print-button:hover { background: var(--success-dark); }
+        .share-button { background: var(--warning-color); }
+        .share-button:hover { filter: brightness(0.95); }
+        .rerun-button { background: var(--bg-dark); }
+        .rerun-button:hover { filter: brightness(1.1); }
+
+        /* ====== Infos analyse ====== */
         .analysis-info {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
             gap: var(--spacing-md);
             margin-bottom: var(--spacing-lg);
             padding: var(--spacing-md);
             background: var(--bg-light);
             border-radius: var(--border-radius-md);
         }
-        .analysis-info p {
-            margin: 0;
-            font-size: 0.95rem;
+        .analysis-info p { margin: 0; font-size: 0.95rem; color: var(--text-dark); }
+        .analysis-info strong { color: var(--primary-color); display: block; font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px; }
+        .analysis-info .full { grid-column: 1 / -1; }
+
+        /* ====== Score badge ====== */
+        .score-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-weight: 600;
+            font-size: 0.85rem;
         }
-        .analysis-info strong {
-            color: var(--primary-color);
+        .score-badge.low    { background: rgba(215,58,73,0.12);  color: var(--danger-color); }
+        .score-badge.medium { background: rgba(255,193,7,0.15);  color: #b8860b; }
+        .score-badge.high   { background: rgba(46,125,50,0.12);  color: var(--success-color); }
+
+        /* ====== Bloc résultat ====== */
+        .result-title {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-dark);
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-sm);
+            border-bottom: 2px solid var(--bg-light);
         }
-        .mt-2 {
-            margin-top: var(--spacing-md);
-        }
-        .analysis-results-container {
-            max-width: 100%;
-        }
-        .analysis-results-details {
+        .result-title i { color: var(--primary-color); }
+
+        .result-section {
             margin-top: var(--spacing-lg);
         }
+        .result-section h5 {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: var(--spacing-sm);
+        }
+
+        /* ====== Encadré résumé / insights / recos ====== */
+        .info-block {
+            margin-top: var(--spacing-lg);
+            padding: var(--spacing-md);
+            border-left: 4px solid var(--primary-color);
+            background: rgba(13, 110, 253, 0.06);
+            border-radius: var(--border-radius-sm);
+        }
+        .info-block.warning { border-left-color: var(--warning-color); background: rgba(255,193,7,0.08); }
+        .info-block.success { border-left-color: var(--success-color); background: rgba(46,125,50,0.06); }
+        .info-block.danger  { border-left-color: var(--danger-color);  background: rgba(215,58,73,0.06); }
+        .info-block h5 { margin-bottom: var(--spacing-sm); color: inherit; }
+        .info-block p, .info-block li { color: var(--text-dark); line-height: 1.6; }
+        .info-block ul { margin: 0; padding-left: var(--spacing-md); }
+        .info-block li { margin-bottom: var(--spacing-xs); }
+
+        /* ====== SWOT ====== */
         .swot-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
             gap: var(--spacing-md);
-            margin: var(--spacing-md) 0;
+            margin-top: var(--spacing-md);
         }
         .swot-quadrant {
             padding: var(--spacing-md);
             border-radius: var(--border-radius-md);
             border: 2px solid var(--border-color);
+            background: white;
         }
-        .swot-quadrant.positive {
-            background: rgba(46, 125, 50, 0.05);
-            border-color: var(--success-color);
-        }
-        .swot-quadrant.negative {
-            background: rgba(215, 58, 73, 0.05);
-            border-color: var(--danger-color);
-        }
-        .swot-quadrant.internal {
-            border-left: 4px solid var(--primary-color);
-        }
-        .swot-quadrant.external {
-            border-right: 4px solid var(--primary-color);
-        }
-        .swot-quadrant h5 {
-            margin-bottom: var(--spacing-sm);
-            color: var(--text-dark);
-        }
-        .swot-quadrant.positive h5 {
-            color: var(--success-color);
-        }
-        .swot-quadrant.negative h5 {
-            color: var(--danger-color);
-        }
-        .swot-quadrant ul {
-            margin: 0;
-            padding-left: var(--spacing-md);
-        }
-        .swot-quadrant li {
-            margin-bottom: var(--spacing-xs);
-        }
-        .porter-results, .pestel-results, .competitive-results {
-            margin: var(--spacing-md) 0;
-        }
-        .porter-force, .pestel-factor {
-            padding: var(--spacing-sm) var(--spacing-md);
-            margin-bottom: var(--spacing-xs);
-            background: var(--bg-light);
-            border-radius: var(--border-radius-sm);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .porter-force:nth-child(even), .pestel-factor:nth-child(even) {
-            background: rgba(13, 110, 253, 0.05);
-        }
-        .force-name, .factor-name {
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-        .force-value, .factor-value {
-            color: var(--primary-color);
-            font-weight: 500;
-        }
-        .analysis-recommendations {
-            margin-top: var(--spacing-lg);
-            padding: var(--spacing-md);
-            background: rgba(255, 193, 7, 0.1);
-            border-left: 4px solid var(--warning-color);
-            border-radius: var(--border-radius-sm);
-        }
-        .analysis-recommendations h5 {
-            color: var(--warning-color);
-            margin-bottom: var(--spacing-sm);
-        }
-        .analysis-recommendations ul {
-            margin: 0;
-            padding-left: var(--spacing-md);
-        }
-        .analysis-recommendations li {
-            margin-bottom: var(--spacing-xs);
-        }
-        .comparison-table {
+        .swot-quadrant.positive { background: rgba(46,125,50,0.05);  border-color: var(--success-color); }
+        .swot-quadrant.negative { background: rgba(215,58,73,0.05);  border-color: var(--danger-color); }
+        .swot-quadrant h5 { margin-bottom: var(--spacing-sm); color: var(--text-dark); font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.5px; }
+        .swot-quadrant.positive h5 { color: var(--success-color); }
+        .swot-quadrant.negative h5 { color: var(--danger-color); }
+        .swot-quadrant ul { margin: 0; padding-left: var(--spacing-md); }
+        .swot-quadrant li { margin-bottom: var(--spacing-xs); color: var(--text-dark); line-height: 1.5; }
+
+        /* ====== Tableaux ====== */
+        .data-table {
             width: 100%;
             border-collapse: collapse;
-            margin: var(--spacing-md) 0;
+            margin-top: var(--spacing-md);
+            font-size: 0.92rem;
+            overflow: hidden;
+            border-radius: var(--border-radius-sm);
         }
-        .comparison-table th,
-        .comparison-table td {
-            padding: var(--spacing-sm) var(--spacing-md);
+        .data-table th, .data-table td {
+            padding: 10px var(--spacing-md);
             text-align: left;
-            border: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            vertical-align: top;
         }
-        .comparison-table th {
+        .data-table th {
             background: var(--bg-light);
             font-weight: 600;
             color: var(--text-dark);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
         }
-        .comparison-table tr:nth-child(even) {
+        .data-table tr:last-child td { border-bottom: none; }
+        .data-table tr:hover td { background: rgba(13,110,253,0.03); }
+
+        /* ====== Barres de score ====== */
+        .score-bar {
+            position: relative;
+            height: 10px;
+            background: var(--bg-light);
+            border-radius: 999px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+        .score-bar > span {
+            display: block;
+            height: 100%;
+            border-radius: 999px;
+            background: var(--primary-color);
+            transition: width 0.6s ease;
+        }
+        .score-bar.green > span { background: var(--success-color); }
+        .score-bar.orange > span { background: var(--warning-color); }
+        .score-bar.red > span { background: var(--danger-color); }
+
+        /* ====== Checklist (due diligence) ====== */
+        .checklist-group { margin-top: var(--spacing-md); }
+        .checklist-group > h6 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-sm);
+        }
+        .checklist-item {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            margin-bottom: 6px;
+            background: var(--bg-light);
+            border-left: 3px solid var(--border-color);
+        }
+        .checklist-item.status-ok       { border-left-color: var(--success-color); background: rgba(46,125,50,0.05); }
+        .checklist-item.status-warning  { border-left-color: var(--warning-color); background: rgba(255,193,7,0.08); }
+        .checklist-item.status-critical { border-left-color: var(--danger-color);  background: rgba(215,58,73,0.06); }
+        .checklist-item.status-todo     { border-left-color: var(--border-color); }
+        .checklist-item .ci-icon { margin-top: 2px; }
+        .checklist-item .ci-label { font-weight: 600; color: var(--text-dark); }
+        .checklist-item .ci-comment { font-size: 0.88rem; color: var(--text-dark); opacity: 0.8; margin-top: 4px; }
+
+        /* ====== Matrice 2x2 ====== */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: var(--spacing-sm);
+            margin-top: var(--spacing-md);
+            aspect-ratio: 1.4;
+            min-height: 380px;
+        }
+        .matrix-cell {
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            border: 2px solid var(--border-color);
+            background: white;
+            overflow-y: auto;
+        }
+        .matrix-cell h6 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--primary-color);
+            margin-bottom: var(--spacing-sm);
+        }
+        .matrix-cell ul { margin: 0; padding-left: var(--spacing-md); }
+        .matrix-cell li { margin-bottom: 4px; font-size: 0.9rem; }
+
+        /* ====== Scénarios (modeling) ====== */
+        .scenario-card {
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            border: 2px solid var(--border-color);
+            margin-bottom: var(--spacing-md);
+            background: white;
+        }
+        .scenario-card.optimiste { border-color: var(--success-color); background: rgba(46,125,50,0.04); }
+        .scenario-card.base      { border-color: var(--primary-color); background: rgba(13,110,253,0.04); }
+        .scenario-card.pessimiste{ border-color: var(--danger-color); background: rgba(215,58,73,0.04); }
+        .scenario-card h6 { text-transform: capitalize; font-size: 1rem; margin-bottom: var(--spacing-sm); }
+
+        /* ====== Fourchette valorisation ====== */
+        .valuation-range {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-md);
+        }
+        .valuation-range .vr-item {
+            text-align: center;
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
             background: var(--bg-light);
         }
-        .results-raw {
-            background: var(--bg-dark);
-            color: var(--text-light);
+        .valuation-range .vr-item.mid { background: rgba(13,110,253,0.08); border: 2px solid var(--primary-color); }
+        .valuation-range .vr-item .label { font-size: 0.8rem; text-transform: uppercase; color: var(--text-dark); opacity: 0.7; letter-spacing: 0.5px; }
+        .valuation-range .vr-item .value { font-size: 1.4rem; font-weight: 700; color: var(--primary-color); margin-top: 6px; }
+
+        /* ====== Empty state ====== */
+        .empty-inline {
             padding: var(--spacing-md);
-            border-radius: var(--border-radius-sm);
-            overflow-x: auto;
-            font-family: monospace;
-            font-size: 0.85rem;
-            white-space: pre-wrap;
+            text-align: center;
+            background: var(--bg-light);
+            border-radius: var(--border-radius-md);
+            color: var(--text-dark);
+            opacity: 0.75;
+            font-style: italic;
         }
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-sm) var(--spacing-md);
-            background: var(--primary-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
         }
-        .back-button:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-        }
-        .print-button {
-            display: inline-flex;
-            align-items: center;
-            gap: var(--spacing-xs);
-            padding: var(--spacing-sm) var(--spacing-md);
-            background: var(--success-color);
-            color: white;
-            border: none;
-            border-radius: var(--border-radius-sm);
-            cursor: pointer;
-            text-decoration: none;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-            margin-left: var(--spacing-sm);
-        }
-        .print-button:hover {
-            background: var(--success-dark);
-        }
-        .results-actions {
-            margin-bottom: var(--spacing-lg);
-        }
+        .empty-state-icon { font-size: 3rem; color: var(--warning-color); margin-bottom: var(--spacing-md); }
+        .empty-state h2 { margin-bottom: var(--spacing-sm); }
+        .empty-state p { margin-bottom: var(--spacing-md); color: var(--text-dark); opacity: 0.8; }
+
+        /* ====== Responsive ====== */
         @media (max-width: 768px) {
-            .swot-grid {
-                grid-template-columns: 1fr;
-            }
-            .analysis-info {
-                grid-template-columns: 1fr;
-            }
+            .swot-grid, .matrix-grid { grid-template-columns: 1fr; }
+            .matrix-grid { aspect-ratio: auto; min-height: 0; grid-template-rows: auto; }
+            .analysis-info { grid-template-columns: 1fr; }
+            .valuation-range { grid-template-columns: 1fr; }
+            .results-header h1 { font-size: 1.4rem; }
+        }
+
+        /* ====== Impression ====== */
+        @media print {
+            .navbar, .footer, .results-actions { display: none !important; }
+            .results-header { background: white !important; color: black !important; }
+            .results-header .breadcrumb a { color: black !important; }
+            .results-card { box-shadow: none; page-break-inside: avoid; }
         }
     </style>
+
     <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
@@ -262,7 +365,7 @@
     <script src="/js/protocol-check.js"></script>
     <script src="/js/tokens.js"></script>
     <script src="/js/analysis-generator.js"></script>
-    </head>
+</head>
 <body>
     <!-- Navigation -->
     <nav class="navbar">
@@ -271,13 +374,12 @@
                 <i class="fas fa-chart-line"></i>
                 <span>DPAI</span>
             </a>
-            
+
             <ul class="nav-links" id="navLinks">
                 <li><a href="/#features" class="nav-link">Fonctionnalités</a></li>
                 <li><a href="services.html" class="nav-link">Services</a></li>
-                
             </ul>
-            
+
             <div class="nav-actions">
                 <a href="login.html" class="btn btn-ghost" id="loginBtn" style="display: none;">
                     <i class="fas fa-sign-in-alt"></i> Connexion
@@ -293,51 +395,49 @@
                     <div class="user-dropdown">
                         <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
                         <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
-                        
                         <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                     </div>
                 </div>
             </div>
-            
+
             <button class="mobile-toggle" id="mobileToggle">
                 <i class="fas fa-bars"></i>
             </button>
         </div>
     </nav>
 
-    <!-- Results Header -->
+    <!-- En-tête -->
     <header class="results-header">
         <div class="container">
             <div class="breadcrumb">
-                <a href="dashboard.html" style="color: rgba(255,255,255,0.8);">Tableau de bord</a>
-                <i class="fas fa-chevron-right" style="color: rgba(255,255,255,0.8);"></i>
+                <a href="dashboard.html">Tableau de bord</a>
+                <i class="fas fa-chevron-right"></i>
                 <span id="resultsBreadcrumb">Résultats d'analyse</span>
             </div>
             <h1 id="resultsTitle">Résultats d'analyse</h1>
         </div>
     </header>
 
-    <!-- Results Container -->
+    <!-- Contenu -->
     <div class="results-container">
         <div class="results-actions">
             <a href="dashboard.html" class="back-button">
                 <i class="fas fa-arrow-left"></i> Retour au tableau de bord
             </a>
-            <a href="dashboard.html#analysis-history" class="back-button" style="margin-left: var(--spacing-sm);">
-                <i class="fas fa-history"></i> Retour à l'historique
+            <a href="dashboard.html#analysis-history" class="back-button" style="background: var(--bg-dark);">
+                <i class="fas fa-history"></i> Historique
             </a>
+            <button class="share-button" onclick="shareAnalysis()">
+                <i class="fas fa-share-alt"></i> Partager
+            </button>
             <button class="print-button" onclick="window.print()">
-                <i class="fas fa-print"></i> Imprimer
+                <i class="fas fa-print"></i> Imprimer / PDF
             </button>
         </div>
-        
+
         <div class="results-card">
-            <div class="analysis-info" id="analysisInfo">
-                <!-- Les informations seront chargées dynamiquement -->
-            </div>
-            <div class="analysis-results-container" id="resultsContent">
-                <!-- Les résultats seront chargés dynamiquement -->
-            </div>
+            <div class="analysis-info" id="analysisInfo"></div>
+            <div class="analysis-results-container" id="resultsContent"></div>
         </div>
     </div>
 
@@ -352,26 +452,24 @@
                     </a>
                     <p>Conseil en croissance externe et analyse stratégique avancée.</p>
                 </div>
-                
+
                 <div class="footer-links">
                     <h4>Produit</h4>
                     <ul>
                         <li><a href="/#features">Fonctionnalités</a></li>
                         <li><a href="services.html">Services</a></li>
-                        
                     </ul>
                 </div>
-                
+
                 <div class="footer-links">
                     <h4>Compte</h4>
                     <ul>
                         <li><a href="dashboard.html">Tableau de bord</a></li>
                         <li><a href="profile.html">Profil</a></li>
-                        
                         <li><a href="plus-de-tokens.html">Plus de tokens</a></li>
                     </ul>
                 </div>
-                
+
                 <div class="footer-links">
                     <h4>Légal</h4>
                     <ul>
@@ -380,7 +478,7 @@
                     </ul>
                 </div>
             </div>
-            
+
             <div class="footer-bottom">
                 <p>&copy; 2026 DPAI. Tous droits réservés.</p>
             </div>
@@ -390,312 +488,1065 @@
     <!-- Scripts -->
     <script src="js/auth.js"></script>
     <script>
-        // Attendre que authService soit prêt et initialiser TokenManager
-        window.addEventListener('authStateChanged', function(event) {
+        /* =========================================================
+           Init TokenManager
+           ========================================================= */
+        window.addEventListener('authStateChanged', async function(event) {
             const { user, userData } = event.detail;
-            if (user && userData) {
-                // Initialiser TokenManager avec les données utilisateur
+            if (user && userData && window.TokenManager) {
                 TokenManager.init(userData);
+
+                // Recharger l'analyse si l'utilisateur se connecte
+                const raw = localStorage.getItem('dpai_analysis_results');
+                if (raw) {
+                    try {
+                        const data = JSON.parse(raw);
+                        await syncAnalysisResults();
+                    } catch (err) {
+                        console.error('[Firestore-Sync] Erreur sync après connexion:', err);
+                    }
+                }
             }
         });
-
-        // Initialiser TokenManager au chargement si authService est déjà prêt
         document.addEventListener('DOMContentLoaded', function() {
-            // Si authService est déjà prêt, essayer de charger TokenManager immédiatement
-            if (window.authService && window.authService.currentUserData) {
+            if (window.authService && window.authService.currentUserData && window.TokenManager) {
                 TokenManager.init(window.authService.currentUserData);
             }
         });
 
-        // Formater une date
+        /* =========================================================
+           Helpers
+           ========================================================= */
+        const ANALYSIS_NAMES = {
+            swot: 'Analyse SWOT',
+            porter: 'Porter 5 Forces',
+            pestel: 'Analyse PESTEL',
+            competitive: 'Analyse Concurrentielle',
+            maturity_score: 'Évaluation de Maturité',
+            reports: 'Rapports Détaillés',
+            ideal_sector: 'Secteur Idéal',
+            benchmark: 'Benchmarking',
+            modeling: 'Modélisation',
+            due_diligence: 'Due Diligence',
+            valuation: 'Valorisation',
+            synergy: 'Analyse des Synergies',
+            integration_matrix: 'Matrice d\'Intégration',
+            valuation_simulator: 'Simulateur de Valorisation'
+        };
+
+        const ANALYSIS_ICONS = {
+            swot: 'fa-th-large',
+            porter: 'fa-project-diagram',
+            pestel: 'fa-globe-americas',
+            competitive: 'fa-users',
+            maturity_score: 'fa-chart-line',
+            reports: 'fa-file-alt',
+            ideal_sector: 'fa-globe',
+            benchmark: 'fa-chart-bar',
+            modeling: 'fa-cubes',
+            due_diligence: 'fa-check-square',
+            valuation: 'fa-euro-sign',
+            synergy: 'fa-link',
+            integration_matrix: 'fa-th',
+            valuation_simulator: 'fa-calculator'
+        };
+
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
         function formatDate(dateString) {
-            if (!dateString) return 'Date inconnue';
-            const date = new Date(dateString);
-            return date.toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric'
-            });
+            if (!dateString) return '—';
+            const d = new Date(dateString);
+            if (isNaN(d.getTime())) return '—';
+            return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
         }
 
-        // Formater la monnaie
         function formatCurrency(amount) {
-            return new Intl.NumberFormat('fr-FR', {
-                style: 'currency',
-                currency: 'EUR'
-            }).format(amount);
+            if (amount === null || amount === undefined || isNaN(amount)) return '—';
+            return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(amount);
         }
 
-        // Charger les résultats depuis localStorage
-        document.addEventListener('DOMContentLoaded', function() {
-            const analysisData = localStorage.getItem('dpai_analysis_results');
-            
-            if (analysisData) {
-                try {
-                    const data = JSON.parse(analysisData);
-                    displayResults(data);
-                    // Nettoyer le localStorage après lecture
-                    // Ne pas nettoyer le localStorage si c'est une analyse historique (avec ID)
-                    // pour permettre de revenir en arrière dans le navigateur
-                    if (!data.id) {
-                        localStorage.removeItem('dpai_analysis_results');
-                    }
-                } catch (error) {
-                    console.error('Erreur lors du chargement des résultats:', error);
-                    document.getElementById('resultsContent').innerHTML = `
-                        <div class="empty-state">
-                            <div class="empty-state-icon">
-                                <i class="fas fa-exclamation-triangle"></i>
-                            </div>
-                            <h2>Erreur de chargement</h2>
-                            <p>Impossible de charger les résultats de l'analyse.</p>
-                            <a href="dashboard.html" class="btn btn-primary">
-                                <i class="fas fa-arrow-left"></i> Retour au tableau de bord
-                            </a>
-                        </div>
-                    `;
+        function formatNumber(n, digits) {
+            if (n === null || n === undefined || isNaN(n)) return '—';
+            return new Intl.NumberFormat('fr-FR', { maximumFractionDigits: digits ?? 1 }).format(n);
+        }
+
+        function scoreClass(score) {
+            const n = Number(score) || 0;
+            if (n < 34) return 'low';
+            if (n <= 66) return 'medium';
+            return 'high';
+        }
+
+        function scoreBarClass(score) {
+            const n = Number(score) || 0;
+            if (n < 34) return 'red';
+            if (n <= 66) return 'orange';
+            return 'green';
+        }
+
+        function scoreBadge(score, max) {
+            if (score === null || score === undefined || score === '') return '';
+            const n = Number(score) || 0;
+            const label = max ? `${n}/${max}` : `${n}/100`;
+            return `<span class="score-badge ${scoreClass(n)}"><i class="fas fa-circle" style="font-size:0.5rem;"></i> ${label}</span>`;
+        }
+
+        function scoreBar(score) {
+            const n = Math.max(0, Math.min(100, Number(score) || 0));
+            return `<div class="score-bar ${scoreBarClass(n)}"><span style="width:${n}%;"></span></div>`;
+        }
+
+        function emptyInline(message) {
+            return `<div class="empty-inline">${escapeHtml(message || 'Aucune donnée disponible pour cette section.')}</div>`;
+        }
+
+        function hasList(arr) {
+            return Array.isArray(arr) && arr.length > 0;
+        }
+
+        function renderListItems(arr) {
+            return arr.map(item => {
+                if (typeof item === 'string') return `<li>${escapeHtml(item)}</li>`;
+                if (item && typeof item === 'object') {
+                    const label = item.label || item.name || item.title || '';
+                    const detail = item.detail || item.comment || item.rationale || item.evidence || '';
+                    return `<li><strong>${escapeHtml(label)}</strong>${detail ? ' — ' + escapeHtml(detail) : ''}</li>`;
                 }
-            } else {
-                // Si pas de données, rediriger vers le dashboard
+                return '';
+            }).join('');
+        }
+
+        /* =========================================================
+           Synchronisation Firestore
+           ========================================================= */
+        // Variable globale pour stocker l'ID de l'analyse courante
+        window.currentAnalysisId = null;
+
+        /**
+         * Sauvegarde une analyse dans Firestore
+         * @param {Object} analysisData - Données de l'analyse
+         * @returns {Promise<string|null>} - ID de l'analyse ou null
+         */
+        async function saveAnalysisToFirestore(analysisData) {
+            try {
+                const user = window.firebaseAuth?.currentUser;
+                if (!user) {
+                    console.warn('[Firestore-Sync] Utilisateur non connecté, sauvegarde locale uniquement');
+                    return null;
+                }
+
+                const db = window.firebaseDB || window.db;
+                if (!db) {
+                    console.error('[Firestore-Sync] Firestore non initialisé');
+                    return null;
+                }
+
+                // Ajouter l'ID utilisateur si absent
+                const dataToSave = {
+                    ...analysisData,
+                    userId: user.uid,
+                    lastAccessed: firebase.firestore.FieldValue.serverTimestamp()
+                };
+
+                // Utiliser l'ID existant ou créer un nouveau document
+                const analysisRef = analysisData.id
+                    ? db.collection('users').doc(user.uid).collection('analyses').doc(analysisData.id)
+                    : db.collection('users').doc(user.uid).collection('analyses').doc();
+
+                await analysisRef.set(dataToSave, { merge: true });
+
+                const savedId = analysisRef.id;
+                console.log(`%c[Firestore-Sync] Analyse sauvegardée: ${savedId}`, 'color: #28a745; font-weight: bold;');
+
+                return savedId;
+            } catch (error) {
+                console.error('[Firestore-Sync] Erreur sauvegarde:', error);
+                return null;
+            }
+        }
+
+        /**
+         * Charge une analyse depuis Firestore
+         * @param {string} analysisId - ID de l'analyse
+         * @returns {Promise<Object|null>} - Données de l'analyse ou null
+         */
+        async function loadAnalysisFromFirestore(analysisId) {
+            try {
+                const user = window.firebaseAuth?.currentUser;
+                if (!user) return null;
+
+                const db = window.firebaseDB || window.db;
+                if (!db) return null;
+
+                const analysisDoc = await db.collection('users')
+                    .doc(user.uid)
+                    .collection('analyses')
+                    .doc(analysisId)
+                    .get();
+
+                if (analysisDoc.exists) {
+                    // Mettre à jour le timestamp d'accès
+                    await analysisDoc.ref.update({
+                        lastAccessed: firebase.firestore.FieldValue.serverTimestamp()
+                    });
+
+                    return { id: analysisDoc.id, ...analysisDoc.data() };
+                }
+                return null;
+            } catch (error) {
+                console.error('[Firestore-Sync] Erreur chargement:', error);
+                return null;
+            }
+        }
+
+        /**
+         * Charge l'historique des analyses de l'utilisateur
+         * @returns {Promise<Array>} - Liste des analyses
+         */
+        async function loadAnalysisHistory() {
+            try {
+                const user = window.firebaseAuth?.currentUser;
+                if (!user) return [];
+
+                const db = window.firebaseDB || window.db;
+                if (!db) return [];
+
+                const snapshot = await db.collection('users')
+                    .doc(user.uid)
+                    .collection('analyses')
+                    .orderBy('createdAt', 'desc')
+                    .limit(50)
+                    .get();
+
+                return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            } catch (error) {
+                console.error('[Firestore-Sync] Erreur chargement historique:', error);
+                return [];
+            }
+        }
+
+        /**
+         * Synchronise les résultats entre localStorage et Firestore
+         */
+        async function syncAnalysisResults() {
+            const raw = localStorage.getItem('dpai_analysis_results');
+            if (!raw) return;
+
+            try {
+                const data = JSON.parse(raw);
+
+                // Si l'analyse n'a pas d'ID, c'est une nouvelle analyse locale
+                if (!data.id) {
+                    const analysisId = await saveAnalysisToFirestore(data);
+                    if (analysisId) {
+                        // Mettre à jour localStorage avec l'ID
+                        data.id = analysisId;
+                        localStorage.setItem('dpai_analysis_results', JSON.stringify(data));
+                        console.log(`%c[Firestore-Sync] Nouvelle analyse synchronisée: ${analysisId}`, 'color: #17a2b8;');
+                    }
+                } else {
+                    // Mettre à jour l'analyse existante
+                    await saveAnalysisToFirestore(data);
+                }
+            } catch (err) {
+                console.error('[Firestore-Sync] Erreur synchronisation:', err);
+            }
+        }
+
+        /**
+         * Charge l'analyse depuis Firestore si localStorage est vide
+         */
+        async function loadAnalysisFromStore() {
+            const raw = localStorage.getItem('dpai_analysis_results');
+
+            // Si on a des données en localStorage, les utiliser
+            if (raw) {
+                try {
+                    return JSON.parse(raw);
+                } catch (err) {
+                    console.error('[Firestore-Sync] Erreur parsing localStorage:', err);
+                    localStorage.removeItem('dpai_analysis_results');
+                }
+            }
+
+            // Sinon, essayer de charger depuis Firestore
+            // Récupérer l'ID de l'analyse depuis l'URL ou l'historique
+            const urlParams = new URLSearchParams(window.location.search);
+            const analysisId = urlParams.get('id') || window.currentAnalysisId;
+
+            if (analysisId) {
+                const firestoreData = await loadAnalysisFromFirestore(analysisId);
+                if (firestoreData) {
+                    localStorage.setItem('dpai_analysis_results', JSON.stringify(firestoreData));
+                    window.currentAnalysisId = firestoreData.id;
+                    return firestoreData;
+                }
+            }
+
+            // Dernier recours : charger la dernière analyse
+            const history = await loadAnalysisHistory();
+            if (history.length > 0) {
+                const lastAnalysis = history[0];
+                localStorage.setItem('dpai_analysis_results', JSON.stringify(lastAnalysis));
+                window.currentAnalysisId = lastAnalysis.id;
+                return lastAnalysis;
+            }
+
+            return null;
+        }
+
+        /* =========================================================
+           Chargement
+           ========================================================= */
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Attendre que Firebase et l'auth soient prêts
+            await new Promise((resolve) => {
+                const checkReady = setInterval(() => {
+                    if (window.firebaseAuth && window.authService) {
+                        clearInterval(checkReady);
+                        resolve();
+                    }
+                }, 100);
+
+                setTimeout(() => {
+                    clearInterval(checkReady);
+                    resolve();
+                }, 5000);
+            });
+
+            // Charger l'analyse
+            const data = await loadAnalysisFromStore();
+
+            if (!data) {
                 window.location.href = 'dashboard.html';
+                return;
+            }
+
+            try {
+                displayResults(data);
+                window.currentAnalysisId = data.id || null;
+
+                // Synchroniser avec Firestore
+                await syncAnalysisResults();
+
+            } catch (err) {
+                console.error('Erreur parsing résultats:', err);
+                document.getElementById('resultsContent').innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <h2>Erreur de chargement</h2>
+                        <p>Impossible de lire les résultats de l'analyse.</p>
+                        <a href="dashboard.html" class="btn btn-primary">
+                            <i class="fas fa-arrow-left"></i> Retour au tableau de bord
+                        </a>
+                    </div>`;
             }
         });
 
-        // Afficher les résultats
+        /* =========================================================
+           Affichage principal
+           ========================================================= */
         function displayResults(analysisData) {
-            const analysis = analysisData;
-            const type = analysis.type || analysisData.type;
-            const name = analysis.name || analysisData.name || 'Analyse sans nom';
-            const description = analysis.description || analysisData.description || '';
-            const cost = analysis.cost || analysisData.cost || 0;
-            const results = analysis.results || analysisData.results || {};
-            const score = analysis.score || analysisData.score || 0;
-            const createdAt = analysis.createdAt || analysisData.createdAt || new Date().toISOString();
+            const type = analysisData.type || 'reports';
+            const name = analysisData.name || 'Analyse sans nom';
+            const description = analysisData.description || '';
+            const cost = analysisData.cost ?? 0;
+            const results = analysisData.results || {};
+            const score = analysisData.score ?? 0;
+            const createdAt = analysisData.createdAt || new Date().toISOString();
 
-            const analysisNames = {
-                swot: 'Analyse SWOT',
-                porter: 'Porter 5 Forces',
-                pestel: 'Analyse PESTEL',
-                competitive: 'Analyse Concurrentielle'
-            };
+            const analysisName = ANALYSIS_NAMES[type] || type;
 
-            const analysisName = analysisNames[type] || type;
-
-            // Mettre à jour le titre et le breadcrumb
-            document.getElementById('resultsTitle').textContent = `Résultats: ${name}`;
+            document.getElementById('resultsTitle').textContent = `Résultats : ${name}`;
             document.getElementById('resultsBreadcrumb').textContent = analysisName;
 
-            // Mettre à jour les informations de l'analyse
-            const analysisInfoEl = document.getElementById('analysisInfo');
-            analysisInfoEl.innerHTML = `
-                <p><strong>Nom:</strong> ${name}</p>
-                <p><strong>Type:</strong> ${analysisName}</p>
-                <p><strong>Date:</strong> ${formatDate(createdAt)}</p>
-                <p><strong>Coût:</strong> ${cost} tokens</p>
-                <p><strong>Score:</strong> ${score}/100</p>
-                ${description ? `<p class="mt-2"><strong>Description:</strong> ${description}</p>` : ''}
+            // Infos analyse
+            document.getElementById('analysisInfo').innerHTML = `
+                <p><strong>Nom</strong>${escapeHtml(name)}</p>
+                <p><strong>Type</strong>${escapeHtml(analysisName)}</p>
+                <p><strong>Date</strong>${formatDate(createdAt)}</p>
+                <p><strong>Coût</strong>${cost} tokens</p>
+                <p><strong>Score global</strong>${scoreBadge(score)}</p>
+                ${description ? `<p class="full"><strong>Description</strong>${escapeHtml(description)}</p>` : ''}
             `;
 
-            // Mettre à jour le contenu des résultats
-            const resultsContentEl = document.getElementById('resultsContent');
-            let resultsHTML = '';
+            // Contenu selon le type
+            const renderer = RENDERERS[type] || RENDERERS.default;
+            document.getElementById('resultsContent').innerHTML = renderer(results);
+        }
 
-            // Ajouter les résultats selon le type
-            switch (type) {
-                case 'swot':
-                    resultsHTML = `
-                        <h4><i class="fas fa-swimming-pool"></i> Analyse SWOT</h4>
-                        <div class="swot-grid">
-                            <div class="swot-quadrant positive internal">
-                                <h5><i class="fas fa-plus-circle"></i> Forces</h5>
-                                <ul>
-                                    ${(results.strengths || []).map(s => `<li>${s}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div class="swot-quadrant positive external">
-                                <h5><i class="fas fa-plus-circle"></i> Opportunités</h5>
-                                <ul>
-                                    ${(results.opportunities || []).map(o => `<li>${o}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div class="swot-quadrant negative internal">
-                                <h5><i class="fas fa-minus-circle"></i> Faiblesses</h5>
-                                <ul>
-                                    ${(results.weaknesses || []).map(w => `<li>${w}</li>`).join('')}
-                                </ul>
-                            </div>
-                            <div class="swot-quadrant negative external">
-                                <h5><i class="fas fa-minus-circle"></i> Menaces</h5>
-                                <ul>
-                                    ${(results.threats || []).map(t => `<li>${t}</li>`).join('')}
-                                </ul>
-                            </div>
-                        </div>
-                        ${results.strategicInsights ? `
-                            <div class="analysis-recommendations">
-                                <h5><i class="fas fa-lightbulb"></i> Insights Stratégiques</h5>
-                                <div style="white-space: pre-wrap;">${results.strategicInsights}</div>
-                            </div>
-                        ` : ''}
-                        ${results.recommendations && results.recommendations.length > 0 ? `
-                            <div class="analysis-recommendations">
-                                <h5><i class="fas fa-lightbulb"></i> Recommandations</h5>
-                                <ul>
-                                    ${results.recommendations.map(r => `<li>${r}</li>`).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
-                        ${results.summary ? `
-                            <div class="analysis-recommendations" style="background: rgba(13, 110, 253, 0.1); border-left-color: var(--primary-color);">
-                                <h5><i class="fas fa-file-alt"></i> Résumé</h5>
-                                <p style="margin: 0; white-space: pre-wrap;">${results.summary}</p>
-                            </div>
-                        ` : ''}
-                    `;
-                    break;
+        /* =========================================================
+           Blocs réutilisables
+           ========================================================= */
+        function blockSummary(text) {
+            if (!text) return '';
+            return `<div class="info-block"><h5><i class="fas fa-file-alt"></i> Résumé</h5><p style="margin:0; white-space:pre-wrap;">${escapeHtml(text)}</p></div>`;
+        }
 
-                case 'porter':
-                    resultsHTML = `
-                        <h4><i class="fas fa-project-diagram"></i> Analyse Porter 5 Forces</h4>
-                        <div class="porter-results">
-                            <div class="porter-force">
-                                <span class="force-name">Pouvoir des fournisseurs:</span>
-                                <span class="force-value">${results.supplierPower || 'Non disponible'} (${results.supplierPowerScore || 0}/100)</span>
-                            </div>
-                            <div class="porter-force">
-                                <span class="force-name">Pouvoir des clients:</span>
-                                <span class="force-value">${results.buyerPower || 'Non disponible'} (${results.buyerPowerScore || 0}/100)</span>
-                            </div>
-                            <div class="porter-force">
-                                <span class="force-name">Menace des nouveaux entrants:</span>
-                                <span class="force-value">${results.newEntrants || 'Non disponible'} (${results.newEntrantsScore || 0}/100)</span>
-                            </div>
-                            <div class="porter-force">
-                                <span class="force-name">Menace des substituts:</span>
-                                <span class="force-value">${results.substitutes || 'Non disponible'} (${results.substitutesScore || 0}/100)</span>
-                            </div>
-                            <div class="porter-force">
-                                <span class="force-name">Intensité de la rivalité:</span>
-                                <span class="force-value">${results.rivalry || 'Non disponible'} (${results.rivalryScore || 0}/100)</span>
-                            </div>
-                        </div>
-                        ${results.overallAssessment ? `
-                            <div class="analysis-recommendations">
-                                <h5><i class="fas fa-chart-line"></i> Évaluation Globale</h5>
-                                <p style="margin: 0; white-space: pre-wrap;">${results.overallAssessment}</p>
-                            </div>
-                        ` : ''}
-                        ${results.recommendations && results.recommendations.length > 0 ? `
-                            <div class="analysis-recommendations">
-                                <h5><i class="fas fa-lightbulb"></i> Recommandations</h5>
-                                <ul>
-                                    ${results.recommendations.map(r => `<li>${r}</li>`).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
-                    `;
-                    break;
+        function blockRecommendations(recos) {
+            if (!hasList(recos)) return '';
+            return `<div class="info-block warning"><h5><i class="fas fa-lightbulb"></i> Recommandations</h5><ul>${renderListItems(recos)}</ul></div>`;
+        }
 
-                case 'pestel':
-                    resultsHTML = `
-                        <h4><i class="fas fa-globe-americas"></i> Analyse PESTEL</h4>
-                        <div class="pestel-results">
-                            <div class="pestel-factor">
-                                <span class="factor-name">Politique:</span>
-                                <span class="factor-value">${results.political || 'Non disponible'}</span>
-                            </div>
-                            <div class="pestel-factor">
-                                <span class="factor-name">Économique:</span>
-                                <span class="factor-value">${results.economic || 'Non disponible'}</span>
-                            </div>
-                            <div class="pestel-factor">
-                                <span class="factor-name">Socioculturel:</span>
-                                <span class="factor-value">${results.social || 'Non disponible'}</span>
-                            </div>
-                            <div class="pestel-factor">
-                                <span class="factor-name">Technologique:</span>
-                                <span class="factor-value">${results.technological || 'Non disponible'}</span>
-                            </div>
-                            <div class="pestel-factor">
-                                <span class="factor-name">Environnemental:</span>
-                                <span class="factor-value">${results.environmental || 'Non disponible'}</span>
-                            </div>
-                            <div class="pestel-factor">
-                                <span class="factor-name">Légal:</span>
-                                <span class="factor-value">${results.legal || 'Non disponible'}</span>
-                            </div>
-                        </div>
-                        ${results.overallAssessment ? `
-                            <div class="analysis-recommendations">
-                                <h5><i class="fas fa-chart-line"></i> Évaluation Globale</h5>
-                                <p style="margin: 0; white-space: pre-wrap;">${results.overallAssessment}</p>
-                            </div>
-                        ` : ''}
-                        ${results.recommendations && results.recommendations.length > 0 ? `
-                            <div class="analysis-recommendations">
-                                <h5><i class="fas fa-lightbulb"></i> Recommandations</h5>
-                                <ul>
-                                    ${results.recommendations.map(r => `<li>${r}</li>`).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
-                    `;
-                    break;
+        function blockInsights(text) {
+            if (!text) return '';
+            return `<div class="info-block"><h5><i class="fas fa-lightbulb"></i> Insights stratégiques</h5><p style="margin:0; white-space:pre-wrap;">${escapeHtml(text)}</p></div>`;
+        }
 
-                case 'competitive':
-                    resultsHTML = `
-                        <h4><i class="fas fa-users"></i> Analyse Concurrentielle</h4>
-                        <div class="competitive-results">
-                            <p><strong>Votre position:</strong></p>
-                            <p>Score global: ${results.overallScore || 0}/100</p>
-                            <p>Avantage concurrentiel: ${results.competitiveAdvantage || 'Non évalué'}</p>
-                        </div>
-                        ${results.competitors && results.competitors.length > 0 ? `
-                            <div class="competitors-comparison">
-                                <h5>Comparaison avec les concurrents:</h5>
-                                <table class="comparison-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Critère</th>
-                                            ${results.competitors.map(c => `<th>${c.name || 'Concurrent'}</th>`).join('')}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <tr>
-                                            <td>Score global</td>
-                                            ${results.competitors.map(c => `<td>${c.overallScore || 0}/100</td>`).join('')}
-                                        </tr>
-                                        <tr>
-                                            <td>Prix</td>
-                                            ${results.competitors.map(c => `<td>${c.priceIndex ? (c.priceIndex * 10) + '/10' : 'N/A'}</td>`).join('')}
-                                        </tr>
-                                        <tr>
-                                            <td>Qualité</td>
-                                            ${results.competitors.map(c => `<td>${c.qualityIndex || 0}/10</td>`).join('')}
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        ` : ''}
-                        ${results.recommendations && results.recommendations.length > 0 ? `
-                            <div class="analysis-recommendations">
-                                <h5><i class="fas fa-lightbulb"></i> Recommandations</h5>
-                                <ul>
-                                    ${results.recommendations.map(r => `<li>${r}</li>`).join('')}
-                                </ul>
-                            </div>
-                        ` : ''}
-                    `;
-                    break;
+        /* =========================================================
+           RENDERERS par type
+           ========================================================= */
+        const RENDERERS = {
 
-                default:
-                    resultsHTML = `
-                        <h4>Résultats</h4>
-                        <pre class="results-raw">${JSON.stringify(results, null, 2)}</pre>
-                    `;
+            /* ---------- SWOT ---------- */
+            swot: (r) => {
+                const quad = (title, tone, items, icon) => {
+                    const content = hasList(items)
+                        ? `<ul>${items.map(i => {
+                            if (typeof i === 'string') return `<li>${escapeHtml(i)}</li>`;
+                            const label = i.label || i.name || i;
+                            const detail = i.evidence || i.detail || '';
+                            return `<li><strong>${escapeHtml(label)}</strong>${detail ? ' — ' + escapeHtml(detail) : ''}</li>`;
+                        }).join('')}</ul>`
+                        : emptyInline('Aucun élément identifié.');
+                    return `<div class="swot-quadrant ${tone}"><h5><i class="fas ${icon}"></i> ${title}</h5>${content}</div>`;
+                };
+                return `
+                    <h4 class="result-title"><i class="fas fa-th-large"></i> Analyse SWOT</h4>
+                    <div class="swot-grid">
+                        ${quad('Forces',        'positive', r.strengths,     'fa-plus-circle')}
+                        ${quad('Opportunités',  'positive', r.opportunities, 'fa-plus-circle')}
+                        ${quad('Faiblesses',    'negative', r.weaknesses,    'fa-minus-circle')}
+                        ${quad('Menaces',       'negative', r.threats,       'fa-minus-circle')}
+                    </div>
+                    ${blockInsights(r.strategicInsights)}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- PORTER ---------- */
+            porter: (r) => {
+                const forces = [
+                    { key: 'supplierPower',    label: 'Pouvoir des fournisseurs',    scoreKey: 'supplierPowerScore',    icon: 'fa-truck' },
+                    { key: 'buyerPower',       label: 'Pouvoir des clients',         scoreKey: 'buyerPowerScore',       icon: 'fa-user-tie' },
+                    { key: 'newEntrants',      label: 'Menace des nouveaux entrants',scoreKey: 'newEntrantsScore',      icon: 'fa-door-open' },
+                    { key: 'substitutes',      label: 'Menace des substituts',       scoreKey: 'substitutesScore',      icon: 'fa-random' },
+                    { key: 'rivalry',          label: 'Intensité de la rivalité',    scoreKey: 'rivalryScore',          icon: 'fa-fist-raised' }
+                ];
+                const rows = forces.map(f => {
+                    const label = r[f.key] || '—';
+                    const sc = Number(r[f.scoreKey]) || 0;
+                    return `
+                        <tr>
+                            <td><i class="fas ${f.icon}" style="color: var(--primary-color); margin-right:8px;"></i>${escapeHtml(f.label)}</td>
+                            <td>${escapeHtml(label)}</td>
+                            <td style="min-width: 160px;">
+                                <div style="display:flex; align-items:center; gap:8px;">
+                                    <span style="font-weight:600; min-width:44px;">${sc}/100</span>
+                                    ${scoreBar(sc)}
+                                </div>
+                            </td>
+                        </tr>`;
+                }).join('');
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-project-diagram"></i> Analyse Porter 5 Forces</h4>
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>Force</th><th>Évaluation</th><th>Intensité</th></tr>
+                        </thead>
+                        <tbody>${rows}</tbody>
+                    </table>
+                    ${r.overallAssessment ? `
+                        <div class="info-block success">
+                            <h5><i class="fas fa-chart-line"></i> Évaluation globale</h5>
+                            <p style="margin:0; white-space:pre-wrap;">${escapeHtml(r.overallAssessment)}</p>
+                        </div>` : ''}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- PESTEL ---------- */
+            pestel: (r) => {
+                const factors = [
+                    { key: 'political',     label: 'Politique',       icon: 'fa-landmark' },
+                    { key: 'economic',      label: 'Économique',      icon: 'fa-coins' },
+                    { key: 'social',        label: 'Socioculturel',   icon: 'fa-users' },
+                    { key: 'technological', label: 'Technologique',   icon: 'fa-microchip' },
+                    { key: 'environmental', label: 'Environnemental', icon: 'fa-leaf' },
+                    { key: 'legal',         label: 'Légal',           icon: 'fa-gavel' }
+                ];
+                const cards = factors.map(f => {
+                    const val = r[f.key];
+                    let body = '';
+                    if (hasList(val)) {
+                        body = `<ul style="margin:0; padding-left: 18px;">${renderListItems(val)}</ul>`;
+                    } else if (val) {
+                        body = `<p style="margin:0;">${escapeHtml(val)}</p>`;
+                    } else {
+                        body = emptyInline('Aucune donnée pour ce facteur.');
+                    }
+                    return `
+                        <div class="scenario-card" style="border-color: var(--border-color); background: white;">
+                            <h6 style="color: var(--primary-color);"><i class="fas ${f.icon}"></i> ${f.label}</h6>
+                            ${body}
+                        </div>`;
+                }).join('');
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-globe-americas"></i> Analyse PESTEL</h4>
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: var(--spacing-md); margin-top: var(--spacing-md);">
+                        ${cards}
+                    </div>
+                    ${r.overallAssessment ? `
+                        <div class="info-block success">
+                            <h5><i class="fas fa-chart-line"></i> Évaluation globale</h5>
+                            <p style="margin:0; white-space:pre-wrap;">${escapeHtml(r.overallAssessment)}</p>
+                        </div>` : ''}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- COMPETITIVE ---------- */
+            competitive: (r) => {
+                const comps = Array.isArray(r.competitors) ? r.competitors : [];
+                let tableHTML = '';
+                if (comps.length > 0) {
+                    const headers = comps.map(c => `<th>${escapeHtml(c.name || 'Concurrent')}</th>`).join('');
+                    const rowScore = comps.map(c => `<td>${scoreBadge(c.overallScore)}</td>`).join('');
+                    const rowPrice = comps.map(c => `<td>${c.priceIndex != null ? escapeHtml((c.priceIndex * 10) + '/10') : '—'}</td>`).join('');
+                    const rowQuality = comps.map(c => `<td>${c.qualityIndex != null ? escapeHtml(c.qualityIndex + '/10') : '—'}</td>`).join('');
+                    tableHTML = `
+                        <table class="data-table">
+                            <thead>
+                                <tr><th>Critère</th>${headers}</tr>
+                            </thead>
+                            <tbody>
+                                <tr><td>Score global</td>${rowScore}</tr>
+                                <tr><td>Prix</td>${rowPrice}</tr>
+                                <tr><td>Qualité</td>${rowQuality}</tr>
+                            </tbody>
+                        </table>`;
+                } else {
+                    tableHTML = emptyInline('Aucun concurrent renseigné.');
+                }
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-users"></i> Analyse Concurrentielle</h4>
+                    <div class="analysis-info" style="margin-bottom: var(--spacing-md);">
+                        <p><strong>Score global</strong>${scoreBadge(r.overallScore)}</p>
+                        <p><strong>Avantage concurrentiel</strong>${escapeHtml(r.competitiveAdvantage || '—')}</p>
+                    </div>
+                    ${tableHTML}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- MATURITY SCORE ---------- */
+            maturity_score: (r) => {
+                const dims = Array.isArray(r.dimensions) ? r.dimensions : [];
+                let dimsHTML = '';
+                if (dims.length > 0) {
+                    dimsHTML = `
+                        <table class="data-table">
+                            <thead><tr><th>Dimension</th><th>Niveau</th><th>Score</th></tr></thead>
+                            <tbody>
+                                ${dims.map(d => `
+                                    <tr>
+                                        <td>${escapeHtml(d.label || d.name || '')}</td>
+                                        <td>${escapeHtml(d.level || '—')}</td>
+                                        <td style="min-width:160px;">
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <span style="font-weight:600; min-width:44px;">${Number(d.score) || 0}/100</span>
+                                                ${scoreBar(d.score)}
+                                            </div>
+                                        </td>
+                                    </tr>`).join('')}
+                            </tbody>
+                        </table>`;
+                } else {
+                    dimsHTML = emptyInline('Aucune dimension évaluée.');
+                }
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-chart-line"></i> Évaluation de Maturité</h4>
+                    ${r.overallLevel ? `
+                        <div class="info-block success">
+                            <h5><i class="fas fa-award"></i> Niveau global</h5>
+                            <p style="margin:0;"><strong>${escapeHtml(r.overallLevel)}</strong></p>
+                        </div>` : ''}
+                    ${dimsHTML}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- REPORTS ---------- */
+            reports: (r) => {
+                const sections = Array.isArray(r.sections) ? r.sections : [];
+                let body = '';
+                if (sections.length > 0) {
+                    body = sections.map(s => {
+                        const tag = `h${Math.min(6, Math.max(2, Number(s.level) || 2))}`;
+                        const content = s.content
+                            ? `<div style="white-space:pre-wrap; line-height:1.7;">${escapeHtml(s.content)}</div>`
+                            : '';
+                        const kp = hasList(s.key_points)
+                            ? `<ul style="margin-top: var(--spacing-sm); padding-left: var(--spacing-md);">${renderListItems(s.key_points)}</ul>`
+                            : '';
+                        return `<section class="result-section"><${tag} style="color: var(--primary-color);">${escapeHtml(s.title || '')}</${tag}>${content}${kp}</section>`;
+                    }).join('');
+                } else if (r.summary || r.rawResponse) {
+                    body = `<div style="white-space:pre-wrap; line-height:1.7;">${escapeHtml(r.summary || r.rawResponse)}</div>`;
+                } else {
+                    body = emptyInline('Aucun contenu disponible.');
+                }
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-file-alt"></i> Rapport détaillé</h4>
+                    ${r.executive_summary ? `
+                        <div class="info-block">
+                            <h5><i class="fas fa-star"></i> Résumé exécutif</h5>
+                            <p style="margin:0; white-space:pre-wrap;">${escapeHtml(r.executive_summary)}</p>
+                        </div>` : ''}
+                    ${body}
+                    ${r.conclusion ? `
+                        <div class="info-block success">
+                            <h5><i class="fas fa-flag-checkered"></i> Conclusion</h5>
+                            <p style="margin:0; white-space:pre-wrap;">${escapeHtml(r.conclusion)}</p>
+                        </div>` : ''}
+                    ${blockRecommendations(r.recommendations)}
+                `;
+            },
+
+            /* ---------- IDEAL SECTOR ---------- */
+            ideal_sector: (r) => {
+                const sectors = Array.isArray(r.sectors) ? r.sectors : [];
+                let body = '';
+                if (sectors.length > 0) {
+                    body = `
+                        <table class="data-table">
+                            <thead><tr><th>Secteur</th><th>Score</th><th>Justification</th></tr></thead>
+                            <tbody>
+                                ${sectors.map(s => `
+                                    <tr>
+                                        <td><strong>${escapeHtml(s.name || '')}</strong></td>
+                                        <td style="min-width:160px;">
+                                            <div style="display:flex; align-items:center; gap:8px;">
+                                                <span style="font-weight:600; min-width:44px;">${Number(s.total_score) || 0}/100</span>
+                                                ${scoreBar(s.total_score)}
+                                            </div>
+                                        </td>
+                                        <td>${escapeHtml(s.rationale || '')}</td>
+                                    </tr>`).join('')}
+                            </tbody>
+                        </table>`;
+                } else {
+                    body = emptyInline('Aucun secteur classé.');
+                }
+                return `
+                    <h4 class="result-title"><i class="fas fa-globe"></i> Secteur idéal</h4>
+                    ${body}
+                    ${r.recommendation ? `
+                        <div class="info-block success">
+                            <h5><i class="fas fa-check-circle"></i> Recommandation</h5>
+                            <p style="margin:0; white-space:pre-wrap;">${escapeHtml(r.recommendation)}</p>
+                        </div>` : ''}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- BENCHMARK ---------- */
+            benchmark: (r) => {
+                const entities = Array.isArray(r.entities) ? r.entities : [];
+                const metrics = Array.isArray(r.metrics) ? r.metrics : [];
+                let tableHTML = '';
+                if (entities.length > 0 && metrics.length > 0) {
+                    const headers = entities.map(e => `<th>${escapeHtml(e)}</th>`).join('');
+                    const rows = metrics.map(m => {
+                        const cells = entities.map(e => `<td>${escapeHtml(m.values?.[e] ?? '—')}${m.unit ? ' ' + escapeHtml(m.unit) : ''}</td>`).join('');
+                        return `<tr><td><strong>${escapeHtml(m.label || m.key || '')}</strong></td>${cells}</tr>`;
+                    }).join('');
+                    tableHTML = `<table class="data-table"><thead><tr><th>Métrique</th>${headers}</tr></thead><tbody>${rows}</tbody></table>`;
+                } else {
+                    tableHTML = emptyInline('Aucune donnée de benchmark.');
+                }
+
+                const ranking = Array.isArray(r.ranking) && r.ranking.length > 0
+                    ? `<div class="result-section"><h5><i class="fas fa-trophy"></i> Classement</h5>
+                        <table class="data-table"><thead><tr><th>Entité</th><th>Score</th></tr></thead><tbody>
+                        ${r.ranking.map(x => `<tr><td>${escapeHtml(x.entity || '')}</td><td>${scoreBadge(x.score)}</td></tr>`).join('')}
+                        </tbody></table></div>`
+                    : '';
+
+                const insights = hasList(r.insights)
+                    ? `<div class="info-block"><h5><i class="fas fa-lightbulb"></i> Insights</h5><ul>${renderListItems(r.insights)}</ul></div>`
+                    : '';
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-chart-bar"></i> Benchmarking</h4>
+                    ${tableHTML}
+                    ${ranking}
+                    ${insights}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- MODELING ---------- */
+            modeling: (r) => {
+                const scenarios = Array.isArray(r.scenarios) ? r.scenarios : [];
+                let body = '';
+                if (scenarios.length > 0) {
+                    body = scenarios.map(s => {
+                        const proj = Array.isArray(s.projections) ? s.projections : [];
+                        const rows = proj.length > 0
+                            ? `<table class="data-table"><thead><tr><th>Année</th><th>CA</th><th>EBITDA</th><th>Cash-flow</th></tr></thead><tbody>
+                                ${proj.map(p => `<tr>
+                                    <td>${escapeHtml(p.year ?? '')}</td>
+                                    <td>${formatCurrency(p.revenue)}</td>
+                                    <td>${formatCurrency(p.ebitda)}</td>
+                                    <td>${formatCurrency(p.cash_flow)}</td>
+                                </tr>`).join('')}
+                            </tbody></table>`
+                            : emptyInline('Aucune projection annuelle.');
+                        const kpis = `
+                            <div style="display:flex; gap: var(--spacing-md); flex-wrap: wrap; margin-top: var(--spacing-sm);">
+                                <span><strong>NPV :</strong> ${formatCurrency(s.npv)}</span>
+                                <span><strong>TRI :</strong> ${s.irr != null ? formatNumber(s.irr * 100, 1) + ' %' : '—'}</span>
+                            </div>`;
+                        return `
+                            <div class="scenario-card ${escapeHtml(s.name || '')}">
+                                <h6>Scénario ${escapeHtml(s.name || '')}</h6>
+                                ${rows}
+                                ${kpis}
+                            </div>`;
+                    }).join('');
+                } else {
+                    body = emptyInline('Aucun scénario modélisé.');
+                }
+
+                const sens = Array.isArray(r.sensitivity) && r.sensitivity.length > 0
+                    ? `<div class="result-section"><h5><i class="fas fa-sliders-h"></i> Sensibilité</h5>
+                        <table class="data-table"><thead><tr><th>Variable</th><th>Impact NPV</th></tr></thead><tbody>
+                        ${r.sensitivity.map(s => `<tr><td>${escapeHtml(s.variable || '')}</td><td>${formatCurrency(s.impact_npv)}</td></tr>`).join('')}
+                        </tbody></table></div>`
+                    : '';
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-cubes"></i> Modélisation financière</h4>
+                    ${body}
+                    ${sens}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- DUE DILIGENCE ---------- */
+            due_diligence: (r) => {
+                const cats = Array.isArray(r.categories) ? r.categories : [];
+                const statusIcon = (s) => ({
+                    ok:       '<i class="fas fa-check-circle" style="color: var(--success-color);"></i>',
+                    warning:  '<i class="fas fa-exclamation-triangle" style="color: var(--warning-color);"></i>',
+                    critical: '<i class="fas fa-times-circle" style="color: var(--danger-color);"></i>',
+                    todo:     '<i class="far fa-circle" style="color: var(--border-color);"></i>'
+                })[s] || '<i class="far fa-circle"></i>';
+
+                let body = '';
+                if (cats.length > 0) {
+                    body = cats.map(c => {
+                        const items = Array.isArray(c.items) ? c.items : [];
+                        const itemsHTML = items.length > 0
+                            ? items.map(it => `
+                                <div class="checklist-item status-${escapeHtml(it.status || 'todo')}">
+                                    <span class="ci-icon">${statusIcon(it.status)}</span>
+                                    <div style="flex:1;">
+                                        <div class="ci-label">${escapeHtml(it.label || '')}</div>
+                                        ${it.comment ? `<div class="ci-comment">${escapeHtml(it.comment)}</div>` : ''}
+                                    </div>
+                                    ${it.severity ? `<span class="score-badge ${scoreClass(it.severity * 20)}">${it.severity}/5</span>` : ''}
+                                </div>`).join('')
+                            : emptyInline('Aucun point pour cette catégorie.');
+                        return `<div class="checklist-group"><h6>${escapeHtml(c.label || '')}</h6>${itemsHTML}</div>`;
+                    }).join('');
+                } else {
+                    body = emptyInline('Aucune checklist disponible.');
+                }
+
+                const risks = Array.isArray(r.risks) && r.risks.length > 0
+                    ? `<div class="result-section"><h5><i class="fas fa-exclamation-triangle"></i> Risques identifiés</h5>
+                        <table class="data-table"><thead><tr><th>Risque</th><th>Probabilité</th><th>Impact</th><th>Mitigation</th></tr></thead><tbody>
+                        ${r.risks.map(rk => `<tr>
+                            <td>${escapeHtml(rk.label || '')}</td>
+                            <td>${escapeHtml(rk.probability ?? '—')}/5</td>
+                            <td>${escapeHtml(rk.impact ?? '—')}/5</td>
+                            <td>${escapeHtml(rk.mitigation || '')}</td>
+                        </tr>`).join('')}
+                        </tbody></table></div>`
+                    : '';
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-check-square"></i> Due Diligence</h4>
+                    ${r.overall_score != null ? `
+                        <div class="info-block success">
+                            <h5><i class="fas fa-clipboard-check"></i> Score global</h5>
+                            <p style="margin:0;">${scoreBadge(r.overall_score)}</p>
+                        </div>` : ''}
+                    ${body}
+                    ${risks}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- VALUATION ---------- */
+            valuation: (r) => {
+                const methods = Array.isArray(r.methods) ? r.methods : [];
+                let body = '';
+                if (methods.length > 0) {
+                    body = `<table class="data-table">
+                        <thead><tr><th>Méthode</th><th>Valeur basse</th><th>Valeur médiane</th><th>Valeur haute</th><th>Poids</th></tr></thead>
+                        <tbody>
+                        ${methods.map(m => `<tr>
+                            <td><strong>${escapeHtml(m.name || '')}</strong></td>
+                            <td>${formatCurrency(m.value_low)}</td>
+                            <td>${formatCurrency(m.value_mid)}</td>
+                            <td>${formatCurrency(m.value_high)}</td>
+                            <td>${m.weight != null ? formatNumber(m.weight * 100, 0) + ' %' : '—'}</td>
+                        </tr>`).join('')}
+                        </tbody></table>`;
+                } else {
+                    body = emptyInline('Aucune méthode de valorisation.');
+                }
+
+                const range = (r.range && (r.range.low || r.range.mid || r.range.high)) ? `
+                    <div class="valuation-range">
+                        <div class="vr-item"><div class="label">Bas</div><div class="value">${formatCurrency(r.range.low)}</div></div>
+                        <div class="vr-item mid"><div class="label">Médian</div><div class="value">${formatCurrency(r.range.mid)}</div></div>
+                        <div class="vr-item"><div class="label">Haut</div><div class="value">${formatCurrency(r.range.high)}</div></div>
+                    </div>` : '';
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-euro-sign"></i> Valorisation</h4>
+                    ${range}
+                    <div class="result-section">${body}</div>
+                    ${r.methodology_note ? `
+                        <div class="info-block">
+                            <h5><i class="fas fa-book"></i> Note méthodologique</h5>
+                            <p style="margin:0; white-space:pre-wrap;">${escapeHtml(r.methodology_note)}</p>
+                        </div>` : ''}
+                    ${r.recommendation ? `
+                        <div class="info-block success">
+                            <h5><i class="fas fa-check-circle"></i> Recommandation</h5>
+                            <p style="margin:0; white-space:pre-wrap;">${escapeHtml(r.recommendation)}</p>
+                        </div>` : ''}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- SYNERGY ---------- */
+            synergy: (r) => {
+                const costSyn = Array.isArray(r.cost_synergies) ? r.cost_synergies : [];
+                const revSyn  = Array.isArray(r.revenue_synergies) ? r.revenue_synergies : [];
+
+                const table = (rows, label) => rows.length > 0
+                    ? `<table class="data-table">
+                        <thead><tr><th>${label}</th><th>Montant</th><th>Année</th><th>Confiance</th></tr></thead>
+                        <tbody>
+                        ${rows.map(x => `<tr>
+                            <td>${escapeHtml(x.label || '')}</td>
+                            <td>${formatCurrency(x.amount)}</td>
+                            <td>${escapeHtml(x.year ?? '')}</td>
+                            <td>${x.confidence != null ? formatNumber(x.confidence * 100, 0) + ' %' : '—'}</td>
+                        </tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucune synergie identifiée.');
+
+                const totals = (r.total && (r.total.cost || r.total.revenue || r.total.combined)) ? `
+                    <div class="analysis-info" style="margin-top: var(--spacing-md);">
+                        <p><strong>Synergies de coûts</strong>${formatCurrency(r.total.cost)}</p>
+                        <p><strong>Synergies de revenus</strong>${formatCurrency(r.total.revenue)}</p>
+                        <p><strong>Total combiné</strong>${formatCurrency(r.total.combined)}</p>
+                        <p><strong>Coûts de réalisation</strong>${formatCurrency(r.realization_costs)}</p>
+                        <p><strong>Synergies nettes</strong>${formatCurrency(r.net_synergies)}</p>
+                    </div>` : '';
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-link"></i> Analyse des Synergies</h4>
+                    ${totals}
+                    <div class="result-section"><h5><i class="fas fa-arrow-down"></i> Synergies de coûts</h5>${table(costSyn, 'Levier')}</div>
+                    <div class="result-section"><h5><i class="fas fa-arrow-up"></i> Synergies de revenus</h5>${table(revSyn, 'Levier')}</div>
+                    ${r.timeline_note ? `
+                        <div class="info-block">
+                            <h5><i class="fas fa-clock"></i> Timeline</h5>
+                            <p style="margin:0; white-space:pre-wrap;">${escapeHtml(r.timeline_note)}</p>
+                        </div>` : ''}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- INTEGRATION MATRIX ---------- */
+            integration_matrix: (r) => {
+                const cells = Array.isArray(r.cells) ? r.cells : [];
+                const byQ = {
+                    top_right:    cells.find(c => c.quadrant === 'top_right'),
+                    top_left:     cells.find(c => c.quadrant === 'top_left'),
+                    bottom_left:  cells.find(c => c.quadrant === 'bottom_left'),
+                    bottom_right: cells.find(c => c.quadrant === 'bottom_right')
+                };
+                const cellHTML = (cell) => {
+                    if (!cell) return `<div class="matrix-cell">${emptyInline('Quadrant vide.')}</div>`;
+                    const inits = Array.isArray(cell.initiatives) ? cell.initiatives : [];
+                    const list = inits.length > 0
+                        ? `<ul>${inits.map(i => `<li><strong>${escapeHtml(i.name || '')}</strong> — Priorité ${escapeHtml(i.priority || '—')}, Effort ${escapeHtml(i.effort ?? '—')}/5, Impact ${escapeHtml(i.impact ?? '—')}/5</li>`).join('')}</ul>`
+                        : emptyInline('Aucune initiative.');
+                    return `<div class="matrix-cell"><h6>${escapeHtml(cell.label || '')}</h6>${list}</div>`;
+                };
+
+                const axes = r.axes ? `
+                    <p style="margin-top: var(--spacing-sm); font-size: 0.9rem; opacity: 0.8;">
+                        <strong>Axe X :</strong> ${escapeHtml(r.axes.x || '—')} —
+                        <strong>Axe Y :</strong> ${escapeHtml(r.axes.y || '—')}
+                    </p>` : '';
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-th"></i> Matrice d'intégration</h4>
+                    ${axes}
+                    <div class="matrix-grid">
+                        ${cellHTML(byQ.top_left)}
+                        ${cellHTML(byQ.top_right)}
+                        ${cellHTML(byQ.bottom_left)}
+                        ${cellHTML(byQ.bottom_right)}
+                    </div>
+                    ${r.legend ? `
+                        <div class="info-block"><h5><i class="fas fa-info-circle"></i> Légende</h5>
+                        <p style="margin:0;">${escapeHtml(r.legend)}</p></div>` : ''}
+                    ${r.recommendation ? `
+                        <div class="info-block success"><h5><i class="fas fa-check-circle"></i> Recommandation</h5>
+                        <p style="margin:0; white-space:pre-wrap;">${escapeHtml(r.recommendation)}</p></div>` : ''}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- VALUATION SIMULATOR ---------- */
+            valuation_simulator: (r) => {
+                const params = Array.isArray(r.parameters) ? r.parameters : [];
+                const paramsHTML = params.length > 0
+                    ? `<table class="data-table">
+                        <thead><tr><th>Paramètre</th><th>Unité</th><th>Min</th><th>Max</th><th>Pas</th><th>Distribution</th></tr></thead>
+                        <tbody>
+                        ${params.map(p => `<tr>
+                            <td><strong>${escapeHtml(p.label || p.key || '')}</strong></td>
+                            <td>${escapeHtml(p.unit || '')}</td>
+                            <td>${escapeHtml(p.min ?? '—')}</td>
+                            <td>${escapeHtml(p.max ?? '—')}</td>
+                            <td>${escapeHtml(p.step ?? '—')}</td>
+                            <td>${escapeHtml(p.distribution || '—')}</td>
+                        </tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucun paramètre de simulation.');
+
+                const res = r.results || {};
+                const resultsHTML = (res.p10 != null || res.p50 != null || res.p90 != null || res.mean != null)
+                    ? `<div class="valuation-range">
+                        <div class="vr-item"><div class="label">P10</div><div class="value">${formatCurrency(res.p10)}</div></div>
+                        <div class="vr-item mid"><div class="label">P50 (médiane)</div><div class="value">${formatCurrency(res.p50)}</div></div>
+                        <div class="vr-item"><div class="label">P90</div><div class="value">${formatCurrency(res.p90)}</div></div>
+                    </div>
+                    <div class="analysis-info" style="margin-top: var(--spacing-md);">
+                        <p><strong>Moyenne</strong>${formatCurrency(res.mean)}</p>
+                        <p><strong>Écart-type</strong>${formatCurrency(res.std_dev)}</p>
+                        <p><strong>Itérations</strong>${escapeHtml(r.iterations ?? '—')}</p>
+                    </div>`
+                    : emptyInline('Aucun résultat de simulation.');
+
+                const sens = Array.isArray(r.sensitivity) && r.sensitivity.length > 0
+                    ? `<div class="result-section"><h5><i class="fas fa-sliders-h"></i> Sensibilité des paramètres</h5>
+                        <table class="data-table"><thead><tr><th>Paramètre</th><th>Corrélation</th></tr></thead><tbody>
+                        ${r.sensitivity.map(s => `<tr>
+                            <td>${escapeHtml(s.parameter || '')}</td>
+                            <td>${formatNumber(s.correlation, 2)}</td>
+                        </tr>`).join('')}
+                        </tbody></table></div>`
+                    : '';
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-calculator"></i> Simulateur de valorisation</h4>
+                    <div class="result-section"><h5><i class="fas fa-sliders-h"></i> Paramètres</h5>${paramsHTML}</div>
+                    <div class="result-section"><h5><i class="fas fa-chart-bar"></i> Résultats</h5>${resultsHTML}</div>
+                    ${sens}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- DEFAULT (fallback propre) ---------- */
+            default: (r) => {
+                const safe = { ...r };
+                delete safe.rawResponse;
+                delete safe.summary;
+                delete safe.recommendations;
+
+                const kv = Object.entries(safe).filter(([_, v]) => v != null && v !== '');
+                const kvHTML = kv.length > 0
+                    ? `<table class="data-table"><thead><tr><th>Champ</th><th>Valeur</th></tr></thead><tbody>
+                        ${kv.map(([k, v]) => `<tr>
+                            <td><strong>${escapeHtml(k)}</strong></td>
+                            <td>${typeof v === 'object' ? escapeHtml(JSON.stringify(v)) : escapeHtml(v)}</td>
+                        </tr>`).join('')}
+                    </tbody></table>`
+                    : emptyInline('Aucune donnée exploitable.');
+
+                return `
+                    <h4 class="result-title"><i class="fas fa-file-alt"></i> Résultats de l'analyse</h4>
+                    ${kvHTML}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            }
+        };
+
+        /* =========================================================
+           Partager
+           ========================================================= */
+        function shareAnalysis() {
+            const title = document.getElementById('resultsTitle')?.textContent || 'Résultats d\'analyse';
+            let url = window.location.href;
+
+            // Ajouter l'ID de l'analyse à l'URL pour partage direct
+            if (window.currentAnalysisId) {
+                const urlObj = new URL(url);
+                urlObj.searchParams.set('id', window.currentAnalysisId);
+                url = urlObj.toString();
             }
 
-            resultsContentEl.innerHTML = resultsHTML;
+            if (navigator.share) {
+                navigator.share({ title, url }).catch(() => {});
+            } else if (navigator.clipboard) {
+                navigator.clipboard.writeText(url).then(() => {
+                    alert('Lien copié dans le presse-papiers.');
+                }).catch(() => {
+                    prompt('Copiez ce lien :', url);
+                });
+            } else {
+                prompt('Copiez ce lien :', url);
+            }
         }
     </script>
     <script src="/js/analytics.js"></script>

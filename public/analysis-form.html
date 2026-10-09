@@ -424,13 +424,13 @@
                     const user = firebase.auth().currentUser;
                     if (user) {
                         const db = firebase.firestore();
-                        const historyRef = db.collection('users').doc(user.uid).collection('analysisHistory').doc();
+                        const analysesRef = db.collection('users').doc(user.uid).collection('analyses').doc();
                         
                         // Ajouter l'ID de l'analyse
-                        analysisResult.id = historyRef.id;
+                        analysisResult.id = analysesRef.id;
                         
-                        await historyRef.set(analysisResult);
-                        console.log('%c[Analysis-Form] Analyse sauvegardée dans Firestore:', 'color: #28a745; font-weight: bold;', historyRef.id);
+                        await analysesRef.set(analysisResult);
+                        console.log('%c[Analysis-Form] Analyse sauvegardée dans Firestore:', 'color: #28a745; font-weight: bold;', analysesRef.id);
                     }
                 } catch (firebaseError) {
                     console.error('Erreur sauvegarde Firestore:', firebaseError);

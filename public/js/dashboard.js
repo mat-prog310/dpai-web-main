@@ -171,8 +171,8 @@ async function loadUserData(userId) {
 // Charger l'historique des analyses
 async function loadAnalysisHistory(userId) {
     const db = firebase.firestore();
-    const historyRef = db.collection('users').doc(userId).collection('analysisHistory');
-    const snapshot = await historyRef.orderBy('createdAt', 'desc').limit(50).get();
+    const analysesRef = db.collection('users').doc(userId).collection('analyses');
+    const snapshot = await analysesRef.orderBy('createdAt', 'desc').limit(50).get();
     
     analysisHistory = [];
     snapshot.forEach(doc => {
@@ -274,7 +274,7 @@ async function viewAnalysisDetails(analysisId) {
         } else {
             // Si non trouvée localement, essayer de la charger depuis Firestore
             const db = firebase.firestore();
-            const analysisDoc = await db.collection('users').doc(user.uid).collection('analysisHistory').doc(analysisId).get();
+            const analysisDoc = await db.collection('users').doc(user.uid).collection('analyses').doc(analysisId).get();
             
             if (analysisDoc.exists) {
                 const analysisData = { id: analysisDoc.id, ...analysisDoc.data() };
