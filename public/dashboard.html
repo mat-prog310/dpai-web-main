@@ -1083,16 +1083,12 @@
                 const hasAccess = TokenManager.tokenState.hasAccessToAPI;
                 const hasAdvisor = TokenManager.isAdvisorAllowed();
                 
-                shouldUnlock = plan === 'advisor' || hasAccess === true || hasAdvisor === true;
+                shouldUnlock = plan === 'advisor';
             }
             
             // Vérifier aussi les données utilisateur globales (fallback)
             if (!shouldUnlock && typeof window !== 'undefined' && window.currentUserData) {
-                const userData = window.currentUserData;
-                shouldUnlock = userData.plan === 'advisor' || 
-                              userData.hasAccessToAPI === true ||
-                              userData.hasAccessToAdvancedAnalytics === true ||
-                              userData.hasAccessToPremiumSuggestions === true;
+                shouldUnlock = userData.plan === 'advisor';
             }
             
             // Appliquer le verrouillage/déverrouillage
