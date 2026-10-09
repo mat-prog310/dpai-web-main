@@ -68,6 +68,12 @@ async function loadUserData(userId) {
     if (userDoc.exists) {
         const userData = userDoc.data();
         
+        
+        // Initialiser TokenManager avec les données utilisateur
+        // C'est CRUCIAL pour que le plan advisor soit détecté correctement
+        if (typeof TokenManager !== 'undefined') {
+            TokenManager.init({ id: userId, ...userData });
+        }
         // Mettre à jour l'UI utilisateur
         const userName = userData.displayName || userData.email || 'Utilisateur';
         const welcomeEl = document.getElementById('welcomeUserName');
@@ -91,6 +97,29 @@ async function loadUserData(userId) {
     if (companyDoc.exists) {
         companyData = { ...companyData, ...companyDoc.data() };
     }
+    
+    // Ajouter un listener pour les changements futurs
+    db.collection('users').doc(userId).onSnapshot((doc) => {
+        if (doc.exists) {
+            const updatedUserData = doc.data();
+            console.log('[Dashboard] User data updated:', updatedUserData.subscription?.plan || updatedUserData.plan);
+            
+            // Recharger TokenManager avec les nouvelles données
+            if (typeof TokenManager !== 'undefined') {
+                TokenManager.init({ id: userId, ...updatedUserData });
+            }
+            
+            // Forcer la vérification de l'accès advisor
+            if (typeof checkAdvisorAccess !== 'undefined') {
+                checkAdvisorAccess();
+            }
+            
+            // Recharger initQuickActions si nécessaire
+            if (typeof initQuickActions !== 'undefined') {
+                initQuickActions();
+            }
+        }
+    });
 }
 
 // Charger l'historique des analyses

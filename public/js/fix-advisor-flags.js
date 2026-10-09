@@ -185,29 +185,29 @@ if (typeof document !== 'undefined') {
     // Exécuter la correction automatique pour les utilisateurs advisor
     try {
       const user = firebase.auth().currentUser;
-      if (user) {
-        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
-        if (userDoc.exists) {
-          const userData = userDoc.data();
-          const plan = userData.subscription?.plan || userData.plan || 'free';
-          
-          if (plan === 'advisor') {
-            console.log('🔧 Correction automatique des flags advisor...');
-            const result = await fixCurrentUserAdvisorFlags();
-            if (result.success) {
-              console.log('✅ Correction terminée!');
-              // Forcer le rechargement de la page pour appliquer les changements
-              setTimeout(() => {
-                if (confirm('✅ Vos accès Conseiller IA ont été corrigés! Voulez-vous recharger la page pour appliquer les changements?')) {
-                  window.location.reload();
-                }
-              }, 2000);
-            }
-          }
-        }
-      }
-    } catch (error) {
-      console.error('Erreur lors de la correction automatique:', error);
-    }
-  });
-}
+//      if (user) {
+//        const userDoc = await firebase.firestore().collection('users').doc(user.uid).get();
+//        if (userDoc.exists) {
+//          const userData = userDoc.data();
+//          const plan = userData.subscription?.plan || userData.plan || 'free';
+//          
+//          if (plan === 'advisor') {
+//            console.log('🔧 Correction automatique des flags advisor...');
+//            const result = await fixCurrentUserAdvisorFlags();
+//            if (result.success) {
+//              console.log('✅ Correction terminée!');
+//              // Forcer le rechargement de la page pour appliquer les changements
+//              setTimeout(() => {
+//                if (confirm('✅ Vos accès Conseiller IA ont été corrigés! Voulez-vous recharger la page pour appliquer les changements?')) {
+//                  window.location.reload();
+//                }
+//              }, 2000);
+//            }
+//          }
+//        }
+//      }
+//    } catch (error) {
+//      console.error('Erreur lors de la correction automatique:', error);
+//    }
+//  });
+//}

@@ -1081,7 +1081,7 @@
             if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
                 const plan = TokenManager.tokenState.plan;
                 const hasAccess = TokenManager.tokenState.hasAccessToAPI;
-                const hasAdvisor = TokenManager.isAdvisorAllowed && TokenManager.isAdvisorAllowed();
+                const hasAdvisor = TokenManager.isAdvisorAllowed();
                 
                 shouldUnlock = plan === 'advisor' || hasAccess === true || hasAdvisor === true;
             }
