@@ -403,7 +403,6 @@ async function fixMyAdvisorAccess() {
         console.log('  ✓ Tokens: illimités (-1)');
         console.log('  ✓ Expiration: +30 jours');
         console.log('');
-        console.log('🔄 RECHARGEZ LA PAGE (Ctrl+F5) pour appliquer les changements!');
         
         // Recharger TokenManager si possible
         if (typeof TokenManager !== 'undefined') {
@@ -413,10 +412,16 @@ async function fixMyAdvisorAccess() {
                 console.log('✅ TokenManager rechargé');
             }
         }
+        
+        // Recharger la page automatiquement après 1 seconde pour appliquer les changements
+        console.log('🔄 Rechargement automatique dans 1 seconde...');
+        setTimeout(() => {
+            window.location.reload();
+        }, 1000);
 
         return { 
             success: true, 
-            message: '✅ Tous les champs advisor ont été corrigés! Rechargez la page.',
+            message: '✅ Tous les champs advisor ont été corrigés! La page va se recharger automatiquement.',
             updates: Object.keys(updates)
         };
 
