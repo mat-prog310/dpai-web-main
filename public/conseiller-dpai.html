@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
+    <meta name="google-adsense-account" content="ca-pub-8964953556750058">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Conseiller Stratégique DPAI | Analyse et Accompagnement Intelligent</title>
@@ -37,6 +38,8 @@
     <script src="/js/tokens.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/local-ai-client.js"></script>
+    <script src="/js/diagnose-advisor.js"></script>
+    <script src="/js/fix-advisor-flags.js"></script>
     
     <style>
         /* Styles spécifiques pour le Conseiller DPAI */
@@ -584,7 +587,7 @@
             <p class="subtitle">
                 <strong>Une IA 100% LOCALE DPAI</strong>, entraînée sur notre expertise en croissance externe.<br>
                 <strong>Posez n'importe quelle question sur les fusions, acquisitions, valorisations...</strong>
-                <span class="ai-model-badge">✅ IA Locale - Pas de Mistral</span>
+                <span class="ai-model-badge">✅ IA DPAI</span>
             </p>
         </div>
     </section>
@@ -604,6 +607,17 @@
                     <a href="mailto:duprey.conseil@gmail.com?subject=Demande%20d%27accès%20Conseiller%20IA&body=Bonjour,%0A%0AJe%20souhaite%20obtenir%20l%27accès%20au%20Conseiller%20IA%20DPAI.%0A%0AMon%20email%20de%20compte%20DPAI%20:%20" class="btn btn-outline-primary">
                         <i class="fas fa-paper-plane"></i> Nous contacter
                     </a>
+                </div>
+                <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(0,0,0,0.1);">
+                    <button onclick="displayDiagnosis()" class="btn btn-outline-secondary" style="margin-bottom: 10px;">
+                        <i class="fas fa-search"></i> Diagnostiquer mon accès
+                    </button>
+                    <button onclick="fixMyAdvisorAccess()" class="btn btn-warning" style="margin-bottom: 10px;">
+                        <i class="fas fa-tools"></i> Corriger automatiquement
+                    </button>
+                    <p style="font-size: 14px; color: #666; margin-top: 10px;">
+                        Si vous avez déjà souscrit au plan Conseiller IA (499€), cliquez sur "Diagnostiquer" puis "Corriger"
+                    </p>
                 </div>
             </div>
 
@@ -784,13 +798,38 @@
                 const hasAPIAccess = TokenManager.tokenState.hasAccessToAPI;
                 const hasAdvisorFlag = TokenManager.tokenState.hasAccessToPremiumSuggestions;
                 const isAdvisor = TokenManager.isAdvisorAllowed && TokenManager.isAdvisorAllowed();
-                return plan === 'advisor';
+                
+                // Debug logging
+                console.log('[hasAdvisorAccess] TokenManager.tokenState.plan:', plan);
+                console.log('[hasAdvisorAccess] TokenManager.tokenState.hasAccessToAPI:', hasAPIAccess);
+                console.log('[hasAdvisorAccess] TokenManager.tokenState.hasAccessToPremiumSuggestions:', hasAdvisorFlag);
+                console.log('[hasAdvisorAccess] TokenManager.isAdvisorAllowed():', isAdvisor);
+                
+                // Vérifier via tokenState.plan
+                if (plan === 'advisor') return true;
+                
+                // Vérifier via la méthode isAdvisorAllowed
+                if (isAdvisor) return true;
+                
+                // Vérifier via le flag hasAccessToPremiumSuggestions
+                if (hasAdvisorFlag === true) return true;
+                
+                return false;
             }
             
             // Fallback : vérifier window.currentUserData
             if (typeof window !== 'undefined' && window.currentUserData) {
                 const userData = window.currentUserData;
-                return userData.plan === 'advisor';
+                // Vérifier plusieurs champs possibles
+                const plan = userData.subscription?.plan || userData.plan || userData.tokenState?.plan || 'free';
+                const hasAdvisor = userData.hasAccessToPremiumSuggestions || userData.hasAccessToAdvancedAnalytics || false;
+                
+                console.log('[hasAdvisorAccess] window.currentUserData.plan:', plan);
+                console.log('[hasAdvisorAccess] window.currentUserData.hasAccessToPremiumSuggestions:', userData.hasAccessToPremiumSuggestions);
+                
+                return plan === 'advisor' || hasAdvisor === true;
+            }
+            
             return false;
         }
         
