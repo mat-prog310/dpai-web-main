@@ -472,8 +472,96 @@
     <!-- Google AdSense - Validation du domaine -->
     <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8964953556750058"
      crossorigin="anonymous"></script>
+    
+    <!-- Styles pour le bandeau d'attention -->
+    <style>
+        .maintenance-banner {
+            background: linear-gradient(135deg, #ffd700 0%, #ffb700 100%);
+            color: #000;
+            padding: 16px 24px;
+            border-bottom: 2px solid #ffa500;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            z-index: 10000;
+        }
+        .maintenance-banner .banner-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+        }
+        .maintenance-banner .banner-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+        .maintenance-banner .banner-message {
+            flex: 1;
+        }
+        .maintenance-banner .banner-message p {
+            margin: 0 0 8px 0;
+            line-height: 1.5;
+        }
+        .maintenance-banner .banner-message p:last-child {
+            margin-bottom: 0;
+        }
+        .maintenance-banner .banner-close {
+            position: absolute;
+            top: 16px;
+            right: 24px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            color: #000;
+            padding: 0;
+            line-height: 1;
+        }
+        .maintenance-banner .banner-close:hover {
+            opacity: 0.7;
+        }
+        .maintenance-banner .email-link {
+            color: #000;
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        @media (max-width: 768px) {
+            .maintenance-banner .banner-content {
+                flex-direction: column;
+                gap: 12px;
+            }
+            .maintenance-banner {
+                padding: 16px;
+            }
+            .maintenance-banner .banner-close {
+                top: 16px;
+                right: 16px;
+            }
+        }
+    </style>
     </head>
 <body>
+    <!-- Bandeau d'attention - Développement en cours -->
+    <div class="maintenance-banner" id="maintenanceBanner">
+        <button class="banner-close" onclick="document.getElementById('maintenanceBanner').style.display='none'" aria-label="Fermer">
+            <i class="fas fa-times"></i>
+        </button>
+        <div class="banner-content">
+            <div class="banner-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="banner-message">
+                <p><strong>DPAI est en cours de développement.</strong></p>
+                <p>Notre plateforme est encore en phase de construction. Il est possible que vous rencontriez des bugs, des lenteurs, ou que certains résultats ne correspondent pas encore parfaitement à vos attentes.</p>
+                <p>Nous travaillons chaque jour à améliorer l'expérience, la précision des analyses et la pertinence des recommandations.</p>
+                <p><i class="fas fa-comment-dots"></i> <strong>Tous vos retours comptent.</strong><br>
+                Une idée, un bug, une suggestion ? Écrivez-nous : <a href="mailto:contact@dpai-strategy.com" class="email-link">contact@dpai-strategy.com</a><br>
+                Chaque retour est lu, analysé et pris en compte dans nos prochaines mises à jour.</p>
+                <p>Merci de faire partie des premiers à construire DPAI.</p>
+            </div>
+        </div>
+    </div>
+    
     <!-- Navigation -->
     <nav class="navbar">
         <div class="container">
