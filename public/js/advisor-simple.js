@@ -336,7 +336,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Gérer l'auth
-    if (authService && authService.auth) {
+    if (typeof authService !== 'undefined' && authService.auth) {
         authService.auth.onAuthStateChanged(async (user) => {
             if (user) {
                 // Charger les données utilisateur
@@ -354,7 +354,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (logoutBtn) {
         logoutBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-            if (authService) {
+            if (typeof authService !== 'undefined') {
                 await authService.signOut();
             }
         });
