@@ -105,9 +105,26 @@ service cloud.firestore {
         allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
         allow create, update, delete: if isAuthenticated() && isAdmin();
       }
+      
+      // Sous-collection: actions
+      match /actions/{actionId} {
+        allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow create: if isAuthenticated() && isOwner(userId);
+        allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      }
     }
-    
+
     // =============================================================================
+    // COLLECTION: companies (informations entreprises)
+    // =============================================================================
+    match /companies/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated() && isOwner(userId);
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+    }
+
     // COLLECTION: system (données globales lues par tous)
     // =============================================================================
     match /system/{document} {
