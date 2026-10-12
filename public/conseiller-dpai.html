@@ -819,6 +819,27 @@
             LocalAIClient.checkAdvisorAccess();
         });
         
+        // Mettre à jour l'UI de connexion dans le header
+        function updateAuthUI() {
+            const userMenu = document.getElementById('userMenu');
+            const loginBtn = document.getElementById('loginBtn');
+            const registerBtn = document.getElementById('registerBtn');
+            const userNameSpan = document.getElementById('userName');
+
+            const user = firebase.auth().currentUser;
+
+            if (user) {
+                if (userMenu) userMenu.style.display = 'block';
+                if (loginBtn) loginBtn.style.display = 'none';
+                if (registerBtn) registerBtn.style.display = 'none';
+                if (userNameSpan) userNameSpan.textContent = user.displayName || user.email || 'Compte';
+            } else {
+                if (userMenu) userMenu.style.display = 'none';
+                if (loginBtn) loginBtn.style.display = 'inline-block';
+                if (registerBtn) registerBtn.style.display = 'inline-block';
+            }
+        }
+        
         // Écouter les changements d'authentification
         if (typeof window !== 'undefined') {
             window.addEventListener('authStateChanged', async function(event) {
@@ -826,14 +847,19 @@
                 if (user && userData) {
                     window.currentUserData = userData;
                 }
+                updateAuthUI();
                 if (typeof LocalAIClient !== 'undefined') {
                     LocalAIClient.checkAdvisorAccess();
                 }
             });
         }
         
+        // Initialiser au chargement
+        updateAuthUI();
+        
         // Vérification périodique (toutes les 30 secondes)
         setInterval(() => {
+            updateAuthUI();
             if (typeof LocalAIClient !== 'undefined') {
                 LocalAIClient.checkAdvisorAccess();
             }

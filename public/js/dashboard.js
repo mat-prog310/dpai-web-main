@@ -50,6 +50,9 @@ async function loadDashboard() {
         // Mettre à jour l'interface
         updateDashboardUI();
         
+        // Mettre à jour l'UI de connexion
+        updateAuthUI();
+        
         // Vérifier l'expiration
         checkExpiration();
         
@@ -120,6 +123,9 @@ async function loadUserData(userId) {
             const dashboardEl = document.getElementById('dashboardUserName');
             if (welcomeEl) welcomeEl.textContent = userName;
             if (dashboardEl) dashboardEl.textContent = userName;
+            
+            // Mettre à jour l'UI de connexion dans le header
+            updateAuthUI();
             
             // Mettre à jour les infos entreprise si présentes
             if (updatedUserData.companyInfo) {
@@ -1271,6 +1277,37 @@ function checkAdvisorAccess() {
 }
 
 // =============================================================================
+// MISE À JOUR UI CONNEXION
+// =============================================================================
+
+function updateAuthUI() {
+    const userMenu = document.getElementById('userMenu');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const userNameSpan = document.getElementById('userName');
+
+    const user = firebase.auth().currentUser;
+
+    if (user) {
+        // Utilisateur connecté
+        if (userMenu) userMenu.style.display = 'block';
+        if (loginBtn) loginBtn.style.display = 'none';
+        if (registerBtn) registerBtn.style.display = 'none';
+        if (userNameSpan) userNameSpan.textContent = user.displayName || user.email || 'Compte';
+    } else {
+        // Utilisateur déconnecté
+        if (userMenu) userMenu.style.display = 'none';
+        if (loginBtn) loginBtn.style.display = 'inline-block';
+        if (registerBtn) registerBtn.style.display = 'inline-block';
+    }
+}
+
+// Écouter les changements d'authentification pour mettre à jour l'UI
+if (typeof window !== 'undefined') {
+    window.addEventListener('authStateChanged', updateAuthUI);
+}
+
+// =============================================================================
 // EXPORT POUR L'INTÉGRATION
 // =============================================================================
 
@@ -1281,3 +1318,4 @@ window.initQuickActions = initQuickActions;
 window.startQuickAnalysis = startQuickAnalysis;
 window.viewAnalysisDetails = viewAnalysisDetails;
 window.checkAdvisorAccess = checkAdvisorAccess;
+window.updateAuthUI = updateAuthUI;
