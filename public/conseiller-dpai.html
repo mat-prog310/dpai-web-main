@@ -38,7 +38,6 @@
     <script src="/js/tokens.js"></script>
     <script src="/js/auth.js"></script>
 
-    <script src="/js/diagnose-advisor.js"></script>
     <script src="/js/local-ai-client.js"></script>
 
     
@@ -794,144 +793,51 @@
         </div>
     </div>
     
-    <!-- Script de vérification d'accès -->
-    <!-- Script de vérification d'accès -->
     <script>
         // =============================================================================
-        // GESTION COMPLÈTE DE L'UI DE CONNEXION ET D'ACCÈS
+        // INITIALISATION CONSEILLER IA - Version simplifiée
         // =============================================================================
         
-        // Mettre à jour l'UI de la barre de navigation
-        function updateAuthUI() {
-            const userMenu = document.getElementById('userMenu');
-            const loginBtn = document.getElementById('loginBtn');
-            const registerBtn = document.getElementById('registerBtn');
-            const userNameSpan = document.getElementById('userName');
-            
-            let user = null;
-            
-            // Vérifier authService
-            if (typeof authService !== 'undefined' && authService.currentUser) {
-                user = authService.currentUser;
-            }
-            // Vérifier firebase directement
-            else if (typeof firebase !== 'undefined') {
-                try {
-                    user = firebase.auth().currentUser;
-                } catch (e) {}
-            }
-            
-            if (user) {
-                // Utilisateur connecté
-                if (userMenu) userMenu.style.display = 'block';
-                if (loginBtn) loginBtn.style.display = 'none';
-                if (registerBtn) registerBtn.style.display = 'none';
-                if (userNameSpan) userNameSpan.textContent = user.displayName || user.email || 'Compte';
-            } else {
-                // Utilisateur déconnecté
-                if (userMenu) userMenu.style.display = 'none';
-                if (loginBtn) loginBtn.style.display = 'inline-block';
-                if (registerBtn) registerBtn.style.display = 'inline-block';
-            }
-        }
-        
-        // Fonction centralisée pour vérifier l'accès advisor
-        function hasAdvisorAccess() {
-            const now = new Date();
-            
-            // 1. Vérifier TokenManager
-            if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
-                const plan = TokenManager.tokenState.plan;
-                const isExpired = TokenManager.isExpired && TokenManager.isExpired();
-                
-                if (plan === 'advisor' && !isExpired) return true;
-                
-                if (TokenManager.userData) {
-                    const userPlan = TokenManager.userData.subscription?.plan || 
-                                   TokenManager.userData.plan || 
-                                   TokenManager.userData.tokenState?.plan || 
-                                   'free';
-                    const expiryDate = TokenManager.userData.subscription?.expiresAt;
-                    const userIsExpired = expiryDate ? new Date(expiryDate) < now : false;
-                    
-                    if (userPlan === 'advisor' && !userIsExpired) return true;
-                }
-            }
-            
-            // 2. Fallback window.currentUserData
-            if (typeof window !== 'undefined' && window.currentUserData) {
-                const userData = window.currentUserData;
-                const plan = userData.subscription?.plan || userData.plan || userData.tokenState?.plan || 'free';
-                const expiryDate = userData.subscription?.expiresAt;
-                const isExpired = expiryDate ? new Date(expiryDate) < now : false;
-                
-                if (plan === 'advisor' && !isExpired) return true;
-                
-                if (userData.hasAccessToPremiumSuggestions === true || 
-                    userData.hasAccessToAdvancedAnalytics === true) {
-                    return true;
-                }
-            }
-            
-            // 3. Fallback authService
-            if (typeof window !== 'undefined' && typeof window.authService !== 'undefined' && window.authService.currentUserData) {
-                const userData = window.authService.currentUserData;
-                const plan = userData.subscription?.plan || userData.plan || 'free';
-                const expiryDate = userData.subscription?.expiresAt;
-                const isExpired = expiryDate ? new Date(expiryDate) < now : false;
-                
-                if (plan === 'advisor' && !isExpired) return true;
-            }
-            
-            return false;
-        }
-        
-        // Fonction pour mettre à jour l'UI d'accès
-        function updateAdvisorAccessUI() {
-            const accessCheck = document.getElementById('advisorAccessCheck');
-            const advisorChat = document.getElementById('advisorChat');
-            const hasAccess = hasAdvisorAccess();
-            
-            if (accessCheck && advisorChat) {
-                if (hasAccess) {
-                    accessCheck.style.display = 'none';
-                    advisorChat.style.display = 'block';
+        // Au chargement de la page, vérifier l'accès et initialiser
+        document.addEventListener('DOMContentLoaded', async function() {
+            // Attendre que LocalAIClient soit chargé
+            await new Promise(resolve => {
+                if (typeof LocalAIClient !== 'undefined') {
+                    resolve();
                 } else {
-                    accessCheck.style.display = 'block';
-                    advisorChat.style.display = 'none';
+                    const interval = setInterval(() => {
+                        if (typeof LocalAIClient !== 'undefined') {
+                            clearInterval(interval);
+                            resolve();
+                        }
+                    }, 100);
+                    setTimeout(() => { clearInterval(interval); resolve(); }, 5000);
                 }
-            }
+            });
             
-            // Toujours mettre à jour l'UI de connexion
-            updateAuthUI();
-        }
-        
-        // Initialiser au chargement
-        document.addEventListener('DOMContentLoaded', function() {
-            updateAdvisorAccessUI();
-            
-            // Vérifier toutes les 500ms pendant 10 secondes
-            const interval = setInterval(updateAdvisorAccessUI, 500);
-            setTimeout(() => clearInterval(interval), 10000);
+            // Vérifier l'accès advisor
+            LocalAIClient.checkAdvisorAccess();
         });
         
         // Écouter les changements d'authentification
-        window.addEventListener('authStateChanged', function(event) {
-            const { user, userData } = event.detail || {};
-            if (user && userData) {
-                window.currentUserData = userData;
-            }
-            updateAdvisorAccessUI();
-        });
-        
-        // Écouter TokenManager
-        if (typeof TokenManager !== 'undefined') {
-            TokenManager.addListener(updateAdvisorAccessUI);
+        if (typeof window !== 'undefined') {
+            window.addEventListener('authStateChanged', async function(event) {
+                const { user, userData } = event.detail || {};
+                if (user && userData) {
+                    window.currentUserData = userData;
+                }
+                if (typeof LocalAIClient !== 'undefined') {
+                    LocalAIClient.checkAdvisorAccess();
+                }
+            });
         }
         
-        // Vérification périodique
-        setInterval(updateAdvisorAccessUI, 30000);
-        setInterval(updateAuthUI, 60000);
+        // Vérification périodique (toutes les 30 secondes)
+        setInterval(() => {
+            if (typeof LocalAIClient !== 'undefined') {
+                LocalAIClient.checkAdvisorAccess();
+            }
+        }, 30000);
     </script>
 </body>
 </html>

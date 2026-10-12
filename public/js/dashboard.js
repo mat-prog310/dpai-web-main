@@ -2,9 +2,6 @@
 // DASHBOARD.JS - Tableau de bord stratégique DPAI
 // =============================================================================
 
-// Flag pour éviter les boucles infinies
-window.checkingAdvisorAccess = false;
-
 // Données de l'entreprise (stockées dans Firestore)
 let companyData = {
     name: '',
@@ -101,36 +98,47 @@ async function loadUserData(userId) {
             updateTokenDisplay(userData.tokenState);
         }
     
-    // Ajouter un listener pour les changements futurs
+    // Listener pour les mises à jour utilisateur (UI uniquement)
     db.collection('users').doc(userId).onSnapshot((doc) => {
         if (doc.exists) {
             const updatedUserData = doc.data();
             console.log('[Dashboard] User data updated:', updatedUserData.subscription?.plan || updatedUserData.plan);
             
-            // Recharger TokenManager avec les nouvelles données
+            // Mettre à jour TokenManager
             if (typeof TokenManager !== 'undefined') {
                 TokenManager.init({ id: userId, ...updatedUserData });
             }
             
-            // Forcer tokens illimités si plan advisor (sans boucle)
-            const userPlan = updatedUserData.subscription?.plan || updatedUserData.plan || 'free';
-            if (userPlan === 'advisor' && updatedUserData.tokenState) {
-                if (updatedUserData.tokenState.plan !== 'advisor' || 
-                    updatedUserData.tokenState.totalTokens !== -1) {
-                    // Désactiver temporairement le listener pour éviter la boucle
-                    // On utilise un flag global
-                    if (typeof window !== 'undefined' && !window.updatingAdvisorTokens) {
-                        window.updatingAdvisorTokens = true;
-                        db.collection('users').doc(userId).update({
-                            'tokenState.plan': 'advisor',
-                            'tokenState.baseTokens': -1,
-                            'tokenState.totalTokens': -1,
-                            'tokenState.availableTokens': -1,
-                            'tokenState.usedTokens': 0,
-                            'plan': 'advisor'
-                        }).finally(() => {
-                            window.updatingAdvisorTokens = false;
-                        });
+            // Mettre à jour l'affichage des tokens
+            if (updatedUserData.tokenState) {
+                updateTokenDisplay(updatedUserData.tokenState);
+            }
+            
+            // Mettre à jour le nom utilisateur
+            const userName = updatedUserData.displayName || updatedUserData.email || 'Utilisateur';
+            const welcomeEl = document.getElementById('welcomeUserName');
+            const dashboardEl = document.getElementById('dashboardUserName');
+            if (welcomeEl) welcomeEl.textContent = userName;
+            if (dashboardEl) dashboardEl.textContent = userName;
+            
+            // Mettre à jour les infos entreprise si présentes
+            if (updatedUserData.companyInfo) {
+                companyData = { ...companyData, ...updatedUserData.companyInfo };
+                updateCompanyCard();
+                updateKPIs();
+            }
+            
+            // Vérifier l'accès advisor (UI uniquement)
+            if (typeof checkAdvisorAccess !== 'undefined') {
+                checkAdvisorAccess();
+            }
+            
+            // Recharger les actions si nécessaire
+            if (typeof initQuickActions !== 'undefined') {
+                initQuickActions();
+            }
+        }
+    }););
                     }
                 }
             }
@@ -1216,6 +1224,10 @@ function startQuickAnalysis(type) {
     // Le type sera utilisé pour afficher le bon formulaire
     window.location.href = `analysis-form.html?type=${type}`;
 }
+
+// =============================================================================
+// FONCTION POUR LE BOUTON CONSEILLER IA
+// =============================================================================
 
 // =============================================================================
 // FONCTION POUR LE BOUTON CONSEILLER IA
