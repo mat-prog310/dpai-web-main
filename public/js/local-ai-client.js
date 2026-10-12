@@ -101,7 +101,7 @@ async function ensureTokenManagerInitialized(retryCount = 0) {
                     ...(userData || {})
                 };
                 TokenManager.init(userDataWithId);
-                console.log('[LocalAI] TokenManager initialisé depuis authService');
+                console.log('[LocalAI] TokenManager initialisé depuis authService.currentUserData');
                 return; // Succès, on sort
             } catch (error) {
                 console.warn('[LocalAI] Impossible d\'initialiser TokenManager:', error);
@@ -114,8 +114,17 @@ async function ensureTokenManagerInitialized(retryCount = 0) {
         try {
             if (typeof loadUserTokenData === 'function') {
                 await loadUserTokenData(authService.currentUser.uid);
-                console.log('[LocalAI] TokenManager initialisé via loadUserTokenData');
-                return;
+                // Apres chargement, verifier si authService.currentUserData est maintenant disponible
+                if (authService.currentUserData) {
+                    const freshUserData = authService.currentUserData;
+                    const userDataWithId = freshUserData.id ? freshUserData : {
+                        id: authService.currentUser.uid,
+                        ...(freshUserData || {})
+                    };
+                    TokenManager.init(userDataWithId);
+                    console.log('[LocalAI] TokenManager initialisé APRES loadUserTokenData');
+                    return;
+                }
             }
         } catch (error) {
             console.warn('[LocalAI] Impossible de charger les données tokens:', error);
@@ -123,8 +132,8 @@ async function ensureTokenManagerInitialized(retryCount = 0) {
     }
 
     // Si on a pas réussi et que c'est pas la première tentative, réessayer
-    if (retryCount < 3) {
-        await new Promise(resolve => setTimeout(resolve, 500));
+    if (retryCount < 5) {
+        await new Promise(resolve => setTimeout(resolve, 300));
         await ensureTokenManagerInitialized(retryCount + 1);
     }
 }
@@ -237,7 +246,6 @@ function formatTime(date) {
 async function loadConversations() {
     try {
         await ensureTokenManagerInitialized();
-        if (!TokenManager || !TokenManager.userData) return;
 
         const response = await getLocalAIConversations();
         conversations = response || [];
@@ -402,7 +410,21 @@ async function callLocalAI(message, conversationId = null) {
         // S'assurer que TokenManager est initialisé
         await ensureTokenManagerInitialized();
         
-        if (!TokenManager || !TokenManager.userData) {
+        // Fallback sur authService si TokenManager nest pas disponible
+        let userId;
+        if (TokenManager && TokenManager.userData) {
+            userId = TokenManager.userData.id;
+        } else if (typeof authService !== 'undefined' && authService.currentUser) {
+            userId = authService.currentUser.uid;
+            // Initialiser TokenManager avec les donnees disponibles
+            if (TokenManager && authService.currentUserData) {
+                const userDataWithId = authService.currentUserData.id ? authService.currentUserData : {
+                    id: userId,
+                    ...(authService.currentUserData || {})
+                };
+                TokenManager.init(userDataWithId);
+            }
+        } else {
             throw new Error('Utilisateur non connecté');
         }
 
@@ -416,7 +438,7 @@ async function callLocalAI(message, conversationId = null) {
         };
         
         // Ajouter le token Firebase si disponible
-        if (TokenManager.userData && typeof authService !== 'undefined' && authService.currentUser) {
+        if (typeof authService !== 'undefined' && authService.currentUser) {
             const user = authService.currentUser;
             if (user && user.getIdToken) {
                 const token = await user.getIdToken();
@@ -428,7 +450,7 @@ async function callLocalAI(message, conversationId = null) {
             method: 'POST',
             headers: headers,
             body: JSON.stringify({
-                userId: TokenManager.userData.id,
+                userId: userId,
                 message: message,
                 conversationId: conversationId
             })
@@ -467,7 +489,21 @@ async function callLocalAI(message, conversationId = null) {
 async function getLocalAIConversations() {
     try {
         await ensureTokenManagerInitialized();
-        if (!TokenManager || !TokenManager.userData) {
+        // Fallback sur authService si TokenManager nest pas disponible
+        let userId;
+        if (TokenManager && TokenManager.userData) {
+            userId = TokenManager.userData.id;
+        } else if (typeof authService !== 'undefined' && authService.currentUser) {
+            userId = authService.currentUser.uid;
+            // Initialiser TokenManager avec les donnees disponibles
+            if (TokenManager && authService.currentUserData) {
+                const userDataWithId = authService.currentUserData.id ? authService.currentUserData : {
+                    id: userId,
+                    ...(authService.currentUserData || {})
+                };
+                TokenManager.init(userDataWithId);
+            }
+        } else {
             throw new Error('Utilisateur non connecté');
         }
 
@@ -476,7 +512,7 @@ async function getLocalAIConversations() {
         
         // En mode serveur, utiliser l'endpoint Firebase Functions
         if (mode === 'server' && config.conversationsEndpoint) {
-            const url = `${config.apiUrl}${config.conversationsEndpoint}?userId=${TokenManager.userData.id}`;
+            const url = `${config.apiUrl}${config.conversationsEndpoint}?userId=${userId}`;
             const response = await fetch(url, {
                 method: 'GET',
                 headers: {
@@ -494,7 +530,7 @@ async function getLocalAIConversations() {
             // En mode local, utiliser Firestore directement
             const db = firebase.firestore();
             const snapshot = await db.collection('local_ai_conversations')
-                .where('userId', '==', TokenManager.userData.id)
+                .where('userId', '==', userId)
                 .orderBy('updatedAt', 'desc')
                 .get();
 
@@ -518,7 +554,21 @@ async function getLocalAIConversations() {
 async function deleteLocalAIConversation(conversationId) {
     try {
         await ensureTokenManagerInitialized();
-        if (!TokenManager || !TokenManager.userData) {
+        // Fallback sur authService si TokenManager nest pas disponible
+        let userId;
+        if (TokenManager && TokenManager.userData) {
+            userId = TokenManager.userData.id;
+        } else if (typeof authService !== 'undefined' && authService.currentUser) {
+            userId = authService.currentUser.uid;
+            // Initialiser TokenManager avec les donnees disponibles
+            if (TokenManager && authService.currentUserData) {
+                const userDataWithId = authService.currentUserData.id ? authService.currentUserData : {
+                    id: userId,
+                    ...(authService.currentUserData || {})
+                };
+                TokenManager.init(userDataWithId);
+            }
+        } else {
             throw new Error('Utilisateur non connecté');
         }
 
@@ -527,7 +577,7 @@ async function deleteLocalAIConversation(conversationId) {
         
         // En mode serveur, utiliser l'endpoint Firebase Functions
         if (mode === 'server' && config.deleteEndpoint) {
-            const url = `${config.apiUrl}${config.deleteEndpoint}?userId=${TokenManager.userData.id}&conversationId=${conversationId}`;
+            const url = `${config.apiUrl}${config.deleteEndpoint}?userId=${userId}&conversationId=${conversationId}`;
             const response = await fetch(url, {
                 method: 'DELETE',
                 headers: {
@@ -723,10 +773,20 @@ async function checkAdvisorAccess() {
     try {
         // S'assurer que TokenManager est initialisé
         await ensureTokenManagerInitialized();
-        
+        // Fallback sur authService si TokenManager nest pas disponible
         if (!TokenManager || !TokenManager.userData) {
-            showAccessRequired();
-            return false;
+            if (typeof authService !== "undefined" && authService.currentUser && authService.currentUserData) {
+                const userDataWithId = authService.currentUserData.id ? authService.currentUserData : {
+                    id: authService.currentUser.uid,
+                    ...(authService.currentUserData || {})
+                };
+                if (TokenManager) {
+                    TokenManager.init(userDataWithId);
+                }
+            } else {
+                showAccessRequired();
+                return false;
+            }
         }
 
         // Vérifier si l'utilisateur a accès au Conseiller IA (plan advisor)
