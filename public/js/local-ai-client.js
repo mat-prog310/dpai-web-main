@@ -72,6 +72,75 @@ function getAPIMode() {
 }
 
 // =============================================================================
+// INITIALISATION TOKEN MANAGER
+// =============================================================================
+
+// Fonction pour s'assurer que TokenManager est initialisé avec les données utilisateur
+async function ensureTokenManagerInitialized(retryCount = 0) {
+    // Si TokenManager est déjà initialisé avec userData, ne rien faire
+    if (typeof TokenManager !== 'undefined' && TokenManager.userData) {
+        return;
+    }
+
+    // Vérifier si TokenManager existe
+    if (typeof TokenManager === 'undefined') {
+        console.warn('[LocalAI] TokenManager non défini');
+        return;
+    }
+
+    // Vérifier si authService est disponible et a un utilisateur connecté
+    if (typeof authService !== 'undefined') {
+        const user = authService.currentUser;
+        const userData = authService.currentUserData;
+        
+        if (userData) {
+            try {
+                // S'assurer que userData a un id (au cas où Firestore ne l'a pas stocké)
+                const userDataWithId = userData.id ? userData : {
+                    id: user?.uid || 'unknown',
+                    ...(userData || {})
+                };
+                TokenManager.init(userDataWithId);
+                console.log('[LocalAI] TokenManager initialisé depuis authService');
+                return; // Succès, on sort
+            } catch (error) {
+                console.warn('[LocalAI] Impossible d\'initialiser TokenManager:', error);
+            }
+        }
+    }
+
+    // Si on arrive ici, essayer de charger les données via loadUserTokenData
+    if (typeof authService !== 'undefined' && authService.currentUser) {
+        try {
+            if (typeof loadUserTokenData === 'function') {
+                await loadUserTokenData(authService.currentUser.uid);
+                console.log('[LocalAI] TokenManager initialisé via loadUserTokenData');
+                return;
+            }
+        } catch (error) {
+            console.warn('[LocalAI] Impossible de charger les données tokens:', error);
+        }
+    }
+
+    // Si on a pas réussi et que c'est pas la première tentative, réessayer
+    if (retryCount < 3) {
+        await new Promise(resolve => setTimeout(resolve, 500));
+        await ensureTokenManagerInitialized(retryCount + 1);
+    }
+}
+
+// Écouter les changements d'authentification pour initialiser TokenManager
+if (typeof window !== 'undefined') {
+    window.addEventListener('authStateChanged', async function(event) {
+        const { user, userData } = event.detail || {};
+        if (user && userData) {
+            console.log('[LocalAI] authStateChanged détecté, initialisation TokenManager...');
+            await ensureTokenManagerInitialized();
+        }
+    });
+}
+
+// =============================================================================
 // FONCTIONS D'AFFICHAGE
 // =============================================================================
 
@@ -167,6 +236,7 @@ function formatTime(date) {
 
 async function loadConversations() {
     try {
+        await ensureTokenManagerInitialized();
         if (!TokenManager || !TokenManager.userData) return;
 
         const response = await getLocalAIConversations();
@@ -329,6 +399,9 @@ function updateConversationsList() {
  */
 async function callLocalAI(message, conversationId = null) {
     try {
+        // S'assurer que TokenManager est initialisé
+        await ensureTokenManagerInitialized();
+        
         if (!TokenManager || !TokenManager.userData) {
             throw new Error('Utilisateur non connecté');
         }
@@ -393,6 +466,7 @@ async function callLocalAI(message, conversationId = null) {
  */
 async function getLocalAIConversations() {
     try {
+        await ensureTokenManagerInitialized();
         if (!TokenManager || !TokenManager.userData) {
             throw new Error('Utilisateur non connecté');
         }
@@ -443,6 +517,7 @@ async function getLocalAIConversations() {
  */
 async function deleteLocalAIConversation(conversationId) {
     try {
+        await ensureTokenManagerInitialized();
         if (!TokenManager || !TokenManager.userData) {
             throw new Error('Utilisateur non connecté');
         }
@@ -646,6 +721,9 @@ function showLocalAIError(message) {
 
 async function checkAdvisorAccess() {
     try {
+        // S'assurer que TokenManager est initialisé
+        await ensureTokenManagerInitialized();
+        
         if (!TokenManager || !TokenManager.userData) {
             showAccessRequired();
             return false;
@@ -679,6 +757,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Initialiser l'auth - authService est auto-initialisé dans auth.js, rien à faire ici
+    
+    // S'assurer que TokenManager est initialisé dès le chargement
+    // Vérifier si l'utilisateur est déjà connecté (authStateChanged peut avoir été émis avant)
+    if (typeof authService !== 'undefined' && authService.currentUserData) {
+        await ensureTokenManagerInitialized();
+    }
 
     // Vérifier l'accès
     await checkAdvisorAccess();
@@ -714,6 +798,7 @@ document.addEventListener('DOMContentLoaded', async () => {
                 if (typeof loadUserTokenData === 'function') {
                     await loadUserTokenData(user.uid);
                 }
+                await ensureTokenManagerInitialized();
                 await checkAdvisorAccess();
             } else {
                 showAccessRequired();

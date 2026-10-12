@@ -7,6 +7,9 @@ function getDB() {
     if (typeof db !== 'undefined') {
         return db;
     }
+    if (typeof window !== 'undefined' && typeof window.authService !== 'undefined' && window.authService.db) {
+        return window.authService.db;
+    }
     if (typeof window !== 'undefined' && typeof window.firebaseDB !== 'undefined') {
         return window.firebaseDB;
     }
@@ -1167,3 +1170,4 @@ window.PLAN_CONFIG = PLAN_CONFIG;
 // La clé doit être récupérée via getMistralApiKey() lorsque nécessaire
 window.MISTRAL_API_URL = MISTRAL_API_URL;
 window.DPAI_CONTEXT = DPAI_CONTEXT;
+window.loadUserTokenData = loadUserTokenData;
