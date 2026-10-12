@@ -449,6 +449,8 @@ async function callLocalAI(message, conversationId = null) {
         const response = await fetch(url, {
             method: 'POST',
             headers: headers,
+            mode: 'cors',
+            credentials: 'include',
             body: JSON.stringify({
                 userId: userId,
                 message: message,
@@ -463,6 +465,10 @@ async function callLocalAI(message, conversationId = null) {
                 errorData = JSON.parse(errorText);
             } catch (parseError) {
                 errorData = { error: errorText };
+            }
+            // Verifier si c'est une erreur CORS
+            if (errorText.includes('CORS') || errorText.includes('Access-Control') || error.message && error.message.includes('Failed to fetch')) {
+                throw new Error('Problème de configuration serveur. Contactez le support technique.');
             }
             throw new Error(errorData.error || errorData.message || 'Erreur serveur IA locale');
         }
@@ -517,7 +523,8 @@ async function getLocalAIConversations() {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                mode: 'cors'
             });
             
             if (!response.ok) {
@@ -582,7 +589,8 @@ async function deleteLocalAIConversation(conversationId) {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
-                }
+                },
+                mode: 'cors'
             });
             
             if (!response.ok) {
