@@ -1059,32 +1059,19 @@
             const { user, userData } = event.detail;
             if (user && userData) {
                 loadDashboardData();
-                // Appeler checkAdvisorAccess après chargement du dashboard
-                setTimeout(checkAdvisorAccess, 1000);
+                // Appeler checkAdvisorAccess après chargement du dashboard (avec flag anti-boucle)
+                setTimeout(() => {
+                    if (typeof window !== 'undefined' && !window.checkingAdvisorAccess) {
+                        window.checkingAdvisorAccess = true;
+                        checkAdvisorAccess();
+                        setTimeout(() => { window.checkingAdvisorAccess = false; }, 1000);
+                    }
+                }, 1000);
                 // Stocker les données utilisateur pour le script de vérification
                 window.currentUserData = userData;
                 
-                // Si l'utilisateur a le plan advisor, vérifier les flags
-                const plan = userData.subscription?.plan || userData.plan || 'free';
-                if (plan === 'advisor') {
-                    // Vérifier et corriger automatiquement les flags après un délai
-                    setTimeout(async () => {
-                        try {
-                            const status = await window.checkCurrentUserAdvisorStatus();
-                            const needsFix = status && (
-                                status.hasAccessToAPI !== true ||
-                                status.hasAccessToAdvancedAnalytics !== true ||
-                                status.hasAccessToPremiumSuggestions !== true
-                            );
-                            if (needsFix) {
-                                console.log('🔧 Correction des flags advisor nécessaire...');
-                                await window.fixCurrentUserAdvisorFlags();
-                            }
-                        } catch (e) {
-                            console.error('Erreur vérification flags:', e);
-                        }
-                    }, 3000);
-                }
+                // Si l'utilisateur a le plan advisor, les flags seront vérifiés par checkAdvisorAccess
+                // (pas de vérification automatique pour éviter les boucles)
             }
         });
     </script>
@@ -1108,10 +1095,10 @@
             }
         });
         
-        // Vérifier périodiquement au cas où
-        if (typeof checkAdvisorAccess !== 'undefined') {
-            setInterval(checkAdvisorAccess, 30000);
-        }
+        // Vérification périodique désactivée pour éviter les boucles
+        // if (typeof checkAdvisorAccess !== 'undefined') {
+        //     setInterval(checkAdvisorAccess, 30000);
+        // }
     </script>
 </body>
 </html>

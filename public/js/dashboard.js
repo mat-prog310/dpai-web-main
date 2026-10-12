@@ -2,6 +2,9 @@
 // DASHBOARD.JS - Tableau de bord stratégique DPAI
 // =============================================================================
 
+// Flag pour éviter les boucles infinies
+window.checkingAdvisorAccess = false;
+
 // Données de l'entreprise (stockées dans Firestore)
 let companyData = {
     name: '',
@@ -109,25 +112,33 @@ async function loadUserData(userId) {
                 TokenManager.init({ id: userId, ...updatedUserData });
             }
             
-            // Forcer tokens illimités si plan advisor
+            // Forcer tokens illimités si plan advisor (sans boucle)
             const userPlan = updatedUserData.subscription?.plan || updatedUserData.plan || 'free';
             if (userPlan === 'advisor' && updatedUserData.tokenState) {
                 if (updatedUserData.tokenState.plan !== 'advisor' || 
                     updatedUserData.tokenState.totalTokens !== -1) {
-                    db.collection('users').doc(userId).update({
-                        'tokenState.plan': 'advisor',
-                        'tokenState.baseTokens': -1,
-                        'tokenState.totalTokens': -1,
-                        'tokenState.availableTokens': -1,
-                        'tokenState.usedTokens': 0,
-                        'plan': 'advisor'
-                    });
+                    // Désactiver temporairement le listener pour éviter la boucle
+                    // On utilise un flag global
+                    if (typeof window !== 'undefined' && !window.updatingAdvisorTokens) {
+                        window.updatingAdvisorTokens = true;
+                        db.collection('users').doc(userId).update({
+                            'tokenState.plan': 'advisor',
+                            'tokenState.baseTokens': -1,
+                            'tokenState.totalTokens': -1,
+                            'tokenState.availableTokens': -1,
+                            'tokenState.usedTokens': 0,
+                            'plan': 'advisor'
+                        }).finally(() => {
+                            window.updatingAdvisorTokens = false;
+                        });
+                    }
                 }
             }
             
-            // Forcer la vérification de l'accès advisor
-            if (typeof checkAdvisorAccess !== 'undefined') {
-                checkAdvisorAccess();
+            // Forcer la vérification de l'accès advisor (une seule fois)
+            if (typeof checkAdvisorAccess !== 'undefined' && !window.checkingAdvisorAccess) {
+                window.checkingAdvisorAccess = true;
+                setTimeout(() => { checkAdvisorAccess(); window.checkingAdvisorAccess = false; }, 100);
             }
             
             // Recharger initQuickActions si nécessaire
@@ -145,27 +156,6 @@ async function loadUserData(userId) {
     }
     
     // Ajouter un listener pour les changements futurs
-    db.collection('users').doc(userId).onSnapshot((doc) => {
-        if (doc.exists) {
-            const updatedUserData = doc.data();
-            console.log('[Dashboard] User data updated:', updatedUserData.subscription?.plan || updatedUserData.plan);
-            
-            // Recharger TokenManager avec les nouvelles données
-            if (typeof TokenManager !== 'undefined') {
-                TokenManager.init({ id: userId, ...updatedUserData });
-            }
-            
-            // Forcer la vérification de l'accès advisor
-            if (typeof checkAdvisorAccess !== 'undefined') {
-                checkAdvisorAccess();
-            }
-            
-            // Recharger initQuickActions si nécessaire
-            if (typeof initQuickActions !== 'undefined') {
-                initQuickActions();
-            }
-        }
-    });
 }
 
 // Charger l'historique des analyses
