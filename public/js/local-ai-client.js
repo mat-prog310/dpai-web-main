@@ -343,8 +343,8 @@ async function callLocalAI(message, conversationId = null) {
         };
         
         // Ajouter le token Firebase si disponible
-        if (TokenManager.userData && typeof authService !== 'undefined' && authService.getCurrentUser) {
-            const user = await authService.getCurrentUser();
+        if (TokenManager.userData && typeof authService !== 'undefined' && authService.currentUser) {
+            const user = authService.currentUser;
             if (user && user.getIdToken) {
                 const token = await user.getIdToken();
                 headers['Authorization'] = `Bearer ${token}`;
@@ -678,10 +678,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         await initializeFirebase();
     }
 
-    // Initialiser l'auth
-    if (typeof authService === 'object' && authService.init) {
-        await authService.init();
-    }
+    // Initialiser l'auth - authService est auto-initialisé dans auth.js, rien à faire ici
 
     // Vérifier l'accès
     await checkAdvisorAccess();
@@ -710,11 +707,13 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     // Gérer l'auth
-    if (authService) {
-        authService.onAuthStateChanged(async (user) => {
+    if (authService && authService.auth) {
+        authService.auth.onAuthStateChanged(async (user) => {
             if (user) {
                 // Charger les données utilisateur
-                await TokenManager.loadUserTokenData(user.uid);
+                if (typeof loadUserTokenData === 'function') {
+                    await loadUserTokenData(user.uid);
+                }
                 await checkAdvisorAccess();
             } else {
                 showAccessRequired();
