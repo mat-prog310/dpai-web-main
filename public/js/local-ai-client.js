@@ -365,7 +365,8 @@ async function sendMessage() {
 
         const db = firebase.firestore();
         const conversationsRef = db.collection('local_ai_conversations');
-        const timestamp = firebase.firestore.FieldValue.serverTimestamp();
+        const serverTimestamp = firebase.firestore.FieldValue.serverTimestamp();
+        const clientTimestamp = new Date();
         
         // Créer ou mettre à jour la conversation
         const convRef = currentConversationId 
@@ -373,11 +374,11 @@ async function sendMessage() {
             : conversationsRef.doc();
         const convId = convRef.id;
         
-        // Message utilisateur
+        // Message utilisateur - utiliser un timestamp client pour les messages dans le tableau
         const userMessage = {
             role: 'user',
             content: message,
-            timestamp: timestamp
+            timestamp: clientTimestamp
         };
         
         // Générer une réponse IA (simulée pour l'instant)
@@ -388,24 +389,26 @@ async function sendMessage() {
         const assistantMessage = {
             role: 'assistant',
             content: assistantResponse,
-            timestamp: timestamp
+            timestamp: clientTimestamp
         };
         
         if (currentConversationId) {
             // Ajouter à une conversation existante
+            // Utiliser arrayUnion avec des objets qui ont des timestamps clients, pas serverTimestamp
             await convRef.update({
                 messages: firebase.firestore.FieldValue.arrayUnion(userMessage, assistantMessage),
-                updatedAt: timestamp
+                updatedAt: serverTimestamp
             });
         } else {
             // Créer une nouvelle conversation
+            // Utiliser des timestamps clients pour les messages dans le tableau
             await convRef.set({
                 id: convId,
                 userId: userId,
                 title: message.slice(0, 50) + '...',
                 messages: [userMessage, assistantMessage],
-                createdAt: timestamp,
-                updatedAt: timestamp
+                createdAt: serverTimestamp,
+                updatedAt: serverTimestamp
             });
             currentConversationId = convId;
         }
