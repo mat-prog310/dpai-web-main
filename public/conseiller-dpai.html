@@ -841,7 +841,7 @@
             }
             
             // 3. Dernier fallback : vérifier authService
-            if (typeof window !== 'undefined' && window.authService && window.authService.currentUserData) {
+            if (typeof window !== 'undefined' && typeof window.authService !== 'undefined' && window.authService.currentUserData) {
                 const userData = window.authService.currentUserData;
                 const plan = userData.subscription?.plan || userData.plan || 'free';
                 const expiryDate = userData.subscription?.expiresAt;

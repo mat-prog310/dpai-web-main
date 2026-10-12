@@ -291,7 +291,7 @@
         // Configurer le formulaire au chargement
         document.addEventListener('DOMContentLoaded', function() {
             // Si authService est déjà prêt, essayer de charger TokenManager immédiatement
-            if (window.authService && window.authService.currentUserData) {
+            if (typeof window.authService !== "undefined" && window.authService.currentUserData) {
                 TokenManager.init(window.authService.currentUserData);
             }
 

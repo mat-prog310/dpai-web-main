@@ -511,7 +511,7 @@
             }
         });
         document.addEventListener('DOMContentLoaded', function() {
-            if (window.authService && window.authService.currentUserData && window.TokenManager) {
+            if (typeof window.authService !== "undefined" && window.authService.currentUserData && window.TokenManager) {
                 TokenManager.init(window.authService.currentUserData);
             }
         });
@@ -812,7 +812,7 @@
             // Attendre que Firebase et l'auth soient prêts
             await new Promise((resolve) => {
                 const checkReady = setInterval(() => {
-                    if (window.firebaseAuth && window.authService) {
+                    if (window.firebaseAuth && typeof window.authService !== "undefined") {
                         clearInterval(checkReady);
                         resolve();
                     }
