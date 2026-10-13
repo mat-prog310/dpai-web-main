@@ -211,7 +211,6 @@ function updateAuthUI(user, userData) {
         if (dashboardContent) dashboardContent.style.display = 'none';
         if (dashboardHeader) dashboardHeader.style.display = 'none';
     }
-}
     
     // Bouton de déconnexion
     if (logoutBtn) {
