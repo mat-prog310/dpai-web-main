@@ -1,0 +1,9 @@
+{
+  "services": {
+    "ai": {
+      "start": "cd my_local_ai && gunicorn -b 0.0.0.0:$PORT api_server:app",
+      "installDependencies": true,
+      "buildCommand": "cd my_local_ai && pip install -r requirements.txt"
+    }
+  }
+}
