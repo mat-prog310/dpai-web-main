@@ -72,14 +72,6 @@ async function loadUserData(userId) {
         const userData = userDoc.data();
         
         
-        // C'est CRUCIAL pour que le plan advisor soit détecté correctement
-        if (typeof TokenManager !== 'undefined') {
-            TokenManager.init({ id: userId, ...userData });
-        }
-        // Mettre à jour l'UI utilisateur
-        const userName = userData.displayName || userData.email || 'Utilisateur';
-        const welcomeEl = document.getElementById('welcomeUserName');
-        const dashboardEl = document.getElementById('dashboardUserName');
         if (welcomeEl) welcomeEl.textContent = userName;
         if (dashboardEl) dashboardEl.textContent = userName;
         
@@ -92,7 +84,7 @@ async function loadUserData(userId) {
         if (userData.tokenState) {
             updateTokenDisplay(userData.tokenState);
         }
-    
+    }
     // Listener pour les mises à jour utilisateur (UI uniquement)
     db.collection('users').doc(userId).onSnapshot((doc) => {
         if (doc.exists) {
