@@ -3229,7 +3229,7 @@ class AnalysisManager {
             const prompt = this.createEnhancementPrompt(type, analysisResult, companyData);
             
             // Appeler Mistral via TokenManager
-            const aiResponse = await TokenManager.callMistral(prompt);
+            const aiResponse = await TokenManager.callLocalAI(prompt);
             
             // Parser la réponse
             return {
@@ -3954,10 +3954,10 @@ const ANALYSIS_PROMPTS = {
 class AIAnalysisManager {
     
     // ⚠️  NE PAS stocker la clé API directement ! Utiliser la fonction asynchrone
-    static MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
+    static LOCAL_AI_URL = "http://localhost:5002/api/chat";
     
     // Clé API chargée de manière sécurisée via la fonction getKey()
-    static MISTRAL_API_KEY = null;
+    static LOCAL_AI_ENABLED = null;
     
     // Vérifier si l'utilisateur a accès à l'IA
     static canUseAI() {
@@ -3976,48 +3976,42 @@ class AIAnalysisManager {
         return TokenManager.isTokensUnlimited && TokenManager.isTokensUnlimited();
     }
     
-    // Appeler Mistral API via une route serveur sécurisée
-    // ⚠️  NE PAS appeler directement l'API Mistral depuis le client
-    // car cela exposerait la clé API. Utiliser une route proxy côté serveur.
-    static async callMistral(prompt, model = "mistral-large") {
+    // Appel a l API locale DPAI via proxy Node.js
+    static async callLocalAI(prompt, model = "mistral-large") {
         try {
-            // Vérifier que l'utilisateur peut utiliser l'IA
+            // Verifier que l utilisateur peut utiliser l IA
             if (!this.canUseAI()) {
-                throw new Error('Accès non autorisé à l\'API IA');
+                throw new Error('Acces non autorise a l API IA');
             }
             
-            // Utiliser une route proxy côté serveur pour appeler Mistral
-            const response = await fetch('/api/mistral-proxy', {
+            // Utiliser la route proxy vers l API locale
+            const response = await fetch('/api/local-ai/chat', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 body: JSON.stringify({
-                    prompt: prompt,
-                    model: model
-                })
-                body: JSON.stringify({
-                    model: model,
-                    messages: [{ role: 'user', content: prompt }],
-                    temperature: 0.3,
-                    max_tokens: 2000
+                    message: prompt,
+                    userId: 'analyses-service',
+                    conversationId: null
                 })
             });
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error || 'Erreur Mistral API');
+                throw new Error(error.error || 'Erreur IA locale DPAI');
             }
 
             const data = await response.json();
-            return data.choices[0].message.content;
+            if (!data.success || !data.response) {
+                throw new Error('Pas de reponse de l IA locale');
+            }
+            return data.response;
         } catch (error) {
-            console.error('❌ Erreur Mistral:', error);
+            console.error('Erreur IA locale DPAI:', error);
             throw error;
         }
     }
-    
-    // Exécuter une analyse avec IA
     static async executeWithAI(type, companyData) {
         // Vérifier si l'utilisateur a accès à l'IA
         if (!this.canUseAI()) {
@@ -4041,7 +4035,7 @@ class AIAnalysisManager {
         const prompt = promptFunction(companyData);
         
         // Appeler Mistral
-        const response = await this.callMistral(prompt);
+        const response = await this.callLocalAI(prompt);
         
         // Déduire les tokens si l'utilisateur n'a pas des tokens illimités (seul advisor a illimité)
         if (!this.hasUnlimitedTokens() && typeof TokenManager !== 'undefined') {

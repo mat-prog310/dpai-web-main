@@ -1,6 +1,7 @@
 // =============================================================================
-// AI-INTEGRATION.JS - Intégration complète de Mistral pour DPAI
-// Ce fichier contient les fonctions utilitaires pour l'IA
+// AI-INTEGRATION.JS - Intégration de l'IA Locale DPAI
+// Ce fichier contient les fonctions utilitaires pour l'IA locale
+// Utilise my_local_ai/api_server.py au lieu de Mistral API
 // =============================================================================
 
 const axios = require('axios');
@@ -26,12 +27,8 @@ const {
 // CONFIGURATION
 // =============================================================================
 
-// Récupérer la clé Mistral depuis les variables d'environnement
-const MISTRAL_API_KEY = process.env.MISTRAL_API_KEY || 
-    (typeof functions !== 'undefined' ? functions.config().mistral?.key : null) ||
-    "mstrl_OUgXuc71KYyO2QoWZ8h0okTn14wCYUnG_20gLSU";
-
-const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
+// Configuration de l'API locale DPAI
+const LOCAL_AI_URL = process.env.LOCAL_AI_URL || "http://localhost:5002";
 
 // Coûts des analyses IA en tokens DPAI
 const AI_ANALYSIS_COSTS = {
@@ -44,71 +41,170 @@ const AI_ANALYSIS_COSTS = {
 };
 
 // =============================================================================
-// FONCTIONS D'APPEL À MISTRAL
+// FONCTIONS D'APPEL À L'IA LOCALE
 // =============================================================================
 
 /**
- * Appelle l'API Mistral avec un prompt
+ * Appelle l'API locale DPAI avec un prompt
  * @param {string} prompt - Le prompt à envoyer
- * @param {string} model - Le modèle à utiliser (default: mistral-large)
- * @returns {Promise<string>} La réponse de Mistral
+ * @param {string} type - Type d'analyse (optionnel)
+ * @returns {Promise<{success: boolean, response: string, confidence: number, source: string}>}
  */
-async function callMistral(prompt, model = "mistral-large") {
+async function callLocalAI(prompt, type = null) {
     try {
+        console.log('🔹 Appel à l\'IA locale DPAI...');
+        
+        const payload = {
+            message: prompt,
+            type: type
+        };
+
         // Si on est dans Firebase Functions, utiliser fetch
         if (typeof fetch !== 'undefined') {
-            const response = await fetch(MISTRAL_API_URL, {
+            const response = await fetch(`${LOCAL_AI_URL}/api/chat`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${MISTRAL_API_KEY}`
+                    'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({
-                    model: model,
-                    messages: [{ role: 'user', content: prompt }],
-                    temperature: 0.3,
-                    max_tokens: 2000
-                })
+                body: JSON.stringify(payload)
             });
 
             if (!response.ok) {
                 const error = await response.json();
-                throw new Error(error.error || 'Erreur Mistral API');
+                throw new Error(error.error || 'Erreur IA locale');
             }
 
             const data = await response.json();
-            if (!data.choices || !data.choices[0]) {
-                throw new Error('Pas de réponse de Mistral');
+            
+            if (!data.success || !data.response) {
+                throw new Error('Pas de réponse de l\'IA locale');
             }
-            return data.choices[0].message.content;
+            
+            return {
+                success: true,
+                response: data.response,
+                confidence: data.confidence || 0.8,
+                source: data.source || 'DPAI Local'
+            };
         }
         // Sinon, utiliser axios (pour les tests locaux)
         else {
-            const response = await axios.post(MISTRAL_API_URL, {
-                model: model,
-                messages: [{ role: 'user', content: prompt }],
-                temperature: 0.3,
-                max_tokens: 2000
-            }, {
+            const response = await axios.post(`${LOCAL_AI_URL}/api/chat`, payload, {
                 headers: {
-                    'Authorization': `Bearer ${MISTRAL_API_KEY}`,
                     'Content-Type': 'application/json'
                 }
             });
 
-            if (!response.data.choices || !response.data.choices[0]) {
-                throw new Error('Pas de réponse de Mistral');
+            if (!response.data.success || !response.data.response) {
+                throw new Error('Pas de réponse de l\'IA locale');
             }
-            return response.data.choices[0].message.content;
+            
+            return {
+                success: true,
+                response: response.data.response,
+                confidence: response.data.confidence || 0.8,
+                source: response.data.source || 'DPAI Local'
+            };
         }
     } catch (error) {
-        console.error('❌ Erreur Mistral:', error.response?.data || error.message);
-        throw new Error('Erreur avec l\'API Mistral: ' + (error.response?.data?.error || error.message));
+        console.error('❌ Erreur IA locale:', error.response?.data || error.message);
+        throw new Error('Erreur avec l\'IA locale: ' + (error.response?.data?.error || error.message));
     }
 }
 
 /**
- * Exécute une analyse avec IA (SWOT, Porter, etc.)
+ * Appelle l'API locale DPAI pour une analyse structurée
+ * @param {string} type - Type d'analyse (swot, porter, pestel, etc.)
+ * @param {Object} data - Données pour l'analyse
+ * @returns {Promise<{success: boolean, result: string, confidence: number}>}
+ */
+async function callLocalAIAnalysis(type, data) {
+    try {
+        console.log(`🔹 Appel à l'IA locale pour analyse ${type}...`);
+        
+        const payload = {
+            type: type,
+            data: data
+        };
+
+        // Si on est dans Firebase Functions, utiliser fetch
+        if (typeof fetch !== 'undefined') {
+            const response = await fetch(`${LOCAL_AI_URL}/api/analyze`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Erreur IA locale');
+            }
+
+            const result = await response.json();
+            
+            if (!result.success || !result.result) {
+                throw new Error('Pas de résultat de l\'IA locale');
+            }
+            
+            return {
+                success: true,
+                result: result.result,
+                confidence: result.confidence || 0.8,
+                source: result.source || 'DPAI Local'
+            };
+        }
+        // Sinon, utiliser axios
+        else {
+            const response = await axios.post(`${LOCAL_AI_URL}/api/analyze`, payload, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.data.success || !response.data.result) {
+                throw new Error('Pas de résultat de l\'IA locale');
+            }
+            
+            return {
+                success: true,
+                result: response.data.result,
+                confidence: response.data.confidence || 0.8,
+                source: response.data.source || 'DPAI Local'
+            };
+        }
+    } catch (error) {
+        console.error('❌ Erreur IA locale analyse:', error.response?.data || error.message);
+        throw new Error('Erreur avec l\'analyse IA locale: ' + (error.response?.data?.error || error.message));
+    }
+}
+
+/**
+ * Vérifie la santé de l'API locale
+ * @returns {Promise<boolean>}
+ */
+async function checkLocalAIHealth() {
+    try {
+        if (typeof fetch !== 'undefined') {
+            const response = await fetch(`${LOCAL_AI_URL}/api/health`);
+            return response.ok;
+        } else {
+            const response = await axios.get(`${LOCAL_AI_URL}/api/health`);
+            return response.status === 200;
+        }
+    } catch (error) {
+        console.error('❌ IA locale non disponible:', error.message);
+        return false;
+    }
+}
+
+// =============================================================================
+// FONCTIONS D'ANALYSE AVEC IA LOCALE
+// =============================================================================
+
+/**
+ * Exécute une analyse avec IA locale (SWOT, Porter, etc.)
  * @param {string} userId - ID de l'utilisateur
  * @param {string} type - Type d'analyse (swot, porter, etc.)
  * @param {Object} data - Données pour l'analyse
@@ -131,32 +227,46 @@ async function runAIAnalysis(userId, type, data) {
         throw new Error('Accès IA non autorisé. Abonnement API Monthly ou Conseiller IA requis.');
     }
 
-    // 3. Générer le prompt
-    let prompt;
+    // 3. Générer le prompt ou utiliser l'analyse structurée
+    let result;
     switch (type) {
         case 'swot':
-            prompt = SWOT_PROMPT(data);
-            break;
         case 'porter':
-            prompt = PORTER_PROMPT(data);
-            break;
         case 'pestel':
-            prompt = generatePestelPrompt(data);
-            break;
         case 'valuation':
-            prompt = generateValuationPrompt(data);
-            break;
         case 'recommendation':
-            prompt = generateRecommendationPrompt(data);
+            // Utiliser l'analyse structurée de l'API locale
+            const analysisResult = await callLocalAIAnalysis(type, data);
+            result = analysisResult.result;
             break;
         default:
-            throw new Error('Type d\'analyse inconnu');
+            // Pour les autres types, utiliser le prompt directement
+            let prompt;
+            switch (type) {
+                case 'swot':
+                    prompt = SWOT_PROMPT(data);
+                    break;
+                case 'porter':
+                    prompt = PORTER_PROMPT(data);
+                    break;
+                case 'pestel':
+                    prompt = generatePestelPrompt(data);
+                    break;
+                case 'valuation':
+                    prompt = generateValuationPrompt(data);
+                    break;
+                case 'recommendation':
+                    prompt = generateRecommendationPrompt(data);
+                    break;
+                default:
+                    throw new Error('Type d\'analyse inconnu');
+            }
+            
+            const aiResponse = await callLocalAI(prompt);
+            result = aiResponse.response;
     }
 
-    // 4. Appeler Mistral
-    const response = await callMistral(prompt);
-
-    // 5. Déduire les tokens si l'utilisateur n'est pas en advisor
+    // 4. Déduire les tokens si l'utilisateur n'est pas en advisor
     if (plan !== 'advisor') {
         const tokenCost = AI_ANALYSIS_COSTS[type] || 100;
         await db.collection('users').doc(userId).update({
@@ -168,7 +278,7 @@ async function runAIAnalysis(userId, type, data) {
 
     return {
         success: true,
-        result: response,
+        result: result,
         tokensUsed: plan === 'advisor' ? 0 : AI_ANALYSIS_COSTS[type]
     };
 }
@@ -207,19 +317,18 @@ async function advisorChat(userId, message, conversationId = null) {
         }
     }
 
-    // 4. Générer le prompt
+    // 4. Générer le prompt avec le contexte
     const prompt = ADVISOR_PROMPT(message, context);
 
-    // 5. Appeler Mistral
-    const response = await callMistral(prompt);
+    // 5. Appeler l'IA locale
+    const aiResponse = await callLocalAI(prompt);
 
     // 6. Sauvegarder la conversation
     const newConversationId = conversationId || db.collection('advisor_conversations').doc().id;
-    const conversationRef = db.collection('advisor_conversations').doc(newConversationId);
-
+    
     let existingConversation = {};
     if (conversationId) {
-        const doc = await conversationRef.get();
+        const doc = await db.collection('advisor_conversations').doc(newConversationId).get();
         if (doc.exists) {
             existingConversation = doc.data();
         }
@@ -228,10 +337,10 @@ async function advisorChat(userId, message, conversationId = null) {
     const messages = [
         ...(existingConversation.messages || []),
         { role: 'user', content: message, timestamp: admin.firestore.FieldValue.serverTimestamp() },
-        { role: 'assistant', content: response, timestamp: admin.firestore.FieldValue.serverTimestamp() }
+        { role: 'assistant', content: aiResponse.response, timestamp: admin.firestore.FieldValue.serverTimestamp() }
     ];
 
-    await conversationRef.set({
+    await db.collection('advisor_conversations').doc(newConversationId).set({
         userId: userId,
         messages: messages,
         updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -240,9 +349,57 @@ async function advisorChat(userId, message, conversationId = null) {
 
     return {
         success: true,
-        response: response,
+        response: aiResponse.response,
         conversationId: newConversationId
     };
+}
+
+/**
+ * Entraîne l'IA locale avec de nouvelles données
+ * @param {string} userId - ID de l'utilisateur (optionnel, pour la traçabilité)
+ * @param {string} question - Question pour l'entraînement
+ * @param {string} answer - Réponse pour l'entraînement
+ * @param {string[]} tags - Tags pour catégoriser
+ * @returns {Promise<{success: boolean, message: string, training_samples: number}>}
+ */
+async function trainLocalAI(userId, question, answer, tags = []) {
+    try {
+        const payload = {
+            question: question,
+            answer: answer,
+            tags: tags
+        };
+
+        // Si on est dans Firebase Functions, utiliser fetch
+        if (typeof fetch !== 'undefined') {
+            const response = await fetch(`${LOCAL_AI_URL}/api/train`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.error || 'Erreur entraînement IA locale');
+            }
+
+            return await response.json();
+        }
+        // Sinon, utiliser axios
+        else {
+            const response = await axios.post(`${LOCAL_AI_URL}/api/train`, payload, {
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            return response.data;
+        }
+    } catch (error) {
+        console.error('❌ Erreur entraînement IA locale:', error.response?.data || error.message);
+        throw new Error('Erreur lors de l\'entraînement: ' + (error.response?.data?.error || error.message));
+    }
 }
 
 // =============================================================================
@@ -452,13 +609,24 @@ ${data.constraints ? data.constraints.map(c => `- ${c}`).join('\n') : 'Aucune'}
 // =============================================================================
 
 module.exports = {
-    callMistral,
+    // Fonctions principales
+    callLocalAI,
+    callLocalAIAnalysis,
+    checkLocalAIHealth,
     runAIAnalysis,
     advisorChat,
+    trainLocalAI,
+    
+    // Constantes
     AI_ANALYSIS_COSTS,
+    LOCAL_AI_URL,
+    
+    // Fonctions utilitaires
     generatePestelPrompt,
     generateValuationPrompt,
     generateRecommendationPrompt,
+    
+    // Fonctions de gestion des conversations (pour la compatibilité)
     getConversationContext: async (userId, conversationId) => {
         if (!conversationId) return null;
         const db = admin.firestore();
@@ -496,5 +664,11 @@ module.exports = {
         });
 
         return newConversationId;
+    },
+    
+    // Fonctions obsolètes (pour la compatibilité arrière)
+    callMistral: async (prompt, model) => {
+        console.warn('⚠️ callMistral est obsolète. Utilisez callLocalAI à la place.');
+        return (await callLocalAI(prompt)).response;
     }
 };

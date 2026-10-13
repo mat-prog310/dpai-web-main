@@ -23,9 +23,9 @@ CORS(app)  # Autoriser toutes les origines pour le développement
 print("Initialisation de l'IA DPAI...")
 try:
     dpai_ai = DPAILocalAI()
-    print("✅ IA DPAI initialisée avec succès")
+    print("[OK] IA DPAI initialisée avec succès")
 except Exception as e:
-    print(f"❌ Erreur lors de l'initialisation: {e}")
+    print(f"[ERREUR] Erreur lors de l'initialisation: {e}")
     dpai_ai = None
 
 # Charger les données d'entraînement supplémentaires
@@ -75,7 +75,7 @@ try:
                     'ecole_case', case.get('id', ''), case.get('category', ''), case.get('type', '')
                 ])
     
-    print("✅ Cas d'école chargés")
+    print("[OK] Cas d'école chargés")
     
     # Charger les autres fichiers de données
     data_files = [
@@ -116,19 +116,19 @@ try:
                                 if question and answer:
                                     dpai_ai.learn(question, answer, tags=[key])
             
-            print(f"✅ {data_file} chargé")
+            print(f"[OK] {data_file} chargé")
     
-    print("✅ Toutes les données DPAI chargées")
+    print("[OK] Toutes les données DPAI chargées")
     
     # Sauvegarder le modèle entraîné
     try:
         dpai_ai.save_model()
-        print("✅ Modèle sauvegardé")
+        print("[OK] Modèle sauvegardé")
     except Exception as e:
         print(f"⚠️ Impossible de sauvegarder le modèle: {e}")
     
 except Exception as e:
-    print(f"❌ Erreur lors du chargement des données: {e}")
+    print(f"[ERREUR] Erreur lors du chargement des données: {e}")
 
 
 @app.route('/api/health', methods=['GET'])

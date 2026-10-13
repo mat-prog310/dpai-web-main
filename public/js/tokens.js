@@ -21,31 +21,31 @@ function getDB() {
 }
 
 // =============================================================================
-// CONFIGURATION MISTRAL - SÉCURISÉE
-// ⚠️  ATTENTION: La clé API Mistral NE DOIT PAS être dans le code client
+// CONFIGURATION IA LOCALE DPAI
+// L'IA locale est toujours disponible via http://localhost:5002
 // Elle doit être gérée côté serveur via des variables d'environnement
 // =============================================================================
 
-// URL de l'API Mistral (publique)
-const MISTRAL_API_URL = "https://api.mistral.ai/v1/chat/completions";
+// URL de l'API IA locale DPAI
+const LOCAL_AI_URL = "http://localhost:5002/api/chat";
+// Configuration de l'IA locale DPAI
+const LOCAL_AI_ENABLED = true;
+// Pas besoin de clé API pour l'IA locale
 
-// La clé API sera récupérée depuis le serveur via une API sécurisée
-// ou injectée via variables d'environnement côté serveur
-// NE JAMAIS mettre la clé directement dans ce fichier !
-let MISTRAL_API_KEY = null;
+// L'IA locale DPAI n'a pas besoin de clé API
+const LOCAL_AI_ENABLED = true;  // IA locale toujours disponible
 
 // Fonction pour récupérer la clé API Mistral depuis le serveur
-async function getMistralApiKey() {
-    // Si la clé est déjà chargée, la retourner
-    if (MISTRAL_API_KEY) {
-        return MISTRAL_API_KEY;
-    }
+async function getLocalAIStatus() {
+    // IA locale est toujours disponible
+    return true;
+}
     
     try {
         // Essayer de récupérer depuis une variable globale (injectée côté serveur)
-        if (typeof window !== 'undefined' && window.MISTRAL_API_KEY) {
-            MISTRAL_API_KEY = window.MISTRAL_API_KEY;
-            return MISTRAL_API_KEY;
+        if (typeof window !== 'undefined' && window.LOCAL_AI_ENABLED) {
+            LOCAL_AI_ENABLED = window.LOCAL_AI_ENABLED;
+            return LOCAL_AI_ENABLED;
         }
         
         // Essayer de récupérer depuis une API serveur
@@ -57,14 +57,14 @@ async function getMistralApiKey() {
         if (response.ok) {
             const data = await response.json();
             if (data.success && data.key) {
-                MISTRAL_API_KEY = data.key;
-                return MISTRAL_API_KEY;
+                LOCAL_AI_ENABLED = data.key;
+                return LOCAL_AI_ENABLED;
             }
         }
         
         // Si tout échoue, journaliser une erreur mais NE PAS exposer de clé par défaut
         console.error('%c❌ [Mistral] Impossible de récupérer la clé API. Les appels à l\'API Mistral échoueront.', 'color: #dc3545; font-weight: bold;');
-        console.warn('%c⚠️ [Mistral] Configurez la variable d\'environnement MISTRAL_API_KEY côté serveur.', 'color: #FF9800; font-weight: bold;');
+        console.warn('%c⚠️ [Mistral] Configurez la variable d\'environnement LOCAL_AI_ENABLED côté serveur.', 'color: #FF9800; font-weight: bold;');
         
         return null;
         
@@ -910,40 +910,41 @@ class TokenManager {
   }
 
   // Appel à Mistral API
-  static async callMistral(prompt, model = "mistral-large") {
+  // Appel a l API locale DPAI
+  static async callLocalAI(prompt, model = "mistral-large") {
     try {
-      // Récupérer la clé API de manière sécurisée
-      const apiKey = await getMistralApiKey();
-      if (!apiKey) {
-        throw new Error('Clé API Mistral non disponible. Configurez MISTRAL_API_KEY côté serveur.');
+      // Verifier que l IA locale est disponible
+      const isEnabled = await getLocalAIStatus();
+      if (!isEnabled) {
+        throw new Error('IA locale DPAI non disponible. Assurez-vous que le serveur est demarre.');
       }
       
-      const response = await fetch(MISTRAL_API_URL, {
+      // Appeler l API locale via le proxy Node.js
+      const response = await fetch('/api/local-ai/chat', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${apiKey}`
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: model,
-          messages: [{ role: 'user', content: prompt }],
-          temperature: 0.3,
-          max_tokens: 2000
+          message: prompt,
+          userId: this.userData?.id || 'anonymous',
+          conversationId: null
         })
       });
 
       if (!response.ok) {
         const error = await response.json();
-        throw new Error(error.error || 'Erreur Mistral API');
+        throw new Error(error.error || 'Erreur IA locale DPAI');
       }
 
       const data = await response.json();
-      return data.choices[0].message.content;
+      if (!data.success || !data.response) {
+        throw new Error('Pas de reponse de l IA locale');
+      }
+      return data.response;
     } catch (error) {
-      console.error('❌ Erreur Mistral:', error);
+      console.error('Erreur IA locale DPAI:', error);
       throw error;
-    }
-  }
 
   // Exécuter une analyse avec IA
   static async runAIAnalysis(type, data) {
@@ -978,7 +979,7 @@ Analyse ${type} pour ${data.name || 'cette entreprise'} dans le secteur ${data.s
     }
 
     // Appeler Mistral
-    const response = await this.callMistral(prompt);
+    const response = await this.callLocalAI(prompt);
 
     // Déduire les tokens pour les utilisateurs non-advisor (api_monthly a des tokens limités)
     if (!this.isTokensUnlimited()) {
@@ -1166,8 +1167,8 @@ window.TokenManager = TokenManager;
 window.TokenUtils = TokenUtils;
 window.AnalysisCosts = AnalysisCosts;
 window.PLAN_CONFIG = PLAN_CONFIG;
-// ⚠️  NE PAS exposer MISTRAL_API_KEY dans la fenêtre globale pour des raisons de sécurité
-// La clé doit être récupérée via getMistralApiKey() lorsque nécessaire
-window.MISTRAL_API_URL = MISTRAL_API_URL;
+// ⚠️  NE PAS exposer LOCAL_AI_ENABLED dans la fenêtre globale pour des raisons de sécurité
+// La clé doit être récupérée via getLocalAIStatus() lorsque nécessaire
+window.LOCAL_AI_URL = LOCAL_AI_URL;
 window.DPAI_CONTEXT = DPAI_CONTEXT;
 window.loadUserTokenData = loadUserTokenData;

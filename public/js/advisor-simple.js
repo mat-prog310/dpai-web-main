@@ -125,7 +125,7 @@ function newConversation() {
                     <h2>Nouvelle discussion</h2>
                     <p>Posez votre question sur la croissance externe, les fusions, acquisitions...</p>
                     <p style="font-size: 14px; color: #666; margin-top: 10px;">
-                        <i class="fas fa-info-circle"></i> Powered by Mistral AI + Expertise DPAI
+                        <i class="fas fa-info-circle"></i> Powered by DPAI Local AI + Expertise DPAI
                     </p>
                 </div>
             </div>
