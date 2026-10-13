@@ -2,14 +2,14 @@
   "site": {
     "name": "DPAI Strategy",
     "url": "https://dpai-strategy.com",
-    "defaultTitle": "DPAI Strategy | Analyse Stratégique Gratuite - 500 Tokens Offerts (125€) | N°1 Croissance Externe M&A",
-    "defaultDescription": "DPAI Strategy : Plateforme N°1 d'analyse stratégique pour la croissance externe, fusion acquisition et M&A. 500 tokens GRATUITS (valeur 125€) pour démarrer. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence. Tous services Phases 1 & 2 accessibles immédiatement sans carte bancaire.",
-    "defaultKeywords": "analyse stratégique, croissance externe, fusion acquisition, SWOT analyse, Porter 5 Forces, PESTEL analyse, analyse concurrentielle, conseil stratégie entreprise, tokens gratuits 500, M&A conseil, due diligence acquisition, benchmark stratégique, valorisation entreprise, stratégie croissance, analyse marché, intelligence stratégique, analyse secteur, Audit entreprise, diagnostic stratégique, évaluation entreprise, conseil en fusion, acquisition stratégique, développement entreprise, expansion marché, stratégie d'entreprise, conseil en stratégie",
-    "defaultNewsKeywords": "analyse stratégique, croissance externe, fusion acquisition, SWOT, Porter 5 Forces, PESTEL, M&A, due diligence, conseil stratégie, tokens gratuits",
-    "author": "DPAI Strategy",
-    "designer": "DPAI Strategy",
+    "defaultTitle": "DPAI Strategy | Analyse Stratégique Gratuite - 500 Tokens Offerts (125€) | N°1 Croissance Externe M&A by Duprey Conseil",
+    "defaultDescription": "DPAI Strategy by Duprey Conseil : Plateforme N°1 d'analyse stratégique pour la croissance externe, fusion acquisition et M&A. 500 tokens GRATUITS (valeur 125€) pour démarrer. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence. Tous services Phases 1 & 2 accessibles immédiatement sans carte bancaire. Conseil stratégique indépendant.",
+    "defaultKeywords": "analyse stratégique, croissance externe, fusion acquisition, SWOT analyse, Porter 5 Forces, PESTEL analyse, analyse concurrentielle, conseil stratégie entreprise, tokens gratuits 500, M&A conseil, due diligence acquisition, benchmark stratégique, valorisation entreprise, stratégie croissance, analyse marché, intelligence stratégique, analyse secteur, Audit entreprise, diagnostic stratégique, évaluation entreprise, conseil en fusion, acquisition stratégique, développement entreprise, expansion marché, stratégie d'entreprise, conseil en stratégie, logiciel croissance externe, outil croissance externe, plateforme croissance externe, logiciel fusion acquisition, outil M&A, logiciel M&A, plateforme M&A, Duprey Conseil, Duprey Conseil stratégie, Duprey Conseil M&A, Duprey Conseil croissance externe, Duprey Conseil avis, DPAI par Duprey Conseil, DPAI Duprey Conseil avis, logiciel DPAI Duprey, DPAI Strategy Duprey, consultant croissance externe indépendant, consultant M&A indépendant, conseil stratégique auto-entrepreneur, consultant fusion acquisition indépendant, expert M&A indépendant France",
+    "defaultNewsKeywords": "analyse stratégique, croissance externe, fusion acquisition, SWOT, Porter 5 Forces, PESTEL, M&A, due diligence, conseil stratégie, tokens gratuits, logiciel croissance externe, outil M&A, plateforme M&A, Duprey Conseil, DPAI Strategy Duprey, consultant indépendant",
+    "author": "DPAI Strategy by Duprey Conseil",
+    "designer": "Duprey Conseil",
     "publisher": "DPAI Strategy",
-    "copyright": "DPAI Strategy 2026",
+    "copyright": "DPAI Strategy 2026 - Duprey Conseil",
     "language": "fr",
     "locale": "fr_FR",
     "currency": "EUR",
@@ -22,10 +22,117 @@
       "1000": 212.50
     },
     "premiumPrice": 499,
-    "category": "Business Services, Strategic Consulting, Market Analysis, M&A Advisory",
-    "classification": "Business, Strategy, Consulting, Financial Services, Market Analysis",
+    "category": "Business Services, Strategic Consulting, Market Analysis, M&A Advisory, Duprey Conseil",
+    "classification": "Business, Strategy, Consulting, Financial Services, Market Analysis, Independent Consultant",
     "coverage": "France, Europe, International",
     "targetAudience": "Entreprises, PME, Startups, Investisseurs, Conseillers en stratégie, Directeurs généraux, Responsables développement"
+  },
+  "keywordStrategy": {
+    "primaryKeywords": [
+      {"keyword": "logiciel croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐⭐"},
+      {"keyword": "outil croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐⭐"},
+      {"keyword": "plateforme croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐⭐"},
+      {"keyword": "logiciel fusion acquisition", "intention": "Transactionnelle", "priority": "⭐⭐⭐"},
+      {"keyword": "outil M&A", "intention": "Transactionnelle", "priority": "⭐⭐⭐"},
+      {"keyword": "logiciel M&A", "intention": "Transactionnelle", "priority": "⭐⭐⭐"},
+      {"keyword": "plateforme M&A", "intention": "Transactionnelle", "priority": "⭐⭐"}
+    ],
+    "dupreyConseilKeywords": {
+      "brandKeywords": [
+        "Duprey Conseil",
+        "Duprey Conseil stratégie",
+        "Duprey Conseil M&A",
+        "Duprey Conseil croissance externe",
+        "Duprey Conseil avis"
+      ],
+      "dpaiBrandedKeywords": [
+        "DPAI par Duprey Conseil",
+        "DPAI Duprey Conseil avis",
+        "logiciel DPAI Duprey",
+        "DPAI Strategy Duprey"
+      ],
+      "independentConsultantKeywords": [
+        "consultant croissance externe indépendant",
+        "consultant M&A indépendant",
+        "conseil stratégique auto-entrepreneur",
+        "consultant fusion acquisition indépendant",
+        "expert M&A indépendant France"
+      ]
+    },
+    "processBasedKeywords": {
+      "Sourcing_Recherche_cibles": [
+        "outil recherche cible acquisition",
+        "logiciel deal sourcing",
+        "plateforme sourcing M&A",
+        "base de données entreprises à vendre",
+        "outil identification cibles M&A",
+        "logiciel veille acquisition"
+      ],
+      "Due_diligence_Evaluation": [
+        "outil due diligence",
+        "logiciel due diligence M&A",
+        "plateforme data room M&A",
+        "outil évaluation entreprise",
+        "logiciel valorisation entreprise",
+        "checklist due diligence acquisition"
+      ],
+      "Negociation_Closing": [
+        "outil gestion pipeline M&A",
+        "logiciel suivi deals",
+        "plateforme gestion transactions",
+        "outil négociation acquisition",
+        "CRM M&A"
+      ],
+      "Post_acquisition_Integration": [
+        "outil intégration post-acquisition",
+        "logiciel gestion intégration M&A",
+        "plateforme suivi synergies",
+        "outil pilotage post-fusion"
+      ]
+    },
+    "growthTypeKeywords": {
+      "Fusion_Acquisition": ["logiciel fusion acquisition", "outil rachat entreprise", "plateforme M&A"],
+      "Alliance_strategique": ["outil gestion alliance", "plateforme partenariat stratégique"],
+      "Joint_venture": ["logiciel joint-venture", "outil gestion JV"],
+      "Prise_de_participation": ["outil gestion participations", "logiciel equity investment"],
+      "Franchise_reseau": ["logiciel développement réseau franchise", "outil croissance franchise"]
+    },
+    "longTailKeywords": [
+      "meilleur logiciel croissance externe",
+      "comment faire de la croissance externe",
+      "outil pour trouver des entreprises à racheter",
+      "logiciel pour gérer une acquisition",
+      "plateforme pour piloter une fusion acquisition",
+      "outil digital croissance externe PME",
+      "logiciel M&A pour PME",
+      "solution croissance externe ETI",
+      "outil M&A sans consultant",
+      "logiciel due diligence pas cher"
+    ],
+    "competitorKeywords": [
+      "alternative à",
+      "logiciel type Datasite",
+      "outil similaire à",
+      "comparatif logiciels M&A",
+      "meilleur outil M&A 2025"
+    ],
+    "informationalKeywords": [
+      "qu'est-ce que la croissance externe",
+      "avantages croissance externe",
+      "étapes d'une acquisition",
+      "différence croissance interne et externe",
+      "comment réussir une fusion acquisition",
+      "risques croissance externe",
+      "synergies M&A définition",
+      "processus due diligence étapes"
+    ],
+    "geoLocalizedKeywords": [
+      "logiciel croissance externe France",
+      "outil M&A Paris",
+      "plateforme acquisition PME France",
+      "logiciel fusion acquisition Lyon",
+      "outil croissance externe Bordeaux"
+    ]
   },
   "social": {
     "twitterHandle": "@DPAIStrategy",
@@ -34,85 +141,81 @@
   },
   "pages": {
     "index": {
-      "title": "DPAI Strategy | Analyse Stratégique Gratuite - 500 Tokens Offerts (125€)",
-      "description": "DPAI Strategy : Plateforme N°1 d'analyse stratégique pour la croissance externe. 500 tokens GRATUITS (valeur 125€) pour démarrer. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle. Tous les services sont gratuits avec un système de tokens.",
+      "title": "DPAI Strategy | Analyse Stratégique Gratuite - 500 Tokens Offerts (125€) | N°1 Croissance Externe M&A by Duprey Conseil",
+      "description": "DPAI Strategy by Duprey Conseil : Plateforme N°1 d'analyse stratégique pour la croissance externe, fusion acquisition et M&A. 500 tokens GRATUITS (valeur 125€) pour démarrer. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence. Tous services Phases 1 & 2 accessibles immédiatement sans carte bancaire.",
+      "keywords": "analyse stratégique, croissance externe, fusion acquisition, M&A, logiciel croissance externe, outil M&A, plateforme M&A, SWOT, Porter 5 Forces, PESTEL, due diligence, benchmark stratégique, valorisation entreprise, Duprey Conseil, DPAI Strategy Duprey, consultant croissance externe indépendant, conseil stratégique auto-entrepreneur",
       "priority": 1.0,
       "changefreq": "daily",
       "ogImage": "/images/og-image.jpg"
     },
     "services": {
-      "title": "Services Stratégiques GRATUITS | DPAI Strategy - Analyse SWOT, Porter, PESTEL",
-      "description": "Découvrez tous nos services d'analyse stratégique GRATUITS avec vos 500 tokens (125€). SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence, benchmark, valuation.",
+      "title": "Services Stratégiques GRATUITS | DPAI Strategy - Analyse SWOT, Porter, PESTEL, M&A, Due Diligence by Duprey Conseil",
+      "description": "Découvrez tous nos services d'analyse stratégique GRATUITS avec vos 500 tokens (125€). SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence M&A, benchmark, valuation. Logiciel croissance externe par Duprey Conseil - conseil stratégique indépendant.",
+      "keywords": "services stratégiques, analyse SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence, benchmark stratégique, valorisation entreprise, outil M&A, logiciel croissance externe, plateforme M&A, gestion pipeline M&A, data room M&A, Duprey Conseil, DPAI par Duprey Conseil, consultant M&A indépendant",
       "priority": 0.9,
       "changefreq": "weekly",
       "ogImage": "/images/services-og.jpg"
     },
     "pricing": {
-      "title": "Tarifs & Tokens | DPAI Strategy - 500 Tokens GRATUITS (125€) - Prix par Token 0,25€",
-      "description": "Tarification transparente : 500 tokens GRATUITS (valeur 125€) pour démarrer. Prix par token : 0,25€. Tous les services Phases 1 & 2 gratuits.",
+      "title": "Tarifs & Tokens | DPAI Strategy - 500 Tokens GRATUITS (125€) - Prix par Token 0,25€ | Duprey Conseil",
+      "description": "Tarification transparente : 500 tokens GRATUITS (valeur 125€) pour démarrer. Prix par token : 0,25€. Tous les services Phases 1 & 2 gratuits. Logiciel M&A par Duprey Conseil - conseil indépendant.",
+      "keywords": "tarifs tokens, prix analyse stratégique, coût SWOT, Porter 5 Forces tarif, PESTEL prix, due diligence coût, logiciel M&A pas cher, outil croissance externe économique, solution croissance externe ETI, outil M&A sans consultant, Duprey Conseil, expert M&A indépendant France",
       "priority": 0.9,
       "changefreq": "weekly",
       "ogImage": "/images/pricing-og.jpg"
     },
     "register": {
-      "title": "Inscription GRATUITE | DPAI Strategy - 500 Tokens Offerts (125€) - Démarrez Immédiatement",
-      "description": "Inscription gratuite en 30 secondes ! Recevez 500 tokens d'une valeur de 125€ pour accéder immédiatement à tous les services Phases 1 & 2.",
-      "priority": 0.9,
+      "title": "Inscription GRATUITE | DPAI Strategy - 500 Tokens Offerts (125€) - Démarrez Immédiatement | Duprey Conseil",
+      "description": "Inscription gratuite en 30 secondes ! Recevez 500 tokens d'une valeur de 125€ pour accéder immédiatement à tous les services Phases 1 & 2. Logiciel croissance externe et outil M&A par Duprey Conseil.",
+      "keywords": "inscription gratuite, créer compte DPAI, 500 tokens gratuits, démarrage immédiat, analyse stratégique inscription, SWOT gratuit, Porter 5 Forces gratuit, PESTEL gratuit, meilleur logiciel croissance externe, outil pour gérer une acquisition, Duprey Conseil stratégie",
+      "priority": 0.95,
       "changefreq": "daily",
       "ogImage": "/images/register-og.jpg"
     },
     "login": {
       "title": "Connexion | DPAI Strategy - Accédez à vos 500 Tokens Gratuits (125€)",
-      "description": "Connectez-vous à votre compte DPAI pour accéder à vos analyses stratégiques et gérer vos 500 tokens gratuits (valeur 125€). Accès instantané à SWOT, Porter 5 Forces, PESTEL.",
-      "keywords": "connexion DPAI, login analyse stratégique, accéder tokens gratuits, compte DPAI, tableau de bord",
+      "description": "Connectez-vous à votre compte DPAI pour accéder à vos analyses stratégiques et gérer vos 500 tokens gratuits (valeur 125€). Accès instantané à SWOT, Porter 5 Forces, PESTEL, M&A. Conseil indépendant par Duprey Conseil.",
+      "keywords": "connexion DPAI, login analyse stratégique, accéder tokens gratuits, compte DPAI, tableau de bord, plateforme croissance externe, outil M&A, Duprey Conseil M&A",
       "priority": 0.8,
       "changefreq": "daily",
       "ogImage": "/images/login-og.jpg"
     },
-    "register": {
-      "title": "Inscription GRATUITE | DPAI Strategy - 500 Tokens Offerts (125€) - Démarrez Immédiatement",
-      "description": "Inscription gratuite en 30 secondes ! Recevez 500 tokens d'une valeur de 125€ pour accéder immédiatement à tous les services Phases 1 & 2. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle. Sans carte bancaire.",
-      "keywords": "inscription gratuite, créer compte DPAI, 500 tokens gratuits, démarrage immédiat, analyse stratégique inscription, SWOT gratuit, Porter 5 Forces gratuit, PESTEL gratuit",
-      "priority": 0.95,
-      "changefreq": "daily",
-      "ogImage": "/images/register-og.jpg"
-    },
     "plus-de-tokens": {
       "title": "Acheter Plus de Tokens | DPAI Strategy - Tokens à 0,25€ - Packs Avantageux",
-      "description": "Achetez des tokens supplémentaires DPAI à 0,25€/unité. Packs avantageux : 100 tokens (25€), 500 tokens (112,50€ - 10% réduction), 1000 tokens (212,50€ - 15% réduction). Paiement sécurisé.",
-      "keywords": "acheter tokens, tokens supplémentaires, prix tokens, pack tokens, réduction tokens, paiement sécurisé, Stripe",
+      "description": "Achetez des tokens supplémentaires DPAI à 0,25€/unité. Packs avantageux : 100 tokens (25€), 500 tokens (112,50€ - 10% réduction), 1000 tokens (212,50€ - 15% réduction). Paiement sécurisé. Logiciel M&A illimité par Duprey Conseil.",
+      "keywords": "acheter tokens, tokens supplémentaires, prix tokens, pack tokens, réduction tokens, paiement sécurisé, Stripe, logiciel croissance externe, outil M&A, plateforme M&A, Duprey Conseil, DPAI Duprey Conseil avis",
       "priority": 0.85,
       "changefreq": "weekly",
       "ogImage": "/images/tokens-og.jpg"
     },
     "dashboard": {
-      "title": "Tableau de Bord | DPAI Strategy - Gérez vos 500 Tokens Gratuits",
-      "description": "Tableau de bord DPAI Strategy : gérez vos tokens, consultez vos analyses, suivez vos performances stratégiques. Accès à tous vos rapports et outils d'analyse.",
-      "keywords": "tableau de bord, gestion tokens, historiques analyses, rapports stratégiques, suivi performance",
+      "title": "Tableau de Bord | DPAI Strategy - Gérez vos 500 Tokens Gratuits et vos analyses M&A",
+      "description": "Tableau de bord DPAI Strategy : gérez vos tokens, consultez vos analyses, suivez vos performances stratégiques. Logiciel croissance externe et outil M&A intégré par Duprey Conseil.",
+      "keywords": "tableau de bord, gestion tokens, historiques analyses, rapports stratégiques, suivi performance, pipeline M&A, suivi deals, gestion intégration M&A, Duprey Conseil",
       "priority": 0.7,
       "changefreq": "daily",
       "ogImage": "/images/dashboard-og.jpg"
     },
     "analysis-form": {
-      "title": "Formulaire d'Analyse | DPAI Strategy - Lancez votre Analyse Stratégique",
-      "description": "Formulaire pour lancer vos analyses stratégiques avec DPAI. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle. Utilisez vos tokens pour obtenir des résultats instantanés.",
-      "keywords": "formulaire analyse, lancer analyse SWOT, Porter 5 Forces formulaire, PESTEL analyse, utilisation tokens",
+      "title": "Formulaire d'Analyse | DPAI Strategy - Lancez votre Analyse Stratégique M&A",
+      "description": "Formulaire pour lancer vos analyses stratégiques avec DPAI. SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence. Logiciel croissance externe par Duprey Conseil pour les étapes d'une acquisition.",
+      "keywords": "formulaire analyse, lancer analyse SWOT, Porter 5 Forces formulaire, PESTEL analyse, utilisation tokens, outil recherche cible acquisition, logiciel deal sourcing, plateforme sourcing M&A, Duprey Conseil, consultant indépendant",
       "priority": 0.7,
       "changefreq": "weekly",
       "ogImage": "/images/analysis-form-og.jpg"
     },
     "analysis-results": {
-      "title": "Résultats d'Analyse | DPAI Strategy - Vos Rapports Stratégiques",
-      "description": "Consultez vos résultats d'analyse stratégique DPAI. Rapports détaillés avec recommandations actionnables pour la croissance externe, fusion acquisition et M&A.",
-      "keywords": "résultats analyse, rapports stratégiques, recommandations croissance, résultats SWOT, Porter 5 Forces résultats",
+      "title": "Résultats d'Analyse | DPAI Strategy - Vos Rapports Stratégiques M&A et Croissance Externe",
+      "description": "Consultez vos résultats d'analyse stratégique DPAI. Rapports détaillés avec recommandations actionnables pour la croissance externe, fusion acquisition et M&A. Outil due diligence et logiciel valorisation entreprise par Duprey Conseil.",
+      "keywords": "résultats analyse, rapports stratégiques, recommandations croissance, résultats SWOT, Porter 5 Forces résultats, checklist due diligence acquisition, outil évaluation entreprise, logiciel valorisation entreprise, DPAI par Duprey Conseil",
       "priority": 0.6,
       "changefreq": "weekly",
       "ogImage": "/images/analysis-results-og.jpg"
     },
     "conseiller-dpai": {
-      "title": "Conseiller IA | DPAI Strategy - IA Proprietary pour la Stratégie (499€/mois)",
-      "description": "Conseiller IA DPAI : IA proprietary 100% DPAI entraînée sur notre expertise en croissance externe. Tokens illimités, chat illimité, recherches approfondies, support prioritaire 2h. Service premium à 499€/mois.",
-      "keywords": "Conseiller IA, IA stratégique, IA proprietary DPAI, tokens illimités, chat illimité, support prioritaire, abonnement premium, 499 euros",
+      "title": "Conseiller IA | DPAI Strategy - IA Proprietary pour la Stratégie M&A (499€/mois) | Duprey Conseil",
+      "description": "Conseiller IA DPAI : IA proprietary 100% DPAI entraînée sur notre expertise en croissance externe, M&A et fusion acquisition par Duprey Conseil. Tokens illimités, chat illimité, recherches approfondies, support prioritaire 2h. Service premium à 499€/mois.",
+      "keywords": "Conseiller IA, IA stratégique, IA proprietary DPAI, tokens illimités, chat illimité, support prioritaire, abonnement premium, 499 euros, meilleur outil M&A 2025, comparatif logiciels M&A, Duprey Conseil avis",
       "priority": 0.9,
       "changefreq": "weekly",
       "ogImage": "/images/conseiller-ia-og.jpg"
@@ -128,17 +231,42 @@
         "price": "0",
         "priceCurrency": "EUR",
         "description": "500 tokens gratuits pour accéder à tous les services Phases 1 & 2",
-        "name": "Offre de bienvenue - 500 Tokens Gratuits (125€)"
-      }
+        "name": "Offre de bienvenue - 500 Tokens Gratuits (125€)",
+        "url": "https://dpai-strategy.com/register.html",
+        "category": "Free Trial",
+        "availability": "https://schema.org/InStock"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "150",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "potentialAction": {
+        "@type": "Action",
+        "name": "Créer un compte gratuit",
+        "target": "https://dpai-strategy.com/register.html",
+        "expectsAcceptanceOf": {
+          "@type": "Offer",
+          "category": "Free"
+        }
+      },
+      "knowsAbout": [
+        "analyse stratégique", "croissance externe", "fusion acquisition", "SWOT", "Porter 5 Forces",
+        "PESTEL", "analyse concurrentielle", "due diligence", "benchmark stratégique",
+        "valorisation entreprise", "M&A", "conseil stratégie", "stratégie croissance",
+        "Duprey Conseil", "DPAI Strategy Duprey", "consultant indépendant"
+      ]
     },
     "Organization": {
       "@type": ["Organization", "ProfessionalService"],
       "name": "DPAI Strategy",
-      "alternateName": ["DPAI", "DPAI Strategy Consulting"],
+      "alternateName": ["DPAI", "DPAI Strategy Consulting", "Plateforme Croissance Externe N°1", "Logiciel M&A Leader", "Duprey Conseil"],
       "url": "https://dpai-strategy.com/",
       "logo": "/images/logo-dpai.png",
       "foundingDate": "2024",
-      "description": "DPAI Strategy est la plateforme N°1 de conseil en croissance externe et analyse stratégique avancée pour les entreprises en France et en Europe. Expertise en fusion acquisition, M&A, SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence.",
+      "description": "DPAI Strategy est la plateforme N°1 de conseil en croissance externe et analyse stratégique avancée pour les entreprises en France et en Europe. Expertise en fusion acquisition, M&A, SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence. Conseil indépendant par Duprey Conseil.",
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "FR",
@@ -172,7 +300,7 @@
     "LocalBusiness": {
       "@type": "LocalBusiness",
       "name": "DPAI Strategy",
-      "description": "Conseil en croissance externe et analyse stratégique avancée pour les entreprises",
+      "description": "Conseil en croissance externe et analyse stratégique avancée pour les entreprises. Logiciel croissance externe, outil M&A, plateforme M&A, fusion acquisition. Duprey Conseil - Consultant indépendant.",
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "FR",
@@ -199,7 +327,7 @@
           "name": "Qu'est-ce que DPAI Strategy?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "DPAI Strategy est la plateforme N°1 d'analyse stratégique pour la croissance externe, fusion acquisition et M&A. Nous combinons IA proprietary et expertise humaine pour offrir des analyses précises et actionnables."
+            "text": "DPAI Strategy est la plateforme N°1 d'analyse stratégique pour la croissance externe, fusion acquisition et M&A. Nous combinons IA proprietary et expertise humaine pour offrir des analyses précises et actionnables. Logiciel croissance externe développé par Duprey Conseil."
           }
         },
         {
@@ -208,6 +336,46 @@
           "acceptedAnswer": {
             "@type": "Answer",
             "text": "Tous les services Phases 1 & 2 sont GRATUITS avec 500 tokens offerts (valeur 125€). Aucun frais, aucune carte bancaire requise. Vous ne payez que pour les tokens supplémentaires ou le Conseiller IA premium."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Qu'est-ce que la croissance externe?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "La croissance externe est une stratégie d'expansion par fusion, acquisition, alliance stratégique ou prise de participation. DPAI Strategy, par Duprey Conseil, propose le meilleur logiciel croissance externe pour vous accompagner."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Quelles sont les étapes d'une acquisition?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Les étapes clés sont : sourcing et recherche de cibles, due diligence, négociation, closing, et intégration post-acquisition. Notre plateforme M&A couvre toutes ces étapes avec des outils dédiés."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment réussir une fusion acquisition?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Pour réussir une fusion acquisition, il faut : bien identifier les synergies M&A, réaliser une due diligence approfondie, négocier efficacement et planifier l'intégration post-acquisition. Notre outil M&A vous guide à chaque étape."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Qui est Duprey Conseil?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Duprey Conseil est un cabinet de conseil stratégique indépendant spécialisé en croissance externe, fusion acquisition et M&A. Expert en stratégie d'entreprise, propose des solutions innovantes pour les PME et ETI."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "DPAI est-il un consultant indépendant?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oui, DPAI Strategy est développé par Duprey Conseil, un consultant indépendant en croissance externe et M&A. Nous offrons une expertise sans conflit d'intérêts, adaptée aux besoins spécifiques de chaque entreprise."
           }
         }
       ]
