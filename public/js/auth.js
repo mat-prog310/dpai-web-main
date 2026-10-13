@@ -1,5 +1,10 @@
 // =============================================================================
 // AUTH.JS - Service d'authentification Firebase - VERSION CORRIGÉE ET SIMPLE
+// 
+// SOLUTION DÉFINITIVE AU PROBLÈME DE CONNEXION/DASHBOARD :
+// - Dispatch 'authFullyInitialized' quand user + userData sont COMPLÈTEMENT prêts
+// - Dispatch aussi 'authStateChanged' pour compatibilité
+// - Permet à main.js et dashboard.js de synchroniser leur initialisation
 // =============================================================================
 
 console.log('%c[Auth.js] Initialisation...', 'color: #2196F3; font-weight: bold;');
@@ -112,12 +117,21 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                     }
 
                     // Dispatcher l'événement
-                    const event = new CustomEvent('authStateChanged', {
-                        detail: { user: user, userData: currentUserData }
-                    });
-                    window.dispatchEvent(event);
+                const event = new CustomEvent('authStateChanged', {
+                    detail: { user: user, userData: currentUserData }
+                });
+                window.dispatchEvent(event);
 
-                    console.log('%c✅ [Auth.js] Utilisateur:', 'color: #28a745;', user.email || user.uid);
+                console.log('%c✅ [Auth.js] Utilisateur:', 'color: #28a745;', user.email || user.uid);
+                
+                // CORRECTION MAJEURE: Dispatcher un événement que l'auth est COMPLÈTEMENT initialisée
+                // avec user ET userData
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('authFullyInitialized', {
+                        detail: { user: user, userData: currentUserData }
+                    }));
+                    console.log('%c✅ [Auth.js] authFullyInitialized dispatché', 'color: #28a745; font-weight: bold;');
+                }, 0);
                 } catch (error) {
                     console.error('%c❌ [Auth.js] Erreur chargement userData:', 'color: #F44336;', error);
                     // CORRECTION: Toujours dispatcher l'événement même en cas d'erreur
@@ -127,6 +141,13 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                         detail: { user: user, userData: null }
                     });
                     window.dispatchEvent(event);
+                    
+                    // Dispatcher authFullyInitialized même en cas d'erreur
+                    setTimeout(() => {
+                        window.dispatchEvent(new CustomEvent('authFullyInitialized', {
+                            detail: { user: user, userData: null }
+                        }));
+                    }, 0);
                 }
             } else {
                 // Utilisateur déconnecté
@@ -140,6 +161,14 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                 window.dispatchEvent(event);
 
                 console.log('%c➡️ [Auth.js] Déconnecté', 'color: #FF9800;');
+                
+                // Dispatcher authFullyInitialized pour la déconnexion
+                setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('authFullyInitialized', {
+                        detail: { user: null, userData: null }
+                    }));
+                    console.log('%c✅ [Auth.js] authFullyInitialized dispatché (déconnexion)', 'color: #28a745; font-weight: bold;');
+                }, 0);
             }
         });
 

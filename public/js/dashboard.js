@@ -1,5 +1,11 @@
 // =============================================================================
 // DASHBOARD.JS - Tableau de bord stratégique DPAI
+// 
+// SOLUTION DÉFINITIVE AU PROBLÈME DE CONNEXION/DASHBOARD :
+// - Dispatch 'tokenManagerReady' quand TokenManager est initialisé
+// - Écoute 'authFullyInitialized' pour charger les données
+// - Utilise des événements au lieu de boucles setTimeout infinies
+// - initQuickActions et checkAdvisorAccess sont appelés via écouteurs d'événements
 // =============================================================================
 
 // Données de l'entreprise (stockées dans Firestore)
@@ -62,6 +68,9 @@ async function loadDashboard() {
     }
 }
 
+// Variable pour éviter l'initialisation multiple de TokenManager
+let tokenManagerInitialized = false;
+
 // Charger les données utilisateur et entreprise
 async function loadUserData(userId) {
     const db = firebase.firestore();
@@ -73,8 +82,15 @@ async function loadUserData(userId) {
         
         // Initialiser TokenManager avec les données utilisateur
         // CORRECTION: Initialiser TokenManager immédiatement pour que initQuickActions() puisse y accéder
-        if (typeof TokenManager !== 'undefined') {
+        if (typeof TokenManager !== 'undefined' && !tokenManagerInitialized) {
             TokenManager.init({ id: userId, ...userData });
+            tokenManagerInitialized = true;
+            console.log('%c✅ [Dashboard] TokenManager initialisé avec succès', 'color: #4CAF50; font-weight: bold;');
+            
+            // Dispatcher l'événement que TokenManager est prêt
+            setTimeout(() => {
+                window.dispatchEvent(new CustomEvent('tokenManagerReady'));
+            }, 0);
         }
         
         // Charger les tokens
@@ -115,13 +131,13 @@ async function loadUserData(userId) {
                 updateKPIs();
             }
             
-            // Vérifier l'accès advisor (UI uniquement)
-            if (typeof checkAdvisorAccess !== 'undefined') {
+            // Vérifier l'accès advisor (UI uniquement) - SOUVENT APPELÉ DEPUIS LE MAIN MAINTENANT
+            if (typeof checkAdvisorAccess !== 'undefined' && tokenManagerInitialized) {
                 checkAdvisorAccess();
             }
             
-            // Recharger les actions si nécessaire
-            if (typeof initQuickActions !== 'undefined') {
+            // Recharger les actions si nécessaire - SOUVENT APPELÉ DEPUIS LE MAIN MAINTENANT
+            if (typeof initQuickActions !== 'undefined' && tokenManagerInitialized) {
                 initQuickActions();
             }
         }
@@ -1055,21 +1071,38 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Initialiser les actions rapides (sera aussi appelée via authStateChanged)
-    initQuickActions();
+    // Écouter l'événement tokenManagerReady pour initialiser les composants dépendants
+    window.addEventListener('tokenManagerReady', function() {
+        console.log('%c✅ [DASHBOARD] tokenManagerReady reçu, initialisation des composants...', 'color: #4CAF50; font-weight: bold;');
+        // Maintenant que TokenManager est prêt, on peut initialiser les actions rapides et vérifier l'accès advisor
+        setTimeout(() => {
+            if (typeof initQuickActions === 'function') {
+                initQuickActions();
+            }
+            if (typeof checkAdvisorAccess === 'function') {
+                checkAdvisorAccess();
+            }
+        }, 0);
+    });
     
-    // Vérifier l'accès au Conseiller IA après initialisation des actions rapides
-    if (typeof checkAdvisorAccess === "function") setTimeout(checkAdvisorAccess, 100);
+    // Écouter l'événement authFullyInitialized pour charger le dashboard
+    // Cet événement est dispatché par auth.js quand user + userData sont COMPLÈTEMENT prêts
+    window.addEventListener('authFullyInitialized', function(event) {
+        const { user, userData } = event.detail;
+        console.log('%c[DASHBOARD] authFullyInitialized reçu, user:', 'color: #2196F3; font-weight: bold;', user ? user.email : 'null');
+        
+        if (user) {
+            // Charger le dashboard
+            loadDashboard();
+        }
+    });
     
-    // Ré-initialiser quand l'utilisateur se connecte (au cas où dashboardContent était masqué)
+    // Écouter aussi authStateChanged pour compatibilité
+    // Note: initQuickActions et checkAdvisorAccess seront appelés automatiquement
+    // via l'événement tokenManagerReady, pas besoin de les appeler ici
     window.addEventListener('authStateChanged', function(event) {
         const { user, userData } = event.detail;
-        if (user && userData) {
-            setTimeout(function() {
-                initQuickActions();
-                if (typeof checkAdvisorAccess === "function") setTimeout(checkAdvisorAccess, 100); // Vérifier après init des actions
-            }, 100); // Petit délai pour laisser le temps au DOM de s'afficher
-        }
+        // On ne fait rien ici car tout est géré via authFullyInitialized et tokenManagerReady
     });
 });
 
@@ -1136,9 +1169,11 @@ function initQuickActions() {
     
     // CORRECTION: Attendre que TokenManager soit initialisé
     if (typeof TokenManager === 'undefined' || !TokenManager.tokenState) {
-        console.warn('[DASHBOARD] TokenManager non initialisé, réessai dans 500ms');
-        // Réessayer après un délai
-        setTimeout(initQuickActions, 500);
+        console.warn('[DASHBOARD] TokenManager non initialisé, attente de l\'événement tokenManagerReady');
+        // Écouter l'événement au lieu de faire une boucle
+        window.addEventListener('tokenManagerReady', () => {
+            initQuickActions();
+        }, { once: true });
         return;
     }
     
@@ -1235,10 +1270,12 @@ function checkAdvisorAccess() {
         shouldUnlock = plan === 'advisor';
     }
     
-    // CORRECTION: Si TokenManager n'est pas initialisé, réessayer plus tard
+    // CORRECTION: Si TokenManager n'est pas initialisé, écouter l'événement au lieu de boucler
     if (!shouldUnlock && (typeof TokenManager === 'undefined' || !TokenManager.tokenState)) {
-        console.warn('[DASHBOARD] TokenManager non prêt pour checkAdvisorAccess, réessai dans 500ms');
-        setTimeout(checkAdvisorAccess, 500);
+        console.warn('[DASHBOARD] TokenManager non prêt pour checkAdvisorAccess, attente de l\'événement tokenManagerReady');
+        window.addEventListener('tokenManagerReady', () => {
+            checkAdvisorAccess();
+        }, { once: true });
         return;
     }
     

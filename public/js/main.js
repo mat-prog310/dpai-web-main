@@ -1,9 +1,19 @@
 // =============================================================================
 // MAIN.JS - Pour index.html et dashboard.html UNIQUEMENT
 // Gère l'UI en fonction de l'état de connexion
+// 
+// SOLUTION DÉFINITIVE AU PROBLÈME DE CONNEXION/DASHBOARD :
+// - Attend que authService ET TokenManager soient prêts avant d'afficher le dashboard
+// - Écoute les événements 'authFullyInitialized' (depuis auth.js) et 'tokenManagerReady' (depuis dashboard.js)
+// - Évite les boucles infinies en utilisant des événements au lieu de setTimeout récursif
 // =============================================================================
 
 console.log('%c[Main.js] Chargement...', 'color: #607D8B; font-weight: bold;');
+
+// Suivi de l'initialisation
+let authReady = false;
+let tokenManagerReady = false;
+let authStateProcessed = false;
 
 // Attendre DOM et authService
 document.addEventListener('DOMContentLoaded', () => {
@@ -13,14 +23,57 @@ document.addEventListener('DOMContentLoaded', () => {
         if (window.authService) {
             clearInterval(checkReady);
             console.log('%c✅ [Main.js] authService prêt, initialisation UI...', 'color: #4CAF50; font-weight: bold;');
+            authReady = true;
             initAll();
             
-            // CORRECTION: Ne PAS vérifier authService.currentUser directement car course condition
-            // On attend uniquement l'événement authStateChanged qui sera dispatché par auth.js
-            // quand l'utilisateur sera complètement initialisé
+            // Vérifier si TokenManager est déjà prêt
+            checkTokenManagerReady();
         }
     }, 100);
 });
+
+// Écouter les événements d'initialisation de TokenManager
+function checkTokenManagerReady() {
+    if (tokenManagerReady) return;
+    
+    if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
+        tokenManagerReady = true;
+        console.log('%c✅ [Main.js] TokenManager prêt', 'color: #4CAF50; font-weight: bold;');
+        processAuthState();
+    }
+}
+
+// Écouter l'événement personnalisé de TokenManager
+if (typeof window !== 'undefined') {
+    window.addEventListener('tokenManagerReady', () => {
+        tokenManagerReady = true;
+        console.log('%c✅ [Main.js] Événement tokenManagerReady reçu', 'color: #4CAF50; font-weight: bold;');
+        checkTokenManagerReady();
+    });
+    
+    window.addEventListener('authFullyInitialized', (event) => {
+        console.log('%c✅ [Main.js] authFullyInitialized reçu', 'color: #4CAF50; font-weight: bold;');
+        authReady = true;
+        // Si TokenManager est déjà initialisé, on peut traiter immédiatement
+        if (tokenManagerReady) {
+            processAuthState();
+        }
+    });
+}
+
+// Traiter l'état d'authentification une fois que tout est prêt
+function processAuthState() {
+    if (authStateProcessed) return;
+    authStateProcessed = true;
+    
+    // Vérifier si un utilisateur est déjà connecté
+    if (window.authService && window.authService.currentUser) {
+        const user = window.authService.currentUser;
+        const userData = window.authService.currentUserData;
+        console.log('%c✅ [Main.js] Utilisateur déjà connecté:', 'color: #4CAF50; font-weight: bold;', user.email);
+        updateAuthUI(user, userData);
+    }
+}
 
 function initAll() {
     initAuthUI();
@@ -61,11 +114,45 @@ function updateAuthUI(user, userData) {
         if (registerBtn) registerBtn.style.display = 'none';
         if (userMenu) userMenu.style.display = 'block';
         if (userNameEl) userNameEl.textContent = user.displayName || user.email || 'Compte';
-        if (unauthView) unauthView.style.display = 'none';
-        if (dashboardContent) dashboardContent.style.display = 'block';
-        if (dashboardHeader) dashboardHeader.style.display = 'block';
         if (welcomeName) welcomeName.textContent = user.displayName || user.email || 'Utilisateur';
         if (userData) updateDashboardStats(userData);
+        
+        // CORRECTION MAJEURE: Attendre que TokenManager soit prêt avant de montrer le dashboard
+        // Cela évite le problème d'affichage du message "Accès réservé" alors que l'utilisateur est connecté
+        if (tokenManagerReady) {
+            // TokenManager est déjà prêt, on peut afficher le dashboard
+            if (unauthView) unauthView.style.display = 'none';
+            if (dashboardContent) dashboardContent.style.display = 'block';
+            if (dashboardHeader) dashboardHeader.style.display = 'block';
+            console.log('%c✅ [Main.js] Dashboard affiché - TokenManager prêt', 'color: #4CAF50; font-weight: bold;');
+        } else {
+            // TokenManager n'est pas encore prêt, on va attendre son initialisation
+            console.log('%c⏳ [Main.js] TokenManager non prêt, attente avant d\'afficher le dashboard', 'color: #FF9800; font-weight: bold;');
+            
+            // Cacher temporairement le dashboard
+            if (unauthView) unauthView.style.display = 'block';
+            if (dashboardContent) dashboardContent.style.display = 'none';
+            if (dashboardHeader) dashboardHeader.style.display = 'none';
+            
+            // Écouter l'événement tokenManagerReady pour afficher le dashboard
+            const showDashboardWhenReady = () => {
+                if (unauthView) unauthView.style.display = 'none';
+                if (dashboardContent) dashboardContent.style.display = 'block';
+                if (dashboardHeader) dashboardHeader.style.display = 'block';
+                console.log('%c✅ [Main.js] Dashboard affiché après initialisation TokenManager', 'color: #4CAF50; font-weight: bold;');
+                window.removeEventListener('tokenManagerReady', showDashboardWhenReady);
+            };
+            window.addEventListener('tokenManagerReady', showDashboardWhenReady, { once: true });
+            
+            // Timeout de secours au cas où
+            setTimeout(() => {
+                window.removeEventListener('tokenManagerReady', showDashboardWhenReady);
+                if (unauthView) unauthView.style.display = 'none';
+                if (dashboardContent) dashboardContent.style.display = 'block';
+                if (dashboardHeader) dashboardHeader.style.display = 'block';
+                console.log('%c⚠️ [Main.js] Dashboard affiché après timeout de secours', 'color: #FF9800; font-weight: bold;');
+            }, 5000);
+        }
     } else {
         // Non connecté
         if (loginBtn) loginBtn.style.display = 'inline-flex';
