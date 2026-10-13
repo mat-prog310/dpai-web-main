@@ -18,14 +18,10 @@ document.addEventListener('DOMContentLoaded', () => {
             // CORRECTION: Vérifier aussi l'état actuel d'authentification
             // Firebase peut avoir déjà déclenché onAuthStateChanged avant que authService ne soit prêt
             if (window.authService.currentUser) {
-                console.log('%c[Main.js] Utilisateur déjà connecté, mise à jour UI...', 'color: #4CAF50; font-weight: bold;');
-                const event = new CustomEvent('authStateChanged', {
-                    detail: { 
-                        user: window.authService.currentUser, 
-                        userData: window.authService.currentUserData 
-                    }
-                });
-                window.dispatchEvent(event);
+                console.log('%c[Main.js] Utilisateur déjà connecté, mise à jour UI directe...', 'color: #4CAF50; font-weight: bold;');
+                // Appeler directement updateAuthUI au lieu de dispatcher un événement
+                // pour éviter les problèmes de timing
+                updateAuthUI(window.authService.currentUser, window.authService.currentUserData);
             }
         }
     }, 100);
