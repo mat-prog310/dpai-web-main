@@ -1119,6 +1119,7 @@ function initQuickActions() {
         console.warn('[DASHBOARD] Conteneur .quick-actions non trouvé');
         return;
     }
+    console.log('[DASHBOARD] initQuickActions appelée, plan:', (typeof TokenManager !== 'undefined' && TokenManager.tokenState) ? TokenManager.tokenState.plan : 'non initialisé');
     
     // Vider le conteneur avant d'ajouter les boutons (évite les doublons)
     container.innerHTML = '';
