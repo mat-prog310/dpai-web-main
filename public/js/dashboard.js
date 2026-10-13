@@ -72,14 +72,6 @@ async function loadUserData(userId) {
         const userData = userDoc.data();
         
         
-        // Initialiser TokenManager avec les données utilisateur
-        // C'est CRUCIAL pour que le plan advisor soit détecté correctement
-        if (typeof TokenManager !== 'undefined') {
-            TokenManager.init({ id: userId, ...userData });
-        }
-
-        
-        // Initialiser TokenManager avec les données utilisateur
         // C'est CRUCIAL pour que le plan advisor soit détecté correctement
         if (typeof TokenManager !== 'undefined') {
             TokenManager.init({ id: userId, ...userData });
@@ -144,32 +136,13 @@ async function loadUserData(userId) {
                 initQuickActions();
             }
         }
-    }););
-                    }
-                }
-            }
-            
-            // Forcer la vérification de l'accès advisor (une seule fois)
-            if (typeof checkAdvisorAccess !== 'undefined' && !window.checkingAdvisorAccess) {
-                window.checkingAdvisorAccess = true;
-                setTimeout(() => { checkAdvisorAccess(); window.checkingAdvisorAccess = false; }, 100);
-            }
-            
-            // Recharger initQuickActions si nécessaire
-            if (typeof initQuickActions !== 'undefined') {
-                initQuickActions();
-            }
-        }
     });
-    }
     
     // Charger les données de l'entreprise (si collection séparée)
     const companyDoc = await db.collection('companies').doc(userId).get();
     if (companyDoc.exists) {
         companyData = { ...companyData, ...companyDoc.data() };
     }
-    
-    // Ajouter un listener pour les changements futurs
 }
 
 // Charger l'historique des analyses
@@ -1088,7 +1061,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initQuickActions();
     
     // Vérifier l'accès au Conseiller IA après initialisation des actions rapides
-    setTimeout(checkAdvisorAccess, 100);
+    if (typeof checkAdvisorAccess === "function") setTimeout(checkAdvisorAccess, 100);
     
     // Ré-initialiser quand l'utilisateur se connecte (au cas où dashboardContent était masqué)
     window.addEventListener('authStateChanged', function(event) {
@@ -1096,7 +1069,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (user && userData) {
             setTimeout(function() {
                 initQuickActions();
-                setTimeout(checkAdvisorAccess, 100); // Vérifier après init des actions
+                if (typeof checkAdvisorAccess === "function") setTimeout(checkAdvisorAccess, 100); // Vérifier après init des actions
             }, 100); // Petit délai pour laisser le temps au DOM de s'afficher
         }
     });
