@@ -1,6 +1,6 @@
 /**
  * LOCAL-AI-CLIENT-FIXED.JS - Version corrigée qui utilise Firestore directement
- * au lieu des Cloud Functions (problème CORS non résolu côté serveur)
+ * utilise l API locale DPAI integree
  * 
  * Cette version contourne le problème CORS en utilisant uniquement Firestore
  */
@@ -332,7 +332,7 @@ function renderMessages(messages) {
 }
 
 // =============================================================================
-// GESTION DU CHAT AVEC FIRESTORE (sans Cloud Functions)
+// GESTION DU CHAT AVEC IA LOCALE
 // =============================================================================
 
 async function sendMessage() {
@@ -646,4 +646,4 @@ window.LocalAIClient = {
     showLocalAIError
 };
 
-console.log('[Local-AI-Client-FIXED] Initialisé - Mode Firestore direct (contournement CORS)');
+console.log('[LocalAI] Initialise avec API locale DPAI');
