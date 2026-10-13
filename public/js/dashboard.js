@@ -71,6 +71,11 @@ async function loadUserData(userId) {
     if (userDoc.exists) {
         const userData = userDoc.data();
         
+        // Initialiser TokenManager avec les données utilisateur
+        // CORRECTION: Initialiser TokenManager immédiatement pour que initQuickActions() puisse y accéder
+        if (typeof TokenManager !== 'undefined') {
+            TokenManager.init({ id: userId, ...userData });
+        }
         
         // Charger les tokens
         if (userData.tokenState) {
@@ -84,7 +89,7 @@ async function loadUserData(userId) {
             console.log('[Dashboard] User data updated:', updatedUserData.subscription?.plan || updatedUserData.plan);
             
             // Mettre à jour TokenManager
-    }
+            if (typeof TokenManager !== 'undefined') {
                 TokenManager.init({ id: userId, ...updatedUserData });
             }
             
@@ -325,8 +330,13 @@ function generateDefaultActions(userId) {
 function updateTokenDisplay(tokenState) {
     if (!tokenState) return;
     
-    const available = Number(tokenState.availableTokens) === -1 ? 'Illimité' : tokenState.availableTokens;
-    const total = Number(tokenState.totalTokens) === -1 ? 'Illimité' : tokenState.totalTokens;
+    // CORRECTION: Gérer correctement le cas -1 (illimité)
+    // Utiliser == pour comparer avec -1 (gère à la fois le number -1 et la string "-1")
+    const availableRaw = tokenState.availableTokens;
+    const totalRaw = tokenState.totalTokens;
+    
+    let available = (availableRaw == -1 || availableRaw === '-1') ? 'Illimité' : availableRaw;
+    let total = (totalRaw == -1 || totalRaw === '-1') ? 'Illimité' : totalRaw;
     const used = tokenState.usedTokens || 0;
     
     const availableEl = document.getElementById('availableTokens');
@@ -339,9 +349,13 @@ function updateTokenDisplay(tokenState) {
     if (usedEl) usedEl.textContent = used;
     
     // Mettre à jour la barre de progression
-    if (tokenState.availableTokens !== -1 && tokenState.totalTokens > 0 && progressEl) {
-        const percentage = ((tokenState.totalTokens - tokenState.availableTokens) / tokenState.totalTokens) * 100;
+    // CORRECTION: Vérifier que ce n'est PAS illimité avant de calculer le pourcentage
+    if (availableRaw != -1 && totalRaw != -1 && totalRaw > 0 && progressEl) {
+        const percentage = ((totalRaw - availableRaw) / totalRaw) * 100;
         progressEl.style.width = `${percentage}%`;
+    } else if (progressEl) {
+        // Si illimité, mettre la barre à 100% ou la cacher
+        progressEl.style.width = '100%';
     }
 }
 
@@ -1119,7 +1133,16 @@ function initQuickActions() {
         console.warn('[DASHBOARD] Conteneur .quick-actions non trouvé');
         return;
     }
-    console.log('[DASHBOARD] initQuickActions appelée, plan:', (typeof TokenManager !== 'undefined' && TokenManager.tokenState) ? TokenManager.tokenState.plan : 'non initialisé');
+    
+    // CORRECTION: Attendre que TokenManager soit initialisé
+    if (typeof TokenManager === 'undefined' || !TokenManager.tokenState) {
+        console.warn('[DASHBOARD] TokenManager non initialisé, réessai dans 500ms');
+        // Réessayer après un délai
+        setTimeout(initQuickActions, 500);
+        return;
+    }
+    
+    console.log('[DASHBOARD] initQuickActions appelée, plan:', TokenManager.tokenState.plan);
     
     // Vider le conteneur avant d'ajouter les boutons (évite les doublons)
     container.innerHTML = '';
@@ -1206,16 +1229,17 @@ function checkAdvisorAccess() {
     
     let shouldUnlock = false;
     
-    // Vérifier d'abord TokenManager (source principale)
+    // Vérifier TokenManager (seule source fiable)
     if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
         const plan = TokenManager.tokenState.plan;
         shouldUnlock = plan === 'advisor';
     }
     
-    // Vérifier aussi les données utilisateur globales (fallback)
-    if (!shouldUnlock && typeof window !== 'undefined' && window.currentUserData) {
-        const userData = window.currentUserData;
-        shouldUnlock = userData.plan === 'advisor';
+    // CORRECTION: Si TokenManager n'est pas initialisé, réessayer plus tard
+    if (!shouldUnlock && (typeof TokenManager === 'undefined' || !TokenManager.tokenState)) {
+        console.warn('[DASHBOARD] TokenManager non prêt pour checkAdvisorAccess, réessai dans 500ms');
+        setTimeout(checkAdvisorAccess, 500);
+        return;
     }
     
     // Appliquer le verrouillage/déverrouillage
