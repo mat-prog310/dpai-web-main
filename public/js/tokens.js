@@ -29,49 +29,13 @@ function getDB() {
 // URL de l'API IA locale DPAI
 const LOCAL_AI_URL = "http://localhost:5002/api/chat";
 // Configuration de l'IA locale DPAI
-const LOCAL_AI_ENABLED = true;
 // Pas besoin de clé API pour l'IA locale
 
 // L'IA locale DPAI n'a pas besoin de clé API
 const LOCAL_AI_ENABLED = true;  // IA locale toujours disponible
-
-// Fonction pour récupérer la clé API Mistral depuis le serveur
+n// Fonction pour verifier la disponibilite de l IA locale
 async function getLocalAIStatus() {
-    // IA locale est toujours disponible
-    return true;
-}
-    
-    try {
-        // Essayer de récupérer depuis une variable globale (injectée côté serveur)
-        if (typeof window !== 'undefined' && window.LOCAL_AI_ENABLED) {
-            LOCAL_AI_ENABLED = window.LOCAL_AI_ENABLED;
-            return LOCAL_AI_ENABLED;
-        }
-        
-        // Essayer de récupérer depuis une API serveur
-        const response = await fetch('/api/mistral-key', {
-            method: 'GET',
-            credentials: 'include'
-        });
-        
-        if (response.ok) {
-            const data = await response.json();
-            if (data.success && data.key) {
-                LOCAL_AI_ENABLED = data.key;
-                return LOCAL_AI_ENABLED;
-            }
-        }
-        
-        // Si tout échoue, journaliser une erreur mais NE PAS exposer de clé par défaut
-        console.error('%c❌ [Mistral] Impossible de récupérer la clé API. Les appels à l\'API Mistral échoueront.', 'color: #dc3545; font-weight: bold;');
-        console.warn('%c⚠️ [Mistral] Configurez la variable d\'environnement LOCAL_AI_ENABLED côté serveur.', 'color: #FF9800; font-weight: bold;');
-        
-        return null;
-        
-    } catch (error) {
-        console.error('%c❌ [Mistral] Erreur lors de la récupération de la clé API:', 'color: #dc3545; font-weight: bold;', error);
-        return null;
-    }
+  return true;  // IA locale toujours disponible
 }
 
 // Contexte DPAI pour les prompts
@@ -1167,8 +1131,7 @@ window.TokenManager = TokenManager;
 window.TokenUtils = TokenUtils;
 window.AnalysisCosts = AnalysisCosts;
 window.PLAN_CONFIG = PLAN_CONFIG;
-// ⚠️  NE PAS exposer LOCAL_AI_ENABLED dans la fenêtre globale pour des raisons de sécurité
-// La clé doit être récupérée via getLocalAIStatus() lorsque nécessaire
-window.LOCAL_AI_URL = LOCAL_AI_URL;
+// IA locale toujours disponible
+// IA locale toujours disponible
 window.DPAI_CONTEXT = DPAI_CONTEXT;
-window.loadUserTokenData = loadUserTokenData;
+// IA locale toujours disponible

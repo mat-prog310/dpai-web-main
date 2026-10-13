@@ -23,7 +23,7 @@ async function ensureTokenManagerInitialized(retryCount = 0) {
     }
 
     if (typeof TokenManager === 'undefined') {
-        console.warn('[LocalAI] TokenManager non défini');
+        console.log('[LocalAI] TokenManager en cours de chargement...');
         return;
     }
 
