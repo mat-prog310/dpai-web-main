@@ -17,10 +17,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }, 100);
     
-    setTimeout(() => {
-        clearInterval(checkReady);
-        console.warn('%c⚠️ [Main.js] authService non disponible après 5s', 'color: #FF9800; font-weight: bold;');
-    }, 5000);
+    // CORRECTION: Ne pas arrêter l'attente après 5s, et vérifier aussi si authService est déjà présent
+    // Supprimer le timeout pour éviter de bloquer l'initialisation
+    // setTimeout(() => {
+    //     clearInterval(checkReady);
+    //     console.warn('%c⚠️ [Main.js] authService non disponible après 5s', 'color: #FF9800; font-weight: bold;');
+    // }, 5000);
 });
 
 function initAll() {
@@ -91,7 +93,11 @@ function updateAuthUI(user, userData) {
 function updateDashboardStats(userData) {
     if (!userData) return;
     
-    const format = (v) => (window.TokenUtils?.formatTokens ? TokenUtils.formatTokens(v || 0) : String(v || 0));
+    // Fonction de formatage qui gère le cas -1 (illimité)
+    const format = (v) => {
+        if (v == -1 || v === '-1') return 'Illimité';
+        return window.TokenUtils?.formatTokens ? TokenUtils.formatTokens(v || 0) : String(v || 0);
+    };
     
     // Tokens
     const availableEl = document.getElementById('availableTokens');

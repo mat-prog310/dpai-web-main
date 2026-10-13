@@ -353,6 +353,16 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
 
         console.log('%c✅✅✅ [Auth.js] authService PRÊT !', 'color: #28a745; font-weight: bold; font-size: 16px;');
 
+        // CORRECTION: Re-dispatcher l'événement authStateChanged pour s'assurer que tous les listeners sont prêts
+        // Cela résout le problème où Firebase déclenche onAuthStateChanged avant que main.js ne soit initialisé
+        setTimeout(() => {
+            const event = new CustomEvent('authStateChanged', {
+                detail: { user: currentUser, userData: currentUserData }
+            });
+            window.dispatchEvent(event);
+            console.log('%c[Auth.js] Événement authStateChanged re-dispatché', 'color: #2196F3; font-weight: bold;');
+        }, 100);
+
         // Dispatcher un événement indiquant que authService est prêt
         window.dispatchEvent(new CustomEvent('authServiceReady'));
     }
