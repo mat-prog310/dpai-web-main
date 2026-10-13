@@ -72,14 +72,6 @@ async function loadUserData(userId) {
         const userData = userDoc.data();
         
         
-        if (welcomeEl) welcomeEl.textContent = userName;
-        if (dashboardEl) dashboardEl.textContent = userName;
-        
-        // Charger les données de l'entreprise
-        if (userData.companyInfo) {
-            companyData = { ...companyData, ...userData.companyInfo };
-        }
-        
         // Charger les tokens
         if (userData.tokenState) {
             updateTokenDisplay(userData.tokenState);
@@ -92,7 +84,7 @@ async function loadUserData(userId) {
             console.log('[Dashboard] User data updated:', updatedUserData.subscription?.plan || updatedUserData.plan);
             
             // Mettre à jour TokenManager
-            if (typeof TokenManager !== 'undefined') {
+    }
                 TokenManager.init({ id: userId, ...updatedUserData });
             }
             
@@ -333,8 +325,8 @@ function generateDefaultActions(userId) {
 function updateTokenDisplay(tokenState) {
     if (!tokenState) return;
     
-    const available = tokenState.availableTokens !== -1 ? tokenState.availableTokens : 'Illimité';
-    const total = tokenState.totalTokens !== -1 ? tokenState.totalTokens : 'Illimité';
+    const available = Number(tokenState.availableTokens) === -1 ? 'Illimité' : tokenState.availableTokens;
+    const total = Number(tokenState.totalTokens) === -1 ? 'Illimité' : tokenState.totalTokens;
     const used = tokenState.usedTokens || 0;
     
     const availableEl = document.getElementById('availableTokens');
