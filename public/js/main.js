@@ -14,15 +14,21 @@ document.addEventListener('DOMContentLoaded', () => {
             clearInterval(checkReady);
             console.log('%c✅ [Main.js] authService prêt, initialisation UI...', 'color: #4CAF50; font-weight: bold;');
             initAll();
+            
+            // CORRECTION: Vérifier aussi l'état actuel d'authentification
+            // Firebase peut avoir déjà déclenché onAuthStateChanged avant que authService ne soit prêt
+            if (window.authService.currentUser) {
+                console.log('%c[Main.js] Utilisateur déjà connecté, mise à jour UI...', 'color: #4CAF50; font-weight: bold;');
+                const event = new CustomEvent('authStateChanged', {
+                    detail: { 
+                        user: window.authService.currentUser, 
+                        userData: window.authService.currentUserData 
+                    }
+                });
+                window.dispatchEvent(event);
+            }
         }
     }, 100);
-    
-    // CORRECTION: Ne pas arrêter l'attente après 5s, et vérifier aussi si authService est déjà présent
-    // Supprimer le timeout pour éviter de bloquer l'initialisation
-    // setTimeout(() => {
-    //     clearInterval(checkReady);
-    //     console.warn('%c⚠️ [Main.js] authService non disponible après 5s', 'color: #FF9800; font-weight: bold;');
-    // }, 5000);
 });
 
 function initAll() {
