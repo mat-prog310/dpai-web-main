@@ -120,6 +120,13 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                     console.log('%c✅ [Auth.js] Utilisateur:', 'color: #28a745;', user.email || user.uid);
                 } catch (error) {
                     console.error('%c❌ [Auth.js] Erreur chargement userData:', 'color: #F44336;', error);
+                    // CORRECTION: Toujours dispatcher l'événement même en cas d'erreur
+                    currentUser = user;
+                    currentUserData = null;
+                    const event = new CustomEvent('authStateChanged', {
+                        detail: { user: user, userData: null }
+                    });
+                    window.dispatchEvent(event);
                 }
             } else {
                 // Utilisateur déconnecté

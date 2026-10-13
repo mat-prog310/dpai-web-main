@@ -56,8 +56,8 @@ function updateAuthUI(user, userData) {
     const dashboardHeader = document.getElementById('dashboardHeader');
     const welcomeName = document.getElementById('welcomeUserName');
     
-    if (user && userData) {
-        // Connecté
+    if (user) {
+        // Connecté - afficher le dashboard même si userData est null
         if (loginBtn) loginBtn.style.display = 'none';
         if (registerBtn) registerBtn.style.display = 'none';
         if (userMenu) userMenu.style.display = 'block';
@@ -66,7 +66,7 @@ function updateAuthUI(user, userData) {
         if (dashboardContent) dashboardContent.style.display = 'block';
         if (dashboardHeader) dashboardHeader.style.display = 'block';
         if (welcomeName) welcomeName.textContent = user.displayName || user.email || 'Utilisateur';
-        updateDashboardStats(userData);
+        if (userData) updateDashboardStats(userData);
     } else {
         // Non connecté
         if (loginBtn) loginBtn.style.display = 'inline-flex';
