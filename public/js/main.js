@@ -15,14 +15,9 @@ document.addEventListener('DOMContentLoaded', () => {
             console.log('%c✅ [Main.js] authService prêt, initialisation UI...', 'color: #4CAF50; font-weight: bold;');
             initAll();
             
-            // CORRECTION: Vérifier aussi l'état actuel d'authentification
-            // Firebase peut avoir déjà déclenché onAuthStateChanged avant que authService ne soit prêt
-            if (window.authService.currentUser) {
-                console.log('%c[Main.js] Utilisateur déjà connecté, mise à jour UI directe...', 'color: #4CAF50; font-weight: bold;');
-                // Appeler directement updateAuthUI au lieu de dispatcher un événement
-                // pour éviter les problèmes de timing
-                updateAuthUI(window.authService.currentUser, window.authService.currentUserData);
-            }
+            // CORRECTION: Ne PAS vérifier authService.currentUser directement car course condition
+            // On attend uniquement l'événement authStateChanged qui sera dispatché par auth.js
+            // quand l'utilisateur sera complètement initialisé
         }
     }, 100);
 });
