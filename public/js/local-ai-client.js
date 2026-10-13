@@ -384,7 +384,29 @@ async function sendMessage() {
         // Générer une réponse IA (simulée pour l'instant)
         // En production, vous devriez appeler votre IA locale ici
         // Mais pour l'instant, on contourne le problème CORS
-        const assistantResponse = generateAdvisorResponse(message);
+        // Appeler l API locale DPAI via le proxy Node.js
+        const response = await fetch('/api/local-ai/chat', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: message,
+            userId: userId,
+            conversationId: currentConversationId
+          })
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Erreur IA locale DPAI');
+        }
+
+        const data = await response.json();
+        if (!data.success || !data.response) {
+          throw new Error('Pas de reponse de l IA locale');
+        }
+        const assistantResponse = data.response;
         
         const assistantMessage = {
             role: 'assistant',
@@ -430,180 +452,7 @@ async function sendMessage() {
     }
 }
 
-// Générateur de réponses IA (temporaire jusqu'à ce que le serveur soit corrigé)
-function generateAdvisorResponse(userMessage) {
-    const responses = {
-        'valorisation': `## Valorisation d'entreprise
 
-**Analyse :**
-Pour une entreprise avec les métriques que vous mentionnez, la valorisation dépend de plusieurs facteurs :
-- **Secteur d'activité** : Les multiples varient considérablement (Tech: 8-12x EBITDA, Industrie: 5-8x, Retail: 4-6x)
-- **Croissance** : Un taux de croissance élevé justifie un multiple plus élevé
-- **Marge** : Un EBITDA margin de 20%+ est excellent
-- **Stabilité** : Recurrence du chiffre d'affaires
-
-**Méthodes recommandées :**
-1. **DCF** (Discounted Cash Flow) - Pour les entreprises avec cash-flows prévisibles
-2. **Multiples de marché** - Comparaison avec des transactions similaires
-3. **Approche patrimoniale** - Valeur des actifs nets
-
-**Recommandation DPAI :**
-Utilisez notre **Valuation Simulator** dans les Phases 1 & 2 pour obtenir une estimation précise. Contactez-nous pour les Phases 3 & 4 (négociation et intégration).`,
-        
-        'due diligence': `## Due Diligence - Points clés à vérifier
-
-**Due Diligence Financière :**
-- Vérification des états financiers sur 3-5 ans
-- Analyse des flux de trésorerie
-- Identification des dettes hors bilan
-- Vérification de la qualité des actifs
-
-**Due Diligence Juridique :**
-- Contrats clients et fournisseurs
-- Litiges en cours ou potentiels
-- Propriété intellectuelle
-- Conformité réglementaire
-
-**Due Diligence Stratégique :**
-- Positionnement marché
-- Avantages concurrentiels
-- Dépendance aux clients clés
-- Perspectives de croissance
-
-**Pièges à éviter :**
-- ❌ Ne pas vérifier les engagements hors bilan
-- ❌ Ignorer les litiges potentiels
-- ❌ Sous-estimer l'intégration
-- ❌ Négliger la culture d'entreprise
-
-**Bonnes pratiques DPAI :**
-Utilisez notre checklist de Due Diligence complète disponible dans le dashboard.`,
-        
-        'lbo': `## Structuration LBO pour une acquisition à 20M€
-
-**Structure typique :**
-- **Capital** : 30-40% (6-8M€)
-- **Dette senior** : 50-60% (10-12M€)
-- **Dette mezzanine** : 10-20% (2-4M€)
-
-**Ratio clés :**
-- **Leverage Ratio** : Dette/EBITDA = 3-4x
-- **IRR cible** : 20-25%
-- **Dette service** : < 35% du cash-flow disponible
-
-**Sources de financement :**
-1. **Fonds propres** : Private Equity, Family Office
-2. **Dette bancaire** : Banques commerciales, CIC
-3. **Dette subordonnée** : Mezzanine, vendor financing
-4. **Financement vendeur** : Earn-out, sellers note
-
-**Modélisation DPAI :**
-Notre **LBO Model** (Phase 2) vous permet de tester différents scénarios. Contactez-nous pour une analyse personnalisée.`,
-        
-        'fusion': `## Stratégie de fusion - Synergies et bonnes pratiques
-
-**Types de synergies :**
-
-**1. Synergies de coûts (Cost Synergies)**
-- Économies d'échelle : 10-20% sur les coûts communs
-- Rationalisation des fonctions support
-- Optimisation de la supply chain
-- Réduction des doublons (IT, RH, juridique)
-
-**2. Synergies de revenus (Revenue Synergies)**
-- Cross-selling entre clientèles
-- Expansion géographique
-- Extension de gamme produits
-- Accès à de nouveaux marchés
-
-**3. Synergies financières**
-- Optimisation fiscale
-- Meilleure notation crédit
-- Accès à des financing moins chers
-- Réduction du WACC
-
-**Cas DPAI :**
-Dans le cas **CASE-001 TechFlow**, nous avons identifié :
-- 15% de synergies de coûts
-- 25% de synergies de revenus
-- ROI sur l'intégration en 18 mois
-
-**Prochaines étapes :**
-1. Due Diligence approfondie
-2. Modélisation financière
-3. Négociation du prix
-4. Plan d'intégration 100 jours`,
-        
-        'negociation': `## Négociation - Clauses clés à inclure
-
-**LOI (Letter of Intent) - Structure standard :**
-
-**1. Prix et structure**
-- Prix d'acquisition final
-- Structure de paiement (cash, actions, earn-out)
-- Conditions suspensives (due diligence, approbations)
-
-**2. Clauses de protection**
-- **Exclusivité** : 30-60 jours pour finaliser
-- **Break-up fee** : 1-3% du prix en cas d'abandon
-- **Material Adverse Change (MAC)** : Permet de se retirer
-- **No-shop** : Interdiction de solliciter d'autres acheteurs
-
-**3. Clauses spécifiques**
-- **Non-concurrence** : 3-5 ans, géographique limité
-- **Non-sollicitation** : Clients et employés
-- **Représentations et garanties** : Liste exhaustive
-- **Indemnisation** : Limites et seuils
-
-**4. Clauses de non-concurrence**
-- **Durée** : 3-5 ans
-- **Portée géographique** : Zone d'activité de l'entreprise
-- **Contrepartie financière** : 20-30% du salaire annuel
-- **Activités interdites** : Précisément définies
-
-**Bonnes pratiques DPAI :**
-- Toujours inclure une clause de **confidentialité renforcée**
-- Prévoir des **pénalités de retard**
-- Définir clairement les **critères de succès** pour l'earn-out
-- Anticiper les **litiges potentiels** avec des clauses de résolution`,
-        
-        'default': `Bonjour ! Je suis votre Conseiller Stratégique DPAI, spécialiste en croissance externe et operations M&A.
-
-Je peux vous accompagner sur tous les aspects de la croissance externe :
-- Stratégies de fusions et acquisitions
-- Valorisation d'entreprises (DCF, multiples)
-- Due Diligence (financière, juridique, stratégique)
-- Négociation et rédaction de LOI
-- Financement (LBO, dette, fonds propres)
-- Benchmark sectoriel
-- Études de cas et bonnes pratiques
-
-**Note technique :** Actuellement, les Cloud Functions ont des problèmes CORS. Vos messages sont sauvegardés dans Firestore et je peux vous répondre directement. Pour une intégration complète avec l'IA locale, l'administrateur doit configurer CORS sur les Cloud Functions.
-
-Comment puis-je vous aider aujourd'hui ?`
-    };
-    
-    const lowerMessage = userMessage.toLowerCase();
-    
-    if (lowerMessage.includes('valorisation') || lowerMessage.includes('ebitda') || lowerMessage.includes('dcf')) {
-        return responses.valorisation;
-    }
-    if (lowerMessage.includes('due diligence') || lowerMessage.includes('audit') || lowerMessage.includes('vérification')) {
-        return responses['due diligence'];
-    }
-    if (lowerMessage.includes('lbo') || lowerMessage.includes('financement') || lowerMessage.includes('dette')) {
-        return responses.lbo;
-    }
-    if (lowerMessage.includes('fusion') || lowerMessage.includes('synergie') || lowerMessage.includes('rachat')) {
-        return responses.fusion;
-    }
-    if (lowerMessage.includes('négociation') || lowerMessage.includes('loi') || lowerMessage.includes('clause')) {
-        return responses.negociation;
-    }
-    
-    // Réponse par défaut personnalisée
-    return responses['default'];
-}
 
 // =============================================================================
 // FORMATAGE ET AFFICHAGE
