@@ -9,6 +9,12 @@
 
 console.log('%c[Auth.js] Initialisation...', 'color: #2196F3; font-weight: bold;');
 
+// Vérifier si on est en mode file://
+if (window.location.protocol === 'file:') {
+    console.error('%c[Auth.js] PROTOCOLE FILE:// DÉTECTÉ - Firebase Auth ne fonctionnera pas!', 'color: #F44336; font-weight: bold; font-size: 14px;');
+    window.FIREBASE_DEMO_MODE = true;
+}
+
 // Empêcher le double chargement
 if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
     window.DPAI_AUTH_INITIALIZED = true;

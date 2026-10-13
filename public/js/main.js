@@ -10,6 +10,20 @@
 
 console.log('%c[Main.js] Chargement...', 'color: #607D8B; font-weight: bold;');
 
+// Vérifier si on est en mode file:// (Firebase ne fonctionne pas)
+if (window.location.protocol === 'file:') {
+    console.error('%c[Main.js] PROTOCOLE FILE:// DÉTECTÉ - Firebase ne fonctionnera pas!', 'color: #F44336; font-weight: bold; font-size: 16px;');
+    console.error('%c[Main.js] Veuillez utiliser un serveur local: python -m http.server 8000', 'color: #F44336; font-weight: bold;');
+    
+    // Si on est sur dashboard.html, rediriger vers index
+    const isDashboardPage = window.location.pathname.includes('dashboard.html') || 
+                           window.location.pathname.endsWith('dashboard');
+    if (isDashboardPage) {
+        alert('IMPOSSIBLE: Le dashboard nécessite un serveur web. Utilisez: python -m http.server 8000');
+        window.location.href = '/index.html';
+    }
+}
+
 // Suivi de l'initialisation
 let authReady = false;
 let tokenManagerReady = false;
@@ -38,6 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function checkTokenManagerReady() {
     if (tokenManagerReady) return;
     
+    // Vérifier que TokenManager et tokenState existent
     if (typeof TokenManager !== 'undefined' && TokenManager.tokenState) {
         tokenManagerReady = true;
         console.log('%c✅ [Main.js] TokenManager prêt', 'color: #4CAF50; font-weight: bold;');
@@ -146,6 +161,10 @@ function updateAuthUI(user, userData) {
     const dashboardHeader = document.getElementById('dashboardHeader');
     const welcomeName = document.getElementById('welcomeUserName');
     
+    // Vérifier si on est sur dashboard.html
+    const isDashboardPage = window.location.pathname.includes('dashboard.html') || 
+                           window.location.pathname.endsWith('dashboard');
+    
     if (user) {
         // Connecté - afficher le dashboard même si userData est null
         if (loginBtn) loginBtn.style.display = 'none';
@@ -177,7 +196,14 @@ function updateAuthUI(user, userData) {
             if (dashboardHeader) dashboardHeader.style.display = 'none';
         }
     } else {
-        // Non connecté
+        // Non connecté - REDIRIGER vers login si on est sur dashboard
+        if (isDashboardPage) {
+            console.log('%c[Main.js] Utilisateur non connecté sur dashboard - Redirection vers login', 'color: #F44336; font-weight: bold;');
+            window.location.href = '/login.html';
+            return;
+        }
+        
+        // Sur d'autres pages, afficher simplement l'UI non connectée
         if (loginBtn) loginBtn.style.display = 'inline-flex';
         if (registerBtn) registerBtn.style.display = 'inline-flex';
         if (userMenu) userMenu.style.display = 'none';
@@ -185,6 +211,7 @@ function updateAuthUI(user, userData) {
         if (dashboardContent) dashboardContent.style.display = 'none';
         if (dashboardHeader) dashboardHeader.style.display = 'none';
     }
+}
     
     // Bouton de déconnexion
     if (logoutBtn) {

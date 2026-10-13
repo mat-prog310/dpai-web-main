@@ -40,8 +40,27 @@ let userAlerts = [];
 
 // Charger toutes les données du dashboard
 async function loadDashboard() {
+    // Vérifier si on est en mode file://
+    if (window.location.protocol === 'file:' || window.FIREBASE_DEMO_MODE) {
+        console.error('%c[Dashboard] Mode file:// détecté - Firebase ne fonctionne pas! Redirection vers index.html', 'color: #F44336; font-weight: bold;');
+        alert('ERREUR: Le dashboard nécessite un serveur web.\n\nUtilisez: python -m http.server 8000\nou tout autre serveur local.');
+        window.location.href = '/index.html';
+        return;
+    }
+    
+    // Vérifier si Firebase est disponible
+    if (typeof firebase === 'undefined' || !firebase.auth || !firebase.firestore) {
+        console.error('%c[Dashboard] Firebase non disponible - Redirection vers index.html', 'color: #F44336; font-weight: bold;');
+        window.location.href = '/index.html';
+        return;
+    }
+    
     const user = firebase.auth().currentUser;
-    if (!user) return;
+    if (!user) {
+        console.log('%c[Dashboard] Utilisateur non connecté - Redirection vers login.html', 'color: #F44336; font-weight: bold;');
+        window.location.href = '/login.html';
+        return;
+    }
 
     try {
         // Charger les données de l'utilisateur

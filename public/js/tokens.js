@@ -33,7 +33,7 @@ const LOCAL_AI_URL = "http://localhost:5002/api/chat";
 
 // L'IA locale DPAI n'a pas besoin de clé API
 const LOCAL_AI_ENABLED = true;  // IA locale toujours disponible
-n// Fonction pour verifier la disponibilite de l IA locale
+// Fonction pour verifier la disponibilite de l IA locale
 async function getLocalAIStatus() {
   return true;  // IA locale toujours disponible
 }
@@ -1116,7 +1116,4 @@ window.TokenManager = TokenManager;
 window.TokenUtils = TokenUtils;
 window.AnalysisCosts = AnalysisCosts;
 window.PLAN_CONFIG = PLAN_CONFIG;
-// IA locale toujours disponible
-// IA locale toujours disponible
 window.DPAI_CONTEXT = DPAI_CONTEXT;
-// IA locale toujours disponible

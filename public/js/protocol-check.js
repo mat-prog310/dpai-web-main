@@ -5,8 +5,9 @@
 console.log('%c[Protocol-Check] Vérification du protocole...', 'color: #F44336; font-weight: bold;');
 
 if (window.location.protocol === 'file:') {
-    // Mode démo : Firebase ne fonctionnera pas, mais le site affichera des données par défaut
-    console.warn('%c⚠️ [PROTOCOLE] file:// détecté - Firebase ne fonctionnera pas, mais le mode démo est activé', 'color: #FF9800; font-size: 14px;');
+    // Firebase ne fonctionnera PAS avec file://
+    console.error('%c❌ [PROTOCOLE] file:// détecté - Firebase ne fonctionnera PAS!', 'color: #F44336; font-weight: bold; font-size: 14px;');
+    window.FIREBASE_DEMO_MODE = true;
     
     // Afficher une notification discrète
     const noticeDiv = document.createElement('div');
