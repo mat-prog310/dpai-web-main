@@ -909,6 +909,8 @@ class TokenManager {
     } catch (error) {
       console.error('Erreur IA locale DPAI:', error);
       throw error;
+    }
+  }
 
   // Exécuter une analyse avec IA
   static async runAIAnalysis(type, data) {
@@ -917,25 +919,8 @@ class TokenManager {
       throw new Error('Votre abonnement a expiré. Veuillez le renouveler.');
     }
     
-    // Importer les prompts dynamiquement
-    let prompt;
-    try {
-      // Charger le module dpai-prompts
-      const prompts = await import('./prompt/dpai-prompts.js');
-      
-      // Générer le prompt
-      const promptFunction = prompts[`${type.toUpperCase()}_PROMPT`];
-      if (!promptFunction) {
-        throw new Error('Type d\'analyse inconnu');
-      }
-      prompt = promptFunction(data);
-    } catch (error) {
-      console.error('Erreur chargement prompts:', error);
-      // Fallback: créer un prompt manuel
-      prompt = `${DPAI_CONTEXT}
-
-Analyse ${type} pour ${data.name || 'cette entreprise'} dans le secteur ${data.sector || 'non spécifié'}`;
-    }
+    // Générer le prompt
+    const prompt = `${DPAI_CONTEXT}\n\nAnalyse ${type} pour ${data.name || 'cette entreprise'} dans le secteur ${data.sector || 'non spécifié'}`;
 
     // Vérifier l'accès à l'IA
     if (!this.isAIAllowed()) {

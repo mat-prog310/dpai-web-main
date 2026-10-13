@@ -1164,9 +1164,12 @@
     
     <!-- Configuration Firebase (doit être chargée APRES les SDK Firebase) -->
     
-    <script src="/js/auth.js"></script>
+    <!-- tokens.js EN PREMIER pour définir TokenManager -->
     <script src="/js/tokens.js"></script>
+    <!-- auth.js APRÈS tokens.js -->
+    <script src="/js/auth.js"></script>
     <script src="/js/service-modal.js"></script>
+    <!-- main.js ENSUITE pour enregistrer les listeners -->
     <script src="/js/main.js"></script>
     <script src="/js/analytics.js"></script>
     

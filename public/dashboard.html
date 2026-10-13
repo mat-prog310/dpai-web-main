@@ -1042,11 +1042,13 @@
     <script src="/js/firebase-config.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <script src="/js/protocol-check.js"></script>
-    <!-- main.js EN PREMIER pour enregistrer le listener AVANT que auth.js ne dispatch l'événement -->
-    <script src="/js/main.js"></script>
-    <!-- auth.js APRÈS main.js -->
-    <script src="/js/auth.js"></script>
+    <!-- tokens.js DOIT être chargé EN PREMIER pour définir TokenManager -->
+    <!-- auth.js DOIT être chargé APRÈS tokens.js pour avoir accès à TokenManager -->
+    <!-- main.js ENSUITE pour enregistrer le listener AVANT que auth.js ne dispatch l'événement -->
+    <!-- dashboard.js EN DERNIER -->
     <script src="/js/tokens.js"></script>
+    <script src="/js/auth.js"></script>
+    <script src="/js/main.js"></script>
     <script src="/js/dashboard.js"></script>
     <script>
         // Load dashboard data (defined in dashboard.js)
