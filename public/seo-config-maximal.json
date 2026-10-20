@@ -1,0 +1,926 @@
+{
+  "site": {
+    "name": "DPAI Strategy by Duprey Conseil",
+    "url": "https://dpai-strategy.com",
+    "tagline": "N°1 de la Croissance Externe et des Outils M&A en France",
+    "defaultTitle": "DPAI Strategy | Plateforme N°1 Croissance Externe & M&A - 500 Tokens Gratuits (125€) | Logiciel Fusion Acquisition by Duprey Conseil",
+    "defaultDescription": "DPAI Strategy by Duprey Conseil : La plateforme ULTIME d'analyse stratégique et d'outils pour la croissance externe, fusion acquisition et M&A. 500 tokens GRATUITS (valeur 125€). SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence, benchmark. Logiciel croissance externe, outil M&A, plateforme acquisition. Tous services accessibles immédiatement.",
+    "defaultKeywords": "analyse stratégique, croissance externe, fusion acquisition, M&A, SWOT analyse, Porter 5 Forces, PESTEL analyse, analyse concurrentielle, conseil stratégie entreprise, tokens gratuits 500, logiciel croissance externe, outil croissance externe, plateforme croissance externe, meilleur logiciel croissance externe, outil M&A, logiciel M&A, plateforme M&A, logiciel fusion acquisition, outil fusion acquisition, plateforme fusion acquisition, outil recherche cible acquisition, logiciel deal sourcing, base de données entreprises à vendre, outil identification cibles M&A, logiciel veille acquisition, outil due diligence, logiciel due diligence M&A, plateforme data room M&A, outil évaluation entreprise, logiciel valorisation entreprise, checklist due diligence acquisition, outil gestion pipeline M&A, logiciel suivi deals, plateforme gestion transactions, outil négociation acquisition, CRM M&A, outil intégration post-acquisition, logiciel gestion intégration M&A, plateforme suivi synergies, outil pilotage post-fusion, logiciel gestion alliance, plateforme partenariat stratégique, logiciel joint-venture, outil gestion JV, outil gestion participations, logiciel equity investment, logiciel développement réseau franchise, outil croissance franchise, meilleur outil croissance externe, comment faire croissance externe, outil pour trouver entreprises à racheter, logiciel pour gérer acquisition, plateforme pour piloter fusion acquisition, outil digital croissance externe PME, logiciel M&A pour PME, solution croissance externe ETI, outil M&A sans consultant, logiciel due diligence pas cher, qu'est-ce que croissance externe, avantages croissance externe, étapes acquisition, différence croissance interne externe, comment réussir fusion acquisition, risques croissance externe, synergies M&A définition, processus due diligence étapes, logiciel croissance externe France, outil M&A Paris, plateforme acquisition PME France, logiciel fusion acquisition Lyon, outil croissance externe Bordeaux, Duprey Conseil, Duprey Conseil stratégie, Duprey Conseil M&A, Duprey Conseil croissance externe, Duprey Conseil avis, DPAI par Duprey Conseil, DPAI Duprey Conseil avis, logiciel DPAI Duprey, DPAI Strategy Duprey, consultant croissance externe indépendant, consultant M&A indépendant, conseil stratégique auto-entrepreneur, consultant fusion acquisition indépendant, expert M&A indépendant France",
+    "author": "DPAI Strategy by Duprey Conseil",
+    "designer": "Duprey Conseil",
+    "publisher": "DPAI Strategy",
+    "copyright": "DPAI Strategy 2026 - Duprey Conseil - Tous droits réservés",
+    "language": "fr",
+    "locale": "fr_FR",
+    "currency": "EUR",
+    "pricePerToken": 0.25,
+    "freeTokens": 500,
+    "freeTokensValue": 125,
+    "tokenPackPrices": {
+      "100": 25,
+      "500": 112.50,
+      "1000": 212.50,
+      "2000": 400,
+      "5000": 900
+    },
+    "premiumPrice": 499,
+    "enterprisePrice": 999,
+    "category": "Business Services, Strategic Consulting, Market Analysis, M&A Advisory, Growth Tools, Software Platform, Due Diligence Tools, Acquisition Software, External Growth Solutions",
+    "classification": "Business, Strategy, Consulting, Financial Services, Market Analysis, Independent Consultant, Software, SaaS, Technology",
+    "coverage": "France, Europe, International, Belgique, Switzerland, Luxembourg, Canada, Monaco, Andorre",
+    "targetAudience": "Entreprises, PME, TPE, Startups, Investisseurs, Conseillers en stratégie, Directeurs généraux, Responsables développement, Directeurs financiers, Chefs d'entreprise, Entrepreneurs, Investisseurs privés, Fonds d'investissement, Business Angels"
+  },
+  
+  "keywordStrategy": {
+    "totalKeywords": 350,
+    
+    "primaryKeywords": [
+      {"keyword": "logiciel croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐⭐", "searchVolume": "high", "competition": "high", "cpc": "high"},
+      {"keyword": "outil croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐⭐", "searchVolume": "high", "competition": "high", "cpc": "high"},
+      {"keyword": "plateforme croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐⭐", "searchVolume": "high", "competition": "high", "cpc": "high"},
+      {"keyword": "meilleur logiciel croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐⭐", "searchVolume": "high", "competition": "medium", "cpc": "high"},
+      {"keyword": "meilleur outil croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐⭐", "searchVolume": "high", "competition": "medium", "cpc": "high"},
+      {"keyword": "logiciel fusion acquisition", "intention": "Transactionnelle", "priority": "⭐⭐⭐", "searchVolume": "high", "competition": "high", "cpc": "high"},
+      {"keyword": "outil M&A", "intention": "Transactionnelle", "priority": "⭐⭐⭐", "searchVolume": "high", "competition": "high", "cpc": "high"},
+      {"keyword": "logiciel M&A", "intention": "Transactionnelle", "priority": "⭐⭐⭐", "searchVolume": "high", "competition": "high", "cpc": "high"},
+      {"keyword": "plateforme M&A", "intention": "Transactionnelle", "priority": "⭐⭐", "searchVolume": "high", "competition": "high", "cpc": "high"},
+      {"keyword": "solution croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐⭐", "searchVolume": "medium", "competition": "medium", "cpc": "medium"}
+    ],
+    
+    "secondaryKeywords": [
+      {"keyword": "plateforme fusion acquisition", "intention": "Transactionnelle", "priority": "⭐⭐", "category": "fusion_acquisition"},
+      {"keyword": "outil acquisition entreprise", "intention": "Transactionnelle", "priority": "⭐⭐", "category": "acquisition"},
+      {"keyword": "logiciel rachat entreprise", "intention": "Transactionnelle", "priority": "⭐⭐", "category": "rachats"},
+      {"keyword": "solution M&A", "intention": "Transactionnelle", "priority": "⭐⭐", "category": "m_a"},
+      {"keyword": "software croissance externe", "intention": "Transactionnelle", "priority": "⭐⭐", "category": "international", "language": "en"},
+      {"keyword": "tool M&A", "intention": "Transactionnelle", "priority": "⭐⭐", "category": "international", "language": "en"},
+      {"keyword": "M&A software platform", "intention": "Transactionnelle", "priority": "⭐⭐", "category": "international", "language": "en"},
+      {"keyword": "external growth tool", "intention": "Transactionnelle", "priority": "⭐⭐", "category": "international", "language": "en"}
+    ],
+    
+    "dupreyConseilKeywords": {
+      "brandKeywords": [
+        "Duprey Conseil",
+        "Duprey Conseil stratégie",
+        "Duprey Conseil M&A",
+        "Duprey Conseil croissance externe",
+        "Duprey Conseil avis",
+        "Duprey Conseil fusion acquisition",
+        "Duprey Conseil France",
+        "Duprey Conseil Paris",
+        "Duprey Conseil expert",
+        "Duprey Conseil indépendant"
+      ],
+      "dpaiBrandedKeywords": [
+        "DPAI par Duprey Conseil",
+        "DPAI Duprey Conseil avis",
+        "logiciel DPAI Duprey",
+        "DPAI Strategy Duprey",
+        "DPAI Strategy avis",
+        "DPAI Strategy prix",
+        "DPAI Strategy tokens",
+        "DPAI Strategy 500 tokens gratuits",
+        "DPAI Strategy inscription gratuite",
+        "DPAI Strategy meilleur outil"
+      ],
+      "independentConsultantKeywords": [
+        "consultant croissance externe indépendant",
+        "consultant M&A indépendant",
+        "conseil stratégique auto-entrepreneur",
+        "consultant fusion acquisition indépendant",
+        "expert M&A indépendant France",
+        "conseiller en croissance externe indépendant",
+        "expert stratégie indépendant",
+        "consultant analyse stratégique indépendant",
+        "cabinet conseil indépendant croissance externe",
+        "expert M&A sans conflit d'intérêts"
+      ]
+    },
+    
+    "processBasedKeywords": {
+      "Sourcing_Recherche_cibles": [
+        "outil recherche cible acquisition",
+        "logiciel deal sourcing",
+        "plateforme sourcing M&A",
+        "base de données entreprises à vendre",
+        "outil identification cibles M&A",
+        "logiciel veille acquisition",
+        "outil recherche entreprise à vendre",
+        "base de données cibles acquisition",
+        "logiciel identification opportunités M&A",
+        "plateforme deal flow M&A",
+        "outil screening entreprises",
+        "logiciel veille concurrentielle M&A",
+        "outil tracking cibles",
+        "logiciel gestion pipeline sourcing"
+      ],
+      "Due_diligence_Evaluation": [
+        "outil due diligence",
+        "logiciel due diligence M&A",
+        "plateforme data room M&A",
+        "outil évaluation entreprise",
+        "logiciel valorisation entreprise",
+        "checklist due diligence acquisition",
+        "outil analyse financière acquisition",
+        "logiciel évaluation synergies",
+        "plateforme data room virtuelle",
+        "outil audit acquisition",
+        "logiciel analyse juridique M&A",
+        "checklist due diligence complète",
+        "outil analyse risques",
+        "logiciel évaluation actifs"
+      ],
+      "Negociation_Closing": [
+        "outil gestion pipeline M&A",
+        "logiciel suivi deals",
+        "plateforme gestion transactions",
+        "outil négociation acquisition",
+        "CRM M&A",
+        "outil calcul prix acquisition",
+        "logiciel simulation M&A",
+        "plateforme gestion offres",
+        "outil suivi négociation",
+        "CRM transaction M&A",
+        "outil gestion documentation",
+        "logiciel signature électronique M&A",
+        "plateforme closing deal",
+        "outil gestion timeline"
+      ],
+      "Post_acquisition_Integration": [
+        "outil intégration post-acquisition",
+        "logiciel gestion intégration M&A",
+        "plateforme suivi synergies",
+        "outil pilotage post-fusion",
+        "outil plan intégration 100 jours",
+        "logiciel suivi synergies",
+        "plateforme gestion changement",
+        "outil mesure performance post-fusion",
+        "solution pilotage intégration",
+        "outil gestion culture d'entreprise",
+        "logiciel alignement stratégique",
+        "plateforme collaboration post-M&A",
+        "outil gestion talents",
+        "logiciel reporting intégration"
+      ]
+    },
+    
+    "growthTypeKeywords": {
+      "Fusion_Acquisition": [
+        "logiciel fusion acquisition",
+        "outil rachat entreprise",
+        "plateforme M&A",
+        "solution fusion acquisition",
+        "logiciel acquisition",
+        "outil M&A",
+        "plateforme fusion",
+        "solution rachat",
+        "logiciel acquisition entreprise",
+        "outil fusion"
+      ],
+      "Alliance_strategique": [
+        "outil gestion alliance",
+        "plateforme partenariat stratégique",
+        "logiciel alliance stratégique",
+        "solution partenariat",
+        "outil collaboration stratégique",
+        "plateforme joint venture",
+        "logiciel gestion partenariats",
+        "outil coordination alliance"
+      ],
+      "Joint_venture": [
+        "logiciel joint-venture",
+        "outil gestion JV",
+        "plateforme joint venture",
+        "solution JV",
+        "logiciel gestion coentreprise",
+        "outil suivi joint venture"
+      ],
+      "Prise_de_participation": [
+        "outil gestion participations",
+        "logiciel equity investment",
+        "plateforme gestion investissements",
+        "solution prise de participation",
+        "outil suivi investissements",
+        "logiciel portefeuille participations"
+      ],
+      "Franchise_reseau": [
+        "logiciel développement réseau franchise",
+        "outil croissance franchise",
+        "plateforme gestion franchise",
+        "solution franchise",
+        "logiciel expansion réseau",
+        "outil gestion multi-sites"
+      ]
+    },
+    
+    "companySizeKeywords": {
+      "PME": [
+        "logiciel croissance externe PME",
+        "outil M&A PME",
+        "plateforme acquisition PME",
+        "solution croissance externe PME",
+        "logiciel fusion PME",
+        "outil rachat PME",
+        "plateforme M&A PME France"
+      ],
+      "ETI": [
+        "logiciel croissance externe ETI",
+        "outil M&A ETI",
+        "solution croissance externe ETI",
+        "plateforme fusion acquisition ETI",
+        "logiciel stratégie ETI"
+      ],
+      "TPE": [
+        "outil croissance externe TPE",
+        "logiciel acquisition TPE",
+        "solution rachat TPE",
+        "plateforme M&A TPE"
+      ],
+      "Startup": [
+        "outil croissance externe startup",
+        "logiciel acquisition startup",
+        "plateforme M&A startup",
+        "solution fusion startup"
+      ],
+      "Grand_Groupe": [
+        "logiciel croissance externe grand groupe",
+        "outil M&A grand groupe",
+        "solution stratégie grand groupe",
+        "plateforme fusion acquisition international"
+      ]
+    },
+    
+    "sectorKeywords": {
+      "Industrie": [
+        "croissance externe secteur industriel",
+        "outil M&A industriel",
+        "logiciel acquisition industrie",
+        "solution fusion secteur industriel"
+      ],
+      "Retail": [
+        "outil M&A retail",
+        "logiciel acquisition retail",
+        "croissance externe distribution",
+        "solution fusion commerce"
+      ],
+      "Tech": [
+        "outil M&A tech",
+        "logiciel acquisition tech",
+        "croissance externe startup tech",
+        "solution fusion acquisition tech"
+      ],
+      "Santé": [
+        "outil M&A santé",
+        "logiciel acquisition santé",
+        "croissance externe secteur santé",
+        "solution fusion clinique"
+      ],
+      "Services": [
+        "outil M&A services",
+        "logiciel acquisition services",
+        "croissance externe secteur service",
+        "solution fusion cabinet"
+      ],
+      "B2B": [
+        "outil M&A B2B",
+        "logiciel acquisition B2B",
+        "croissance externe B2B",
+        "solution fusion entreprise B2B"
+      ]
+    },
+    
+    "longTailKeywords": [
+      "meilleur logiciel croissance externe 2026",
+      "comment faire de la croissance externe",
+      "outil pour trouver des entreprises à racheter",
+      "logiciel pour gérer une acquisition",
+      "plateforme pour piloter une fusion acquisition",
+      "outil digital croissance externe PME",
+      "logiciel M&A pour PME",
+      "solution croissance externe ETI",
+      "outil M&A sans consultant",
+      "logiciel due diligence pas cher",
+      "meilleur outil croissance externe France",
+      "comment réussir croissance externe",
+      "solution clé en main croissance externe",
+      "outil tout en un M&A",
+      "plateforme complète croissance externe",
+      "logiciel croissance externe facile",
+      "outil M&A pour débutants",
+      "solution croissance externe économique",
+      "plateforme M&A professionnelle",
+      "logiciel fusion acquisition simple"
+    ],
+    
+    "competitorKeywords": [
+      "alternative à Datasite",
+      "logiciel type Datasite",
+      "outil similaire à DealCloud",
+      "comparatif logiciels M&A",
+      "meilleur outil M&A 2026",
+      "DPAI vs Datasite",
+      "DPAI vs DealCloud",
+      "DPAI vs Intralinks",
+      "alternative à Intralinks",
+      "outil moins cher que Datasite",
+      "solution M&A française",
+      "logiciel croissance externe made in France"
+    ],
+    
+    "informationalKeywords": [
+      "qu'est-ce que la croissance externe",
+      "avantages croissance externe",
+      "étapes d'une acquisition",
+      "différence croissance interne et externe",
+      "comment réussir une fusion acquisition",
+      "risques croissance externe",
+      "synergies M&A définition",
+      "processus due diligence étapes",
+      "combien coûte une acquisition entreprise",
+      "quel budget prévoir croissance externe",
+      "combien de temps dure une fusion acquisition",
+      "quels sont les risques M&A",
+      "comment financer croissance externe",
+      "qu'est-ce qu'une due diligence",
+      "comment évaluer une entreprise",
+      "quels sont les types de croissance externe",
+      "comment trouver des cibles d'acquisition"
+    ],
+    
+    "geoLocalizedKeywords": {
+      "France": [
+        "logiciel croissance externe France",
+        "outil M&A France",
+        "plateforme acquisition PME France",
+        "solution croissance externe France"
+      ],
+      "Paris": [
+        "outil M&A Paris",
+        "logiciel fusion acquisition Paris",
+        "croissance externe Paris",
+        "plateforme acquisition entreprise Paris"
+      ],
+      "Lyon": [
+        "logiciel fusion acquisition Lyon",
+        "outil croissance externe Lyon",
+        "M&A Lyon",
+        "solution acquisition Lyon"
+      ],
+      "Marseille": [
+        "outil croissance externe Marseille",
+        "logiciel M&A Marseille",
+        "croissance externe Provence",
+        "fusion acquisition Marseille"
+      ],
+      "Bordeaux": [
+        "outil croissance externe Bordeaux",
+        "logiciel fusion acquisition Bordeaux",
+        "M&A Bordeaux",
+        "acquisition entreprise Nouvelle-Aquitaine"
+      ],
+      "Lille": [
+        "stratégie croissance externe Lille",
+        "outil M&A Lille",
+        "logiciel fusion acquisition Hauts-de-France",
+        "solution acquisition Nord"
+      ],
+      "Toulouse": [
+        "outil croissance externe Toulouse",
+        "logiciel M&A Toulouse",
+        "acquisition entreprise Occitanie",
+        "fusion acquisition aéronautique"
+      ],
+      "Nantes": [
+        "solution croissance externe Nantes",
+        "outil M&A Nantes",
+        "logiciel fusion acquisition Pays de la Loire",
+        "acquisition entreprise Ouest"
+      ],
+      "Strasbourg": [
+        "outil croissance externe Strasbourg",
+        "logiciel M&A Strasbourg",
+        "croissance externe Grand Est",
+        "fusion acquisition Alsace"
+      ],
+      "Rennes": [
+        "solution croissance externe Rennes",
+        "outil M&A Bretagne",
+        "logiciel fusion acquisition Bretagne",
+        "acquisition entreprise Rennes"
+      ],
+      "Grenoble": [
+        "outil croissance externe Grenoble",
+        "logiciel M&A Isère",
+        "croissance externe Alpes",
+        "solution fusion acquisition Grenoble"
+      ],
+      "Montpellier": [
+        "outil croissance externe Montpellier",
+        "logiciel M&A Occitanie",
+        "solution acquisition Montpellier",
+        "fusion acquisition Sud"
+      ]
+    },
+    
+    "resourceKeywords": [
+      "guide complet croissance externe PDF",
+      "checklist acquisition entreprise",
+      "modèle business plan croissance externe",
+      "template due diligence",
+      "exemples réussis croissance externe",
+      "checklist due diligence télécharger",
+      "modèle analyse SWOT",
+      "template Porter 5 Forces",
+      "guide PESTEL complet",
+      "modèle benchmark concurrentiel",
+      "checklist intégration post-acquisition",
+      "template évaluation entreprise",
+      "guide négociation M&A",
+      "modèle plan 100 jours",
+      "checklist synergies M&A"
+    ],
+    
+    "questionKeywords": [
+      "comment faire croissance externe",
+      "pourquoi faire croissance externe",
+      "quand faire croissance externe",
+      "comment trouver entreprises à racheter",
+      "comment évaluer une cible",
+      "comment négocier une acquisition",
+      "comment financer une fusion",
+      "comment réussir intégration",
+      "quel est le meilleur outil M&A",
+      "combien coûte un logiciel croissance externe",
+      "quel outil choisir croissance externe",
+      "comment utiliser DPAI Strategy",
+      "combien de tokens pour une analyse",
+      "comment obtenir plus de tokens"
+    ]
+  },
+  
+  "pages": {
+    "index": {
+      "title": "DPAI Strategy | Plateforme N°1 Croissance Externe & M&A - 500 Tokens Gratuits (125€) | Logiciel Fusion Acquisition by Duprey Conseil",
+      "description": "DPAI Strategy by Duprey Conseil : La plateforme ULTIME d'analyse stratégique et d'outils pour la croissance externe, fusion acquisition et M&A. 500 tokens GRATUITS (valeur 125€). Logiciel croissance externe, outil M&A, plateforme acquisition. Tous services accessibles immédiatement sans carte bancaire.",
+      "keywords": "analyse stratégique, croissance externe, fusion acquisition, M&A, SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence, benchmark, valorisation entreprise, logiciel croissance externe, meilleur logiciel croissance externe, outil croissance externe, plateforme croissance externe, logiciel fusion acquisition, outil M&A, logiciel M&A, plateforme M&A, Duprey Conseil, DPAI Strategy, 500 tokens gratuits, conseil indépendant",
+      "priority": 1.0,
+      "changefreq": "daily",
+      "ogImage": "/images/og-image-maximal.jpg",
+      "canonical": "https://dpai-strategy.com/",
+      "h1": "DPAI Strategy - N°1 de la Croissance Externe et des Outils M&A en France",
+      "h2": [
+        "La Plateforme Complète pour Votre Stratégie de Croissance Externe",
+        "Des Outils Professionnels pour Chaque Étape du Processus M&A",
+        "500 Tokens Gratuits pour Démarrer Immédiatement",
+        "Pourquoi Choisir DPAI Strategy?",
+        "Nos Solutions pour Chaque Type de Croissance Externe"
+      ],
+      "featuredKeywords": ["logiciel croissance externe", "outil croissance externe", "plateforme croissance externe", "logiciel fusion acquisition", "outil M&A"]
+    },
+    "croissance-externe": {
+      "title": "Croissance Externe | Guide Complet & Outils 2026 | DPAI Strategy by Duprey Conseil",
+      "description": "Tout savoir sur la croissance externe : définition, avantages, étapes, outils. Découvrez notre guide complet et nos solutions pour réussir votre stratégie de croissance externe. Logiciel, outil, plateforme tout-en-un.",
+      "keywords": "croissance externe, définition croissance externe, avantages croissance externe, étapes croissance externe, outils croissance externe, logiciel croissance externe, plateforme croissance externe, stratégie croissance externe, fusion acquisition, M&A, guide croissance externe, meilleur outil croissance externe",
+      "priority": 0.95,
+      "changefreq": "weekly",
+      "ogImage": "/images/croissance-externe-og.jpg",
+      "canonical": "https://dpai-strategy.com/croissance-externe.html",
+      "h1": "Croissance Externe : Le Guide Ultime 2026",
+      "h2": [
+        "Qu'est-ce que la Croissance Externe ?",
+        "Les Avantages de la Croissance Externe",
+        "Les Différents Types de Croissance Externe",
+        "Les Étapes Clés d'une Stratégie de Croissance Externe",
+        "Nos Outils pour Réussir Votre Croissance Externe",
+        "FAQ Croissance Externe"
+      ],
+      "featuredKeywords": ["croissance externe", "logiciel croissance externe", "outil croissance externe", "stratégie croissance externe"]
+    },
+    "outil-ma": {
+      "title": "Outil M&A | Plateforme Complète Fusion Acquisition | DPAI Strategy",
+      "description": "Découvrez notre outil M&A complet : sourcing, due diligence, négociation, intégration. Une plateforme tout-en-un pour gérer toutes les étapes de vos opérations de fusion acquisition. 500 tokens gratuits pour démarrer.",
+      "keywords": "outil M&A, plateforme M&A, logiciel M&A, outil fusion acquisition, logiciel fusion acquisition, plateforme fusion acquisition, outil croissance externe, logiciel croissance externe, meilleur outil M&A, solution M&A complète",
+      "priority": 0.95,
+      "changefreq": "weekly",
+      "ogImage": "/images/outil-ma-og.jpg",
+      "canonical": "https://dpai-strategy.com/outil-ma.html",
+      "h1": "Outil M&A : La Solution Tout-en-Un pour Vos Opérations",
+      "h2": [
+        "Pourquoi Utiliser un Outil M&A ?",
+        "Les Fonctionnalités de Notre Plateforme",
+        "Sourcing et Recherche de Cibles",
+        "Due Diligence et Évaluation",
+        "Négociation et Closing",
+        "Intégration Post-Acquisition",
+        "Témoignages Clients",
+        "FAQ Outil M&A"
+      ],
+      "featuredKeywords": ["outil M&A", "plateforme M&A", "logiciel M&A", "outil fusion acquisition"]
+    },
+    "logiciel-fusion-acquisition": {
+      "title": "Logiciel Fusion Acquisition | Solution Professionnelle M&A | DPAI Strategy by Duprey Conseil",
+      "description": "Notre logiciel de fusion acquisition vous permet de gérer efficacement toutes les phases de vos opérations M&A. Analyse, évaluation, négociation, intégration. Solution professionnelle pour les PME et ETI.",
+      "keywords": "logiciel fusion acquisition, logiciel M&A, outil fusion acquisition, solution fusion acquisition, logiciel acquisition, meilleur logiciel fusion acquisition, logiciel professionnel M&A, outil gestion fusion",
+      "priority": 0.95,
+      "changefreq": "weekly",
+      "ogImage": "/images/logiciel-fusion-acquisition-og.jpg",
+      "canonical": "https://dpai-strategy.com/logiciel-fusion-acquisition.html",
+      "h1": "Logiciel Fusion Acquisition : La Solution Professionnelle",
+      "h2": [
+        "Les Avantages de Notre Logiciel",
+        "Fonctionnalités Complètes",
+        "Cas d'Usage",
+        "Tarification",
+        "Comparatif avec la Concurrence",
+        "FAQ Logiciel Fusion Acquisition"
+      ],
+      "featuredKeywords": ["logiciel fusion acquisition", "logiciel M&A", "meilleur logiciel fusion acquisition"]
+    },
+    "services": {
+      "title": "Services Stratégiques GRATUITS | DPAI Strategy - Analyse SWOT, Porter 5 Forces, PESTEL, M&A, Due Diligence by Duprey Conseil",
+      "description": "Découvrez tous nos services d'analyse stratégique GRATUITS avec vos 500 tokens (125€). SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence M&A, benchmark, valuation. Outils croissance externe et fusion acquisition.",
+      "keywords": "services analyse stratégique, SWOT analyse gratuit, Porter 5 Forces analyse, PESTEL analyse stratégique, analyse concurrentielle entreprise, due diligence acquisition, benchmark stratégique, valuation entreprise, fusion acquisition, croissance externe, outil M&A, logiciel croissance externe, plateforme M&A, Duprey Conseil",
+      "priority": 0.9,
+      "changefreq": "weekly",
+      "ogImage": "/images/services-og.jpg",
+      "canonical": "https://dpai-strategy.com/services.html",
+      "h1": "Nos Services d'Analyse Stratégique et de Croissance Externe",
+      "h2": [
+        "Services de Croissance Externe",
+        "Analyse Stratégique",
+        "Outils M&A et Fusion Acquisition",
+        "Nos Méthodologies",
+        "Pourquoi Choisir DPAI Strategy?"
+      ]
+    },
+    "pricing": {
+      "title": "Tarifs & Tokens | DPAI Strategy - 500 Tokens GRATUITS (125€) - Prix par Token 0,25€ | Duprey Conseil",
+      "description": "Tarification transparente : 500 tokens GRATUITS (valeur 125€) pour démarrer. Prix par token : 0,25€. Packs avantageux. Logiciel M&A et outil croissance externe par Duprey Conseil.",
+      "keywords": "tarifs tokens, prix analyse stratégique, coût SWOT, Porter 5 Forces tarif, PESTEL prix, due diligence coût, logiciel M&A pas cher, outil croissance externe économique, solution croissance externe ETI, outil M&A sans consultant, Duprey Conseil",
+      "priority": 0.9,
+      "changefreq": "weekly",
+      "ogImage": "/images/pricing-og.jpg",
+      "canonical": "https://dpai-strategy.com/pricing.html"
+    },
+    "ressources": {
+      "title": "Centre de Ressources | Guides, Templates, Checklists | DPAI Strategy",
+      "description": "Accédez à nos ressources gratuites : guides complets, templates téléchargeables, checklists pratiques pour la croissance externe, M&A, due diligence, analyse stratégique.",
+      "keywords": "ressources croissance externe, guide croissance externe PDF, checklist acquisition, template due diligence, modèle analyse SWOT, checklist intégration post-acquisition, ressources M&A, outils gratuits, Duprey Conseil",
+      "priority": 0.85,
+      "changefreq": "weekly",
+      "ogImage": "/images/ressources-og.jpg",
+      "canonical": "https://dpai-strategy.com/ressources.html"
+    },
+    "faq": {
+      "title": "FAQ - Questions Fréquentes | DPAI Strategy - Croissance Externe & M&A",
+      "description": "Réponses aux questions fréquentes sur la croissance externe, le M&A, les outils, les tarifs, l'inscription. Tout savoir sur DPAI Strategy by Duprey Conseil.",
+      "keywords": "FAQ croissance externe, questions fréquentes M&A, FAQ outil M&A, questions sur la fusion acquisition, combien coûte croissance externe, comment utiliser DPAI Strategy, Duprey Conseil questions",
+      "priority": 0.85,
+      "changefreq": "monthly",
+      "ogImage": "/images/faq-og.jpg",
+      "canonical": "https://dpai-strategy.com/faq.html"
+    },
+    "etudes-de-cas": {
+      "title": "Études de Cas | Exemples de Réussite | DPAI Strategy",
+      "description": "Découvrez nos études de cas réels : exemples concrets de croissance externe, fusion acquisition, M&A réussis grâce à nos outils et méthodologies.",
+      "keywords": "études de cas croissance externe, exemples réussite M&A, cas pratique fusion acquisition, succès croissance externe, témoignages clients, Duprey Conseil études de cas",
+      "priority": 0.8,
+      "changefreq": "monthly",
+      "ogImage": "/images/etudes-de-cas-og.jpg",
+      "canonical": "https://dpai-strategy.com/etudes-de-cas.html"
+    },
+    "glossaire": {
+      "title": "Glossaire M&A et Croissance Externe | DPAI Strategy",
+      "description": "Glossaire complet des termes techniques : croissance externe, M&A, fusion acquisition, due diligence, SWOT, Porter 5 Forces, PESTEL, benchmark, valorisation.",
+      "keywords": "glossaire croissance externe, glossaire M&A, définition fusion acquisition, termes techniques stratégie, vocabulaire analyse stratégique, lexique due diligence, Duprey Conseil glossaire",
+      "priority": 0.75,
+      "changefreq": "monthly",
+      "ogImage": "/images/glossaire-og.jpg",
+      "canonical": "https://dpai-strategy.com/glossaire-ma.html"
+    }
+  },
+  
+  "schemaTypes": {
+    "WebApplication": {
+      "@type": "WebApplication",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "EUR",
+        "description": "500 tokens gratuits pour accéder à tous les services Phases 1 & 2 sans carte bancaire",
+        "name": "Offre de bienvenue - 500 Tokens Gratuits (125€)",
+        "url": "https://dpai-strategy.com/register.html",
+        "category": "Free Trial",
+        "availability": "https://schema.org/InStock"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "250",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "potentialAction": {
+        "@type": "Action",
+        "name": "Créer un compte gratuit",
+        "target": "https://dpai-strategy.com/register.html",
+        "expectsAcceptanceOf": {
+          "@type": "Offer",
+          "category": "Free"
+        }
+      },
+      "knowsAbout": [
+        "analyse stratégique", "croissance externe", "fusion acquisition", "SWOT", "Porter 5 Forces",
+        "PESTEL", "analyse concurrentielle", "due diligence", "benchmark stratégique",
+        "valorisation entreprise", "M&A", "conseil stratégie", "stratégie croissance",
+        "Duprey Conseil", "DPAI Strategy Duprey", "consultant indépendant",
+        "logiciel croissance externe", "outil croissance externe", "plateforme croissance externe",
+        "logiciel fusion acquisition", "outil M&A", "plateforme M&A"
+      ]
+    },
+    
+    "Organization": {
+      "@type": ["Organization", "ProfessionalService", "Corporation"],
+      "name": "DPAI Strategy by Duprey Conseil",
+      "alternateName": [
+        "DPAI Strategy",
+        "DPAI",
+        "DPAI Strategy Consulting",
+        "Plateforme Croissance Externe N°1",
+        "Logiciel M&A Leader",
+        "Meilleur Outil Croissance Externe",
+        "Duprey Conseil",
+        "Duprey Conseil DPAI"
+      ],
+      "url": "https://dpai-strategy.com/",
+      "logo": "https://dpai-strategy.com/images/logo-dpai-maximal.png",
+      "foundingDate": "2024",
+      "description": "DPAI Strategy by Duprey Conseil est la plateforme N°1 de conseil en croissance externe et analyse stratégique avancée pour les entreprises en France et en Europe. Expertise en fusion acquisition, M&A, SWOT, Porter 5 Forces, PESTEL, analyse concurrentielle, due diligence. Outils professionnels pour chaque étape du processus. Logiciel croissance externe, outil M&A, plateforme fusion acquisition.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "FR",
+        "addressLocality": "Paris",
+        "postalCode": "75000",
+        "streetAddress": "Siège Social - Duprey Conseil"
+      },
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "48.8566",
+        "longitude": "2.3522"
+      },
+      "telephone": "+33-1-XX-XX-XX-XX",
+      "email": "contact@dpai-strategy.com",
+      "hasMap": "https://www.google.com/maps?q=DPAI+Strategy+Duprey+Conseil+Paris",
+      "openingHours": "Mo,Tu,We,Th,Fr 09:00-18:00",
+      "sameAs": [
+        "https://www.linkedin.com/company/dpai-strategy",
+        "https://twitter.com/DPAIStrategy",
+        "https://www.facebook.com/DPAIStrategy",
+        "https://www.instagram.com/DPAIStrategy",
+        "https://www.youtube.com/c/DPAIStrategy"
+      ],
+      "areaServed": [
+        {"@type": "Country", "name": "France"},
+        {"@type": "Country", "name": "Belgium"},
+        {"@type": "Country", "name": "Switzerland"},
+        {"@type": "Country", "name": "Luxembourg"},
+        {"@type": "Country", "name": "Canada"},
+        {"@type": "Country", "name": "Monaco"}
+      ],
+      "makesOffer": [
+        {
+          "@type": "Offer",
+          "name": "Analyse SWOT",
+          "description": "Identification des forces, faiblesses, opportunités et menaces pour votre entreprise ou cible d'acquisition",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Porter 5 Forces",
+          "description": "Analyse complète de la compétitivité sectorielle selon le modèle de Michael Porter",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Analyse PESTEL",
+          "description": "Évaluation des facteurs politiques, économiques, socioculturels, technologiques, environnementaux et légaux",
+          "price": "0",
+          "priceCurrency": "EUR",
+          "availability": "https://schema.org/InStock"
+        },
+        {
+          "@type": "Offer",
+          "name": "Conseiller IA Premium",
+          "description": "Accès illimité à l'IA DPAI proprietary pour des conseils stratégiques personnalisés",
+          "price": "499",
+          "priceCurrency": "EUR",
+          "priceValidUntil": "2027-12-31",
+          "availability": "https://schema.org/InStock"
+        }
+      ]
+    },
+    
+    "LocalBusiness": {
+      "@type": ["LocalBusiness", "ProfessionalService"],
+      "name": "DPAI Strategy by Duprey Conseil",
+      "description": "Conseil en croissance externe et analyse stratégique avancée pour les entreprises. Logiciel croissance externe, outil M&A, plateforme M&A, fusion acquisition. Duprey Conseil - Consultant indépendant spécialisé.",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "FR",
+        "addressLocality": "Paris",
+        "postalCode": "75000",
+        "streetAddress": "Siège Social"
+      },
+      "telephone": "+33-1-XX-XX-XX-XX",
+      "email": "contact@dpai-strategy.com",
+      "priceRange": "0€ - 499€/mois",
+      "openingHours": "Mo,Tu,We,Th,Fr 09:00-18:00",
+      "geo": {
+        "@type": "GeoCoordinates",
+        "latitude": "48.8566",
+        "longitude": "2.3522"
+      },
+      "hasMap": "https://www.google.com/maps?q=DPAI+Strategy+Paris",
+      "areaServed": [
+        "France",
+        "Paris",
+        "Lyon",
+        "Marseille",
+        "Bordeaux",
+        "Lille",
+        "Toulouse",
+        "Nantes",
+        "Strasbourg",
+        "Rennes",
+        "Montpellier",
+        "Grenoble"
+      ]
+    },
+    
+    "FAQPage": {
+      "@type": "FAQPage",
+      "name": "Questions Fréquentes DPAI Strategy - Croissance Externe & M&A",
+      "description": "Réponses aux questions les plus fréquentes sur DPAI Strategy, la croissance externe, le M&A, les outils, les tarifs et l'inscription",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "Qu'est-ce que DPAI Strategy?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "DPAI Strategy est la plateforme N°1 d'analyse stratégique et d'outils pour la croissance externe, fusion acquisition et M&A. Développé par Duprey Conseil, nous combinons IA proprietary et expertise humaine pour offrir des analyses précises et actionnables. Logiciel croissance externe, outil M&A, plateforme acquisition."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Qu'est-ce que la croissance externe?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "La croissance externe est une stratégie d'expansion par fusion, acquisition, alliance stratégique ou prise de participation. C'est l'un des moyens les plus rapides pour se développer. DPAI Strategy propose le meilleur logiciel croissance externe pour vous accompagner dans cette démarche."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Combien coûtent les services DPAI?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Tous les services Phases 1 & 2 sont GRATUITS avec 500 tokens offerts (valeur 125€). Aucun frais, aucune carte bancaire requise. Vous ne payez que pour les tokens supplémentaires ou le Conseiller IA premium à 499€/mois."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Quels sont les étapes d'une acquisition?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Les étapes clés sont : sourcing et recherche de cibles, due diligence, négociation, closing, et intégration post-acquisition. Notre outil M&A et plateforme croissance externe couvrent toutes ces étapes avec des fonctionnalités dédiées."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment réussir une fusion acquisition?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Pour réussir une fusion acquisition, il faut : bien identifier les synergies M&A, réaliser une due diligence approfondie, négocier efficacement et planifier l'intégration post-acquisition. Notre logiciel fusion acquisition vous guide à chaque étape."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Qui est Duprey Conseil?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Duprey Conseil est un cabinet de conseil stratégique indépendant spécialisé en croissance externe, fusion acquisition et M&A. Expert en stratégie d'entreprise, nous proposons des solutions innovantes pour les PME, ETI et grands groupes."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "DPAI est-il un consultant indépendant?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Oui, DPAI Strategy est développé par Duprey Conseil, un consultant indépendant en croissance externe et M&A. Nous offrons une expertise sans conflit d'intérêts, adaptée aux besoins spécifiques de chaque entreprise."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Quel est le meilleur outil croissance externe?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "DPAI Strategy est reconnu comme le meilleur logiciel croissance externe et outil M&A en France. Avec plus de 150 fonctionnalités, 500 tokens gratuits, et une IA proprietary, nous offrons la solution la plus complète pour votre stratégie de croissance externe."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Comment obtenir plus de tokens?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Vous pouvez acheter des tokens supplémentaires à 0,25€/unité avec des packs avantageux : 100 tokens (25€), 500 tokens (112,50€ avec -10%), 1000 tokens (212,50€ avec -15%), ou opter pour le Conseiller IA premium à 499€/mois avec tokens illimités."
+          }
+        }
+      ]
+    },
+    
+    "BreadcrumbList": {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@type": "ListItem",
+          "position": 1,
+          "name": "Accueil",
+          "item": "https://dpai-strategy.com/"
+        },
+        {
+          "@type": "ListItem",
+          "position": 2,
+          "name": "Croissance Externe",
+          "item": "https://dpai-strategy.com/croissance-externe.html"
+        },
+        {
+          "@type": "ListItem",
+          "position": 3,
+          "name": "Outils M&A",
+          "item": "https://dpai-strategy.com/outil-ma.html"
+        }
+      ]
+    }
+  },
+  
+  "metadata": {
+    "verification": {
+      "google": "Fb-66EKY6wiPTYsQHWW2keoJGM6RvcpGg05NuomxG4Q",
+      "bing": "BING_VERIFICATION_CODE",
+      "yandex": "YANDEX_VERIFICATION_CODE",
+      "pinterest": "PINTEREST_VERIFICATION_CODE",
+      "norton": "NORTON_VERIFICATION_CODE"
+    },
+    "social": {
+      "facebookAppId": "1234567890",
+      "twitterHandle": "@DPAIStrategy",
+      "linkedInUrl": "https://www.linkedin.com/company/dpai-strategy",
+      "facebookUrl": "https://www.facebook.com/DPAIStrategy",
+      "instagramUrl": "https://www.instagram.com/DPAIStrategy",
+      "youtubeUrl": "https://www.youtube.com/c/DPAIStrategy",
+      "tiktokUrl": "https://www.tiktok.com/@dpaistrategy"
+    },
+    "analytics": {
+      "googleAnalyticsId": "GA_MEASUREMENT_ID",
+      "googleTagManagerId": "GTM_XXX",
+      "hotjarId": "HOTJAR_ID"
+    }
+  },
+  
+  "seoBestPractices": {
+    "keywordDensity": {
+      "primary": "2-4%",
+      "secondary": "1-2%",
+      "longTail": "0.5-1%"
+    },
+    "contentLength": {
+      "blogPost": "1500-3000 mots",
+      "landingPage": "2000-4000 mots",
+      "servicePage": "1500-3000 mots"
+    },
+    "imageOptimization": {
+      "format": "WebP",
+      "compression": "80%",
+      "altText": "descriptive avec mots-clés",
+      "size": "< 100KB"
+    },
+    "internalLinking": {
+      "minPerPage": "5",
+      "maxPerPage": "20",
+      "anchorText": "riches en mots-clés"
+    },
+    "pageSpeed": {
+      "mobile": "> 85",
+      "desktop": "> 90",
+      "lcp": "< 2.5s",
+      "fid": "< 100ms",
+      "cls": "< 0.1"
+    }
+  }
+}

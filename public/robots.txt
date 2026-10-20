@@ -28,6 +28,11 @@ Allow: /login.html
 Allow: /plus-de-tokens.html
 Allow: /conseiller-dpai.html
 Allow: /analysis-form.html
+
+# Autoriser explicitement les landing pages SEO
+Allow: /croissance-externe.html
+Allow: /outil-ma.html
+Allow: /logiciel-fusion-acquisition.html
 Allow: /terms.html
 Allow: /privacy.html
 Allow: /cookies.html

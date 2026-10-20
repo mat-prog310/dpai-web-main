@@ -1,0 +1,783 @@
+{
+  "lastUpdated": "2026-10-20",
+  "totalKeywords": 350,
+  "strategy": "MAXIMUM SEO - Dominer le marché de la croissance externe et des outils M&A en France",
+  
+  "primaryKeywords": {
+    "description": "Mots-clés principaux avec le plus fort potentiel de conversion - Priorité ⭐⭐⭐",
+    "list": [
+      "logiciel croissance externe",
+      "outil croissance externe",
+      "plateforme croissance externe",
+      "meilleur logiciel croissance externe",
+      "meilleur outil croissance externe",
+      "logiciel fusion acquisition",
+      "outil fusion acquisition",
+      "plateforme fusion acquisition",
+      "meilleur logiciel fusion acquisition",
+      "outil M&A",
+      "logiciel M&A",
+      "plateforme M&A",
+      "meilleur outil M&A",
+      "meilleur logiciel M&A"
+    ],
+    "recommendedDensity": "3-5%",
+    "pages": ["index.html", "croissance-externe.html", "outil-ma.html", "logiciel-fusion-acquisition.html", "services.html", "pricing.html", "register.html"]
+  },
+  
+  "secondaryKeywords": {
+    "description": "Mots-clés secondaires avec fort potentiel - Priorité ⭐⭐",
+    "list": [
+      "solution croissance externe",
+      "solution fusion acquisition",
+      "solution M&A",
+      "outil acquisition entreprise",
+      "logiciel rachat entreprise",
+      "plateforme acquisition",
+      "software croissance externe",
+      "tool M&A",
+      "M&A software platform",
+      "external growth tool",
+      "fusion acquisition tool",
+      "M&A solution",
+      "croissance externe clé en main",
+      "fusion acquisition clé en main"
+    ],
+    "recommendedDensity": "2-4%",
+    "pages": ["index.html", "croissance-externe.html", "outil-ma.html", "logiciel-fusion-acquisition.html", "services.html"]
+  },
+  
+  "dupreyConseilBrandedKeywords": {
+    "description": "Mots-clés de marque Duprey Conseil pour renforcer l'autorité",
+    "brandKeywords": [
+      "Duprey Conseil",
+      "Duprey Conseil stratégie",
+      "Duprey Conseil M&A",
+      "Duprey Conseil croissance externe",
+      "Duprey Conseil avis",
+      "Duprey Conseil fusion acquisition",
+      "Duprey Conseil France",
+      "Duprey Conseil Paris",
+      "Duprey Conseil expert",
+      "Duprey Conseil indépendant",
+      "Duprey Conseil consultation",
+      "Duprey Conseil DPAI"
+    ],
+    "dpaiBrandedKeywords": [
+      "DPAI Strategy",
+      "DPAI Strategy Duprey",
+      "DPAI par Duprey Conseil",
+      "DPAI Duprey Conseil",
+      "DPAI Strategy avis",
+      "DPAI Strategy prix",
+      "DPAI Strategy tokens",
+      "DPAI Strategy 500 tokens gratuits",
+      "DPAI Strategy inscription gratuite",
+      "DPAI Strategy meilleur outil",
+      "DPAI Strategy meilleur logiciel",
+      "DPAIStrategy"
+    ],
+    "independentConsultantKeywords": [
+      "consultant croissance externe indépendant",
+      "consultant M&A indépendant",
+      "conseil stratégique auto-entrepreneur",
+      "consultant fusion acquisition indépendant",
+      "expert M&A indépendant France",
+      "consultant analyse stratégique indépendant",
+      "cabinet conseil indépendant croissance externe",
+      "expert stratégie indépendant",
+      "consultant croissance externe freelance",
+      "expert M&A sans conflit d'intérêts"
+    ],
+    "recommendedDensity": "1-2%",
+    "pages": ["All pages"]
+  },
+  
+  "processBasedKeywords": {
+    "Sourcing": {
+      "description": "Mots-clés liés au sourcing et à la recherche de cibles",
+      "keywords": [
+        "outil recherche cible acquisition",
+        "logiciel deal sourcing",
+        "plateforme sourcing M&A",
+        "base de données entreprises à vendre",
+        "outil identification cibles M&A",
+        "logiciel veille acquisition",
+        "outil recherche entreprise à vendre",
+        "base de données cibles acquisition",
+        "logiciel identification opportunités M&A",
+        "plateforme deal flow M&A",
+        "outil screening entreprises",
+        "logiciel veille concurrentielle M&A",
+        "outil tracking cibles",
+        "logiciel gestion pipeline sourcing",
+        "outil matching entreprises",
+        "plateforme opportunités d'investissement"
+      ],
+      "recommendedDensity": "2-3%",
+      "pages": ["outil-ma.html", "logiciel-fusion-acquisition.html", "services.html", "blog/category-ma.html"]
+    },
+    
+    "DueDiligence": {
+      "description": "Mots-clés liés à la due diligence et à l'évaluation",
+      "keywords": [
+        "outil due diligence",
+        "logiciel due diligence M&A",
+        "plateforme data room M&A",
+        "outil évaluation entreprise",
+        "logiciel valorisation entreprise",
+        "checklist due diligence acquisition",
+        "outil analyse financière acquisition",
+        "logiciel évaluation synergies",
+        "plateforme data room virtuelle",
+        "outil audit acquisition",
+        "logiciel analyse juridique M&A",
+        "checklist due diligence complète",
+        "outil analyse risques",
+        "logiciel évaluation actifs",
+        "outil due diligence financière",
+        "logiciel due diligence juridique",
+        "outil due diligence opérationnelle",
+        "plateforme due diligence collaborative"
+      ],
+      "recommendedDensity": "2-3%",
+      "pages": ["outil-ma.html", "logiciel-fusion-acquisition.html", "services.html", "blog/due-diligence-checklist.html", "blog/category-ma.html"]
+    },
+    
+    "Negotiation": {
+      "description": "Mots-clés liés à la négociation et au closing",
+      "keywords": [
+        "outil gestion pipeline M&A",
+        "logiciel suivi deals",
+        "plateforme gestion transactions",
+        "outil négociation acquisition",
+        "CRM M&A",
+        "outil calcul prix acquisition",
+        "logiciel simulation M&A",
+        "plateforme gestion offres",
+        "outil suivi négociation",
+        "CRM transaction M&A",
+        "outil gestion documentation",
+        "logiciel signature électronique M&A",
+        "plateforme closing deal",
+        "outil gestion timeline",
+        "logiciel gestion contrats",
+        "outil suivi des offres",
+        "plateforme collaboration M&A"
+      ],
+      "recommendedDensity": "2-3%",
+      "pages": ["outil-ma.html", "logiciel-fusion-acquisition.html", "services.html", "blog/negociation-ma-technique.html", "blog/category-ma.html"]
+    },
+    
+    "Integration": {
+      "description": "Mots-clés liés à l'intégration post-acquisition",
+      "keywords": [
+        "outil intégration post-acquisition",
+        "logiciel gestion intégration M&A",
+        "plateforme suivi synergies",
+        "outil pilotage post-fusion",
+        "outil plan intégration 100 jours",
+        "logiciel suivi synergies",
+        "plateforme gestion changement",
+        "outil mesure performance post-fusion",
+        "solution pilotage intégration",
+        "outil gestion culture d'entreprise",
+        "logiciel alignement stratégique",
+        "plateforme collaboration post-M&A",
+        "outil gestion talents",
+        "logiciel reporting intégration",
+        "outil suivi KPI intégration",
+        "plateforme gestion des synergies"
+      ],
+      "recommendedDensity": "2-3%",
+      "pages": ["outil-ma.html", "logiciel-fusion-acquisition.html", "services.html", "blog/integration-post-acquisition-secret-reussite.html", "blog/analyse-culturelle-fusion-echec.html"]
+    }
+  },
+  
+  "growthTypeKeywords": {
+    "FusionAcquisition": {
+      "keywords": [
+        "logiciel fusion acquisition",
+        "outil rachat entreprise",
+        "plateforme M&A",
+        "solution fusion acquisition",
+        "logiciel acquisition",
+        "outil M&A",
+        "plateforme fusion",
+        "solution rachat",
+        "logiciel acquisition entreprise",
+        "outil fusion",
+        "logiciel fusion",
+        "plateforme acquisition entreprise",
+        "solution M&A clé en main"
+      ],
+      "pages": ["croissance-externe.html", "outil-ma.html", "logiciel-fusion-acquisition.html"]
+    },
+    
+    "AllianceStrategique": {
+      "keywords": [
+        "outil gestion alliance",
+        "plateforme partenariat stratégique",
+        "logiciel alliance stratégique",
+        "solution partenariat",
+        "outil collaboration stratégique",
+        "plateforme joint venture",
+        "logiciel gestion partenariats",
+        "outil coordination alliance",
+        "solution alliance stratégique",
+        "logiciel partenariat d'affaires"
+      ],
+      "pages": ["croissance-externe.html", "services.html", "blog/category-strategie.html"]
+    },
+    
+    "JointVenture": {
+      "keywords": [
+        "logiciel joint-venture",
+        "outil gestion JV",
+        "plateforme joint venture",
+        "solution JV",
+        "logiciel gestion coentreprise",
+        "outil suivi joint venture",
+        "solution coentreprise",
+        "logiciel collaboration JV"
+      ],
+      "pages": ["croissance-externe.html", "services.html", "blog/category-strategie.html"]
+    },
+    
+    "PriseDeParticipation": {
+      "keywords": [
+        "outil gestion participations",
+        "logiciel equity investment",
+        "plateforme gestion investissements",
+        "solution prise de participation",
+        "outil suivi investissements",
+        "logiciel portefeuille participations",
+        "solution investissement minoritaire",
+        "outil gestion participation"
+      ],
+      "pages": ["croissance-externe.html", "services.html", "blog/category-strategie.html"]
+    },
+    
+    "Franchise": {
+      "keywords": [
+        "logiciel développement réseau franchise",
+        "outil croissance franchise",
+        "plateforme gestion franchise",
+        "solution franchise",
+        "logiciel expansion réseau",
+        "outil gestion multi-sites",
+        "solution développement réseau",
+        "logiciel gestion de réseau"
+      ],
+      "pages": ["croissance-externe.html", "services.html", "blog/category-strategie.html"]
+    }
+  },
+  
+  "companySizeKeywords": {
+    "PME": [
+      "logiciel croissance externe PME",
+      "outil M&A PME",
+      "plateforme acquisition PME",
+      "solution croissance externe PME",
+      "logiciel fusion PME",
+      "outil rachat PME",
+      "plateforme M&A PME France",
+      "solution M&A pour PME",
+      "logiciel croissance externe TPE PME",
+      "outil fusion acquisition PME"
+    ],
+    "ETI": [
+      "logiciel croissance externe ETI",
+      "outil M&A ETI",
+      "solution croissance externe ETI",
+      "plateforme fusion acquisition ETI",
+      "logiciel stratégie ETI",
+      "outil croissance ETI",
+      "solution M&A pour ETI",
+      "plateforme acquisition ETI",
+      "logiciel développement ETI"
+    ],
+    "TPE": [
+      "outil croissance externe TPE",
+      "logiciel acquisition TPE",
+      "solution rachat TPE",
+      "plateforme M&A TPE",
+      "logiciel fusion TPE",
+      "outil croissance TPE",
+      "solution acquisition TPE",
+      "plateforme croissance externe TPE"
+    ],
+    "Startup": [
+      "outil croissance externe startup",
+      "logiciel acquisition startup",
+      "plateforme M&A startup",
+      "solution fusion startup",
+      "logiciel levée de fonds",
+      "outil croissance startup",
+      "solution M&A pour startups",
+      "plateforme acquisition tech"
+    ],
+    "GrandGroupe": [
+      "logiciel croissance externe grand groupe",
+      "outil M&A grand groupe",
+      "solution stratégie grand groupe",
+      "plateforme fusion acquisition international",
+      "logiciel développement international",
+      "outil croissance groupe",
+      "solution M&A corporate",
+      "plateforme acquisition multinationale"
+    ]
+  },
+  
+  "sectorKeywords": {
+    "Industrie": [
+      "croissance externe secteur industriel",
+      "outil M&A industriel",
+      "logiciel acquisition industrie",
+      "solution fusion secteur industriel",
+      "outil fusion acquisition industrielle",
+      "logiciel rachat entreprise industrielle"
+    ],
+    "Retail": [
+      "outil M&A retail",
+      "logiciel acquisition retail",
+      "croissance externe distribution",
+      "solution fusion commerce",
+      "outil fusion acquisition retail",
+      "logiciel croissance externe commerce"
+    ],
+    "Tech": [
+      "outil M&A tech",
+      "logiciel acquisition tech",
+      "croissance externe startup tech",
+      "solution fusion acquisition tech",
+      "outil fusion startup",
+      "logiciel croissance externe technologie",
+      "plateforme acquisition tech",
+      "solution M&A digital"
+    ],
+    "Santé": [
+      "outil M&A santé",
+      "logiciel acquisition santé",
+      "croissance externe secteur santé",
+      "solution fusion clinique",
+      "outil fusion acquisition santé",
+      "logiciel croissance externe médical"
+    ],
+    "Services": [
+      "outil M&A services",
+      "logiciel acquisition services",
+      "croissance externe secteur service",
+      "solution fusion cabinet",
+      "outil fusion acquisition services",
+      "logiciel croissance externe conseil"
+    ],
+    "B2B": [
+      "outil M&A B2B",
+      "logiciel acquisition B2B",
+      "croissance externe B2B",
+      "solution fusion entreprise B2B",
+      "outil fusion acquisition B2B",
+      "logiciel croissance externe B2B"
+    ]
+  },
+  
+  "longTailKeywords": {
+    "description": "Mots-clés longue traîne avec fort potentiel de conversion",
+    "transactional": [
+      "meilleur logiciel croissance externe 2026",
+      "comment faire de la croissance externe",
+      "outil pour trouver des entreprises à racheter",
+      "logiciel pour gérer une acquisition",
+      "plateforme pour piloter une fusion acquisition",
+      "outil digital croissance externe PME",
+      "logiciel M&A pour PME",
+      "solution croissance externe ETI",
+      "outil M&A sans consultant",
+      "logiciel due diligence pas cher",
+      "meilleur outil croissance externe France",
+      "comment réussir croissance externe",
+      "solution clé en main croissance externe",
+      "outil tout en un M&A",
+      "plateforme complète croissance externe",
+      "logiciel croissance externe facile",
+      "outil M&A pour débutants",
+      "solution croissance externe économique",
+      "plateforme M&A professionnelle",
+      "logiciel fusion acquisition simple",
+      "outil croissance externe performant",
+      "solution M&A adaptée aux PME"
+    ],
+    "informational": [
+      "qu'est-ce que la croissance externe",
+      "avantages croissance externe",
+      "étapes d'une acquisition",
+      "différence croissance interne et externe",
+      "comment réussir une fusion acquisition",
+      "risques croissance externe",
+      "synergies M&A définition",
+      "processus due diligence étapes",
+      "combien coûte une acquisition entreprise",
+      "quel budget prévoir croissance externe",
+      "combien de temps dure une fusion acquisition",
+      "quels sont les risques M&A",
+      "comment financer croissance externe",
+      "qu'est-ce qu'une due diligence",
+      "comment évaluer une entreprise",
+      "quels sont les types de croissance externe",
+      "comment trouver des cibles d'acquisition",
+      "qu'est-ce qu'une alliance stratégique",
+      "comment réussir une joint-venture",
+      "quels sont les avantages de la croissance externe"
+    ],
+    "recommendedDensity": "0.5-1.5%",
+    "pages": ["blog posts", "FAQ page", "resource pages"]
+  },
+  
+  "competitorKeywords": {
+    "description": "Mots-clés pour le positionnement concurrentiel",
+    "keywords": [
+      "alternative à Datasite",
+      "logiciel type Datasite",
+      "outil similaire à DealCloud",
+      "comparatif logiciels M&A",
+      "meilleur outil M&A 2026",
+      "DPAI vs Datasite",
+      "DPAI vs DealCloud",
+      "DPAI vs Intralinks",
+      "alternative à Intralinks",
+      "outil moins cher que Datasite",
+      "solution M&A française",
+      "logiciel croissance externe made in France",
+      "alternative à Mergeflow",
+      "outil similaire à Midaxo",
+      "comparatif DPAI Strategy",
+      "meilleure alternative à Datasite",
+      "solution M&A économique",
+      "outil croissance externe pas cher"
+    ],
+    "recommendedDensity": "0.5-1%",
+    "pages": ["comparison pages", "pricing page", "landing pages"]
+  },
+  
+  "geoLocalizedKeywords": {
+    "France": [
+      "logiciel croissance externe France",
+      "outil M&A France",
+      "plateforme acquisition PME France",
+      "solution croissance externe France",
+      "logiciel fusion acquisition France",
+      "outil croissance externe en France"
+    ],
+    "Paris": [
+      "outil M&A Paris",
+      "logiciel fusion acquisition Paris",
+      "croissance externe Paris",
+      "plateforme acquisition entreprise Paris",
+      "solution M&A Île-de-France",
+      "logiciel croissance externe Paris",
+      "conseil M&A Paris",
+      "expert fusion acquisition Paris"
+    ],
+    "Lyon": [
+      "logiciel fusion acquisition Lyon",
+      "outil croissance externe Lyon",
+      "M&A Lyon",
+      "solution acquisition Lyon",
+      "plateforme M&A Rhône-Alpes",
+      "logiciel croissance externe Lyon",
+      "conseil croissance externe Lyon"
+    ],
+    "Marseille": [
+      "outil croissance externe Marseille",
+      "logiciel M&A Marseille",
+      "croissance externe Provence",
+      "fusion acquisition Marseille",
+      "solution M&A Sud",
+      "logiciel croissance externe Marseille",
+      "conseil M&A Marseille"
+    ],
+    "Bordeaux": [
+      "outil croissance externe Bordeaux",
+      "logiciel fusion acquisition Bordeaux",
+      "M&A Bordeaux",
+      "acquisition entreprise Nouvelle-Aquitaine",
+      "solution croissance externe Bordeaux",
+      "logiciel M&A Bordeaux",
+      "conseil fusion acquisition Bordeaux"
+    ],
+    "Lille": [
+      "stratégie croissance externe Lille",
+      "outil M&A Lille",
+      "logiciel fusion acquisition Hauts-de-France",
+      "solution acquisition Nord",
+      "croissance externe Lille",
+      "logiciel M&A Lille",
+      "conseil croissance externe Nord"
+    ],
+    "Toulouse": [
+      "outil croissance externe Toulouse",
+      "logiciel M&A Toulouse",
+      "acquisition entreprise Occitanie",
+      "fusion acquisition aéronautique",
+      "solution croissance externe Toulouse",
+      "logiciel fusion acquisition Toulouse"
+    ],
+    "Nantes": [
+      "solution croissance externe Nantes",
+      "outil M&A Bretagne",
+      "logiciel fusion acquisition Pays de la Loire",
+      "acquisition entreprise Ouest",
+      "croissance externe Nantes",
+      "logiciel M&A Nantes"
+    ],
+    "Strasbourg": [
+      "outil croissance externe Strasbourg",
+      "logiciel M&A Strasbourg",
+      "croissance externe Grand Est",
+      "fusion acquisition Alsace",
+      "solution M&A Strasbourg",
+      "logiciel croissance externe Strasbourg"
+    ],
+    "Rennes": [
+      "solution croissance externe Rennes",
+      "outil M&A Bretagne",
+      "logiciel fusion acquisition Bretagne",
+      "acquisition entreprise Rennes",
+      "croissance externe Ouest",
+      "logiciel M&A Rennes"
+    ],
+    "Grenoble": [
+      "outil croissance externe Grenoble",
+      "logiciel M&A Isère",
+      "croissance externe Alpes",
+      "solution fusion acquisition Grenoble",
+      "logiciel M&A Grenoble",
+      "conseil croissance externe Grenoble"
+    ],
+    "Montpellier": [
+      "outil croissance externe Montpellier",
+      "logiciel M&A Occitanie",
+      "solution acquisition Montpellier",
+      "fusion acquisition Sud",
+      "logiciel croissance externe Montpellier",
+      "conseil M&A Montpellier"
+    ]
+  },
+  
+  "resourceKeywords": {
+    "description": "Mots-clés liés aux ressources et guides",
+    "keywords": [
+      "guide complet croissance externe PDF",
+      "checklist acquisition entreprise",
+      "modèle business plan croissance externe",
+      "template due diligence",
+      "exemples réussis croissance externe",
+      "checklist due diligence télécharger",
+      "modèle analyse SWOT",
+      "template Porter 5 Forces",
+      "guide PESTEL complet",
+      "modèle benchmark concurrentiel",
+      "checklist intégration post-acquisition",
+      "template évaluation entreprise",
+      "guide négociation M&A",
+      "modèle plan 100 jours",
+      "checklist synergies M&A",
+      "guide croissance externe débutant",
+      "template analyse financière",
+      "modèle contrat acquisition",
+      "checklist due diligence juridique"
+    ],
+    "pages": ["ressources.html", "blog posts", "FAQ page"]
+  },
+  
+  "questionKeywords": {
+    "description": "Mots-clés sous forme de questions pour capturer les recherches informationnelles",
+    "keywords": [
+      "comment faire croissance externe",
+      "pourquoi faire croissance externe",
+      "quand faire croissance externe",
+      "comment trouver entreprises à racheter",
+      "comment évaluer une cible",
+      "comment négocier une acquisition",
+      "comment financer une fusion",
+      "comment réussir intégration",
+      "quel est le meilleur outil M&A",
+      "combien coûte un logiciel croissance externe",
+      "quel outil choisir croissance externe",
+      "comment utiliser DPAI Strategy",
+      "combien de tokens pour une analyse",
+      "comment obtenir plus de tokens",
+      "comment démarrer avec DPAI Strategy",
+      "quelles sont les étapes d'une acquisition",
+      "comment éviter les erreurs en croissance externe",
+      "quel est le meilleur moment pour une acquisition"
+    ],
+    "pages": ["FAQ page", "blog posts", "landing pages"]
+  },
+  
+  "blogContentKeywords": {
+    "description": "Mots-clés pour le contenu du blog",
+    "categories": {
+      "strategy": [
+        "stratégie croissance externe",
+        "stratégie M&A",
+        "stratégie fusion acquisition",
+        "planification stratégique",
+        "stratégie développement entreprise",
+        "stratégie expansion marché",
+        "stratégie d'entreprise",
+        "stratégie long terme"
+      ],
+      "analysis": [
+        "analyse stratégique",
+        "analyse SWOT",
+        "Porter 5 Forces",
+        "PESTEL",
+        "analyse concurrentielle",
+        "analyse de marché",
+        "analyse financière",
+        "analyse des risques",
+        "analyse sectorielle",
+        "analyse opportunités"
+      ],
+      "ma": [
+        "fusion acquisition",
+        "M&A",
+        "mergers and acquisitions",
+        "opérations M&A",
+        "stratégie M&A",
+        "processus M&A",
+        "due diligence M&A",
+        "négociation M&A",
+        "intégration M&A"
+      ]
+    },
+    "pages": ["blog posts", "blog index"]
+  },
+  
+  "implementationGuidelines": {
+    "primaryPages": {
+      "index.html": {
+        "primaryKeywords": ["logiciel croissance externe", "outil croissance externe", "plateforme croissance externe", "logiciel fusion acquisition", "outil M&A", "meilleur logiciel croissance externe"],
+        "density": "3-5%",
+        "placement": ["title", "h1", "h2", "meta description", "meta keywords", "content (first 200 words)", "alt text"]
+      },
+      "croissance-externe.html": {
+        "primaryKeywords": ["croissance externe", "logiciel croissance externe", "outil croissance externe", "stratégie croissance externe", "meilleur logiciel croissance externe"],
+        "density": "4-6%",
+        "placement": ["title", "h1", "h2 (all)", "meta description", "meta keywords", "content (throughout)", "alt text"]
+      },
+      "outil-ma.html": {
+        "primaryKeywords": ["outil M&A", "plateforme M&A", "logiciel M&A", "meilleur outil M&A", "outil fusion acquisition"],
+        "density": "4-6%",
+        "placement": ["title", "h1", "h2 (all)", "meta description", "meta keywords", "content (throughout)", "alt text"]
+      },
+      "logiciel-fusion-acquisition.html": {
+        "primaryKeywords": ["logiciel fusion acquisition", "meilleur logiciel fusion acquisition", "logiciel M&A", "outil fusion acquisition", "solution fusion acquisition"],
+        "density": "4-6%",
+        "placement": ["title", "h1", "h2 (all)", "meta description", "meta keywords", "content (throughout)", "alt text"]
+      }
+    },
+    
+    "internalLinking": {
+      "strategy": "Create a strong internal linking structure with keyword-rich anchor text",
+      "examples": [
+        {"from": "index.html", "to": "croissance-externe.html", "anchor": "découvrir notre guide complet sur la croissance externe"},
+        {"from": "index.html", "to": "outil-ma.html", "anchor": "notre outil M&A complet"},
+        {"from": "index.html", "to": "logiciel-fusion-acquisition.html", "anchor": "le meilleur logiciel fusion acquisition"},
+        {"from": "croissance-externe.html", "to": "outil-ma.html", "anchor": "nos outils professionnels"},
+        {"from": "croissance-externe.html", "to": "services.html", "anchor": "nos services d'analyse stratégique"},
+        {"from": "outil-ma.html", "to": "logiciel-fusion-acquisition.html", "anchor": "notre logiciel fusion acquisition"},
+        {"from": "outil-ma.html", "to": "register.html", "anchor": "essayer gratuitement avec 500 tokens"},
+        {"from": "blog posts", "to": "services.html", "anchor": "DPAI Strategy propose"},
+        {"from": "blog posts", "to": "register.html", "anchor": "commencez gratuitement"}
+      ]
+    }
+  },
+  
+  "seoBestPractices": {
+    "keywordPlacement": {
+      "titleTag": "Place primary keyword at the beginning",
+      "h1Tag": "Include primary keyword",
+      "metaDescription": "Include primary keyword naturally, max 160 characters",
+      "url": "Include primary keyword if possible",
+      "first100Words": "Include primary keyword in first 100 words of content",
+      "imageAltText": "Include keywords naturally in alt text"
+    },
+    
+    "keywordDensity": {
+      "primary": "2-4%",
+      "secondary": "1-2%",
+      "longTail": "0.5-1%",
+      "warning": "Avoid keyword stuffing - write naturally for users first"
+    },
+    
+    "contentGuidelines": {
+      "blogPosts": "1500-3000 words, include 1-2 primary keywords, 3-5 secondary keywords",
+      "landingPages": "2000-4000 words, include primary keyword in H1, H2, throughout content",
+      "servicePages": "1500-3000 words, focus on 2-3 primary keywords",
+      "quality": "Prioritize quality, originality, and user value over keyword density"
+    },
+    
+    "technicalSEO": {
+      "pageSpeed": "Mobile: >85, Desktop: >90",
+      "mobileFriendly": "Responsive design, fast loading",
+      "ssl": "HTTPS enabled",
+      "canonicalTags": "Implemented on all pages",
+      "schemaMarkup": "JSON-LD on all important pages",
+      "xmlSitemap": "Updated with all important pages",
+      "robotsTxt": "Properly configured"
+    }
+  },
+  
+  "monitoring": {
+    "track": [
+      "primary keyword positions",
+      "organic traffic growth",
+      "conversion rates",
+      "bounce rates",
+      "page load times",
+      "backlink profile",
+      "indexation status"
+    ],
+    
+    "tools": [
+      "Google Search Console",
+      "Google Analytics 4",
+      "SEMrush",
+      "Ahrefs",
+      "Screaming Frog",
+      "Hotjar"
+    ],
+    
+    "kpis": {
+      "shortTerm": {
+        "goal": "3 months",
+        "targets": [
+          "Top 20 ranking for 10+ primary keywords",
+          "30% increase in organic traffic",
+          "50+ backlinks from relevant sites"
+        ]
+      },
+      "mediumTerm": {
+        "goal": "6 months",
+        "targets": [
+          "Top 10 ranking for 10+ primary keywords",
+          "Top 5 ranking for 5+ long tail keywords",
+          "100% increase in organic traffic",
+          "100+ backlinks from relevant sites"
+        ]
+      },
+      "longTerm": {
+        "goal": "12 months",
+        "targets": [
+          "Top 3 ranking for 5+ primary keywords",
+          "Established authority in external growth & M&A",
+          "200%+ increase in organic traffic",
+          "200+ backlinks from authoritative sites"
+        ]
+      }
+    }
+  }
+}
