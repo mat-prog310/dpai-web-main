@@ -116,14 +116,14 @@
     <!-- Blog DPAI Strategy - Contenu SEO optimisé -->
     <url>
         <loc>https://dpai-strategy.com/blog/</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-20</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.9</priority>
     </url>
 
     <url>
         <loc>https://dpai-strategy.com/blog/index.html</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-20</lastmod>
         <changefreq>daily</changefreq>
         <priority>0.9</priority>
     </url>
@@ -164,24 +164,74 @@
         <priority>0.8</priority>
     </url>
 
+    <!-- Nouveaux articles de blog - 20 Oct 2026 -->
+    <url>
+        <loc>https://dpai-strategy.com/blog/integration-post-acquisition-secret-reussite.html</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://dpai-strategy.com/blog/analyse-culturelle-fusion-echec.html</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://dpai-strategy.com/blog/gestion-risques-strategiques-ma.html</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://dpai-strategy.com/blog/optimisation-couts-croissance-externe.html</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://dpai-strategy.com/blog/analyse-marche-opportunites-cachees.html</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://dpai-strategy.com/blog/planification-strategique-court-termisme.html</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
+    <url>
+        <loc>https://dpai-strategy.com/blog/evaluation-partenariats-strategiques.html</loc>
+        <lastmod>2026-10-20</lastmod>
+        <changefreq>weekly</changefreq>
+        <priority>0.8</priority>
+    </url>
+
     <!-- Catégories de blog -->
     <url>
         <loc>https://dpai-strategy.com/blog/category-strategie.html</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-20</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
 
     <url>
         <loc>https://dpai-strategy.com/blog/category-ma.html</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-20</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
 
     <url>
         <loc>https://dpai-strategy.com/blog/category-analysis.html</loc>
-        <lastmod>2026-10-09</lastmod>
+        <lastmod>2026-10-20</lastmod>
         <changefreq>weekly</changefreq>
         <priority>0.7</priority>
     </url>
