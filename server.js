@@ -229,7 +229,10 @@ const cspConfig = helmet.contentSecurityPolicy({
             "https://www.gstatic.com",
             "ws:",
             "wss:",
-            "http://localhost:5002"  // Autoriser l'API locale
+            "http://localhost:5002",  // Autoriser l'API locale
+            "https://us-central1-dpai-8be62.cloudfunctions.net", // Cloud Functions (Stripe, IA...)
+            "http://localhost:5001", // Emulateur Cloud Functions local
+            "http://127.0.0.1:5001"
         ],
         frameSrc: ["'self'"],
         objectSrc: ["'none'"],

@@ -13,6 +13,13 @@
     window.addEventListener('authFullyInitialized', updatePortalButton);
     updatePortalButton();
 
+    const describeFetchError = (error) => {
+        if (error instanceof TypeError && /fetch/i.test(error.message)) {
+            return 'Connexion au serveur impossible. Verifiez votre connexion internet ou reessayez plus tard.';
+        }
+        return error.message;
+    };
+
     trialButton?.addEventListener('click', async event => {
         const user = window.authService?.currentUser;
         if (!user) return;
@@ -36,7 +43,7 @@
             if (!response.ok) throw new Error(result.error || 'Impossible d’activer la démo.');
             window.location.assign('/dashboard.html');
         } catch (error) {
-            if (statusMessage) statusMessage.textContent = error.message;
+            if (statusMessage) statusMessage.textContent = describeFetchError(error);
             trialButton.removeAttribute('aria-busy');
         }
     });
@@ -78,7 +85,7 @@
             }
             window.location.assign(result.url);
         } catch (error) {
-            if (statusMessage) statusMessage.textContent = error.message;
+            if (statusMessage) statusMessage.textContent = describeFetchError(error);
             checkoutButton.disabled = false;
         }
     });
@@ -110,7 +117,7 @@
             }
             window.location.assign(result.url);
         } catch (error) {
-            if (statusMessage) statusMessage.textContent = error.message;
+            if (statusMessage) statusMessage.textContent = describeFetchError(error);
             portalButton.disabled = false;
         }
     });
