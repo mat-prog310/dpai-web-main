@@ -78,7 +78,7 @@ const TokenConfig = {
   planPrices: {
     free: 0.0,
     api_monthly: 199.00,
-    advisor: 499.00
+    advisor: 199.00
   },
   
   welcomeBonus: 0,
@@ -120,11 +120,11 @@ const PLAN_CONFIG = {
     price: 199
   },
   advisor: {
-    name: "Conseiller IA",
+    name: "DPAI Premium",
     tokenLimit: -1,
     hasAI: true,
     hasAdvisor: true,
-    price: 499
+    price: 199
   }
 };
 
@@ -236,10 +236,10 @@ class TokenManager {
   static init(userData) {
     this.userData = userData;
     
-    // Déterminer le plan avec priorité : tokenState.plan > subscription.plan > userData.plan > 'free'
-    let plan = userData.tokenState?.plan || 
-               userData.subscription?.plan || 
-               userData.plan || 
+    // L’abonnement serveur est la source de vérité pour les droits.
+    let plan = userData.subscription?.plan ||
+           userData.plan ||
+           userData.tokenState?.plan ||
                'free';
     
     // Si l'utilisateur a isPremium=true mais plan='free', vérifier si c'est un advisor
@@ -247,16 +247,6 @@ class TokenManager {
         (userData.tokenState?.availableTokens === -1 || userData.totalTokens === -1)) {
       plan = 'advisor';
       console.log('[TokenManager] Correction: utilisateur premium avec tokens illimités -> plan advisor');
-    }
-    
-    // CORRECTION CRITIQUE: Si tokenState a un plan valide, TOUJOURS l'utiliser comme source de vérité
-    if (userData.tokenState && userData.tokenState.plan) {
-      // Vérifier la cohérence avec le plan déterminé
-      if (userData.tokenState.plan !== plan) {
-        console.log('[TokenManager] Incohérence de plan détectée: tokenState.plan=' + userData.tokenState.plan + ', plan calculé=' + plan);
-        // TOUJOURS faire confiance à tokenState.plan si il existe
-        plan = userData.tokenState.plan;
-      }
     }
     
     const expectedBaseTokens = TokenConfig.baseTokenLimits[plan] || TokenConfig.baseTokenLimits.free;
@@ -282,7 +272,7 @@ class TokenManager {
       lastTokenUpdate = userData.tokenState.lastTokenUpdate || new Date().toISOString();
       lastMonthlyReset = userData.tokenState.lastMonthlyReset || new Date().toISOString();
       expiresAt = userData.tokenState.expiresAt || null;
-      subscriptionExpiresAt = userData.subscription?.expiresAt || userData.subscription?.endDate || null;
+      subscriptionExpiresAt = userData.subscription?.expiresAt || userData.subscription?.trialEndsAt || userData.subscription?.endDate || null;
       console.log('[TokenManager] tokenState chargé depuis userData, plan:', plan);
     }
     // Priorité 2: Récupérer depuis les champs racine
@@ -291,7 +281,7 @@ class TokenManager {
       availableTokens = userData.availableTokens || 0;
       totalTokens = userData.totalTokens || expectedBaseTokens;
       firstAnalysisDone = (userData.totalAnalyses || 0) > 0;
-      subscriptionExpiresAt = userData.subscription?.expiresAt || userData.subscription?.endDate || null;
+      subscriptionExpiresAt = userData.subscription?.expiresAt || userData.subscription?.trialEndsAt || userData.subscription?.endDate || null;
       console.log('[TokenManager] tokenState calculé depuis champs racine, plan:', plan);
     }
     
@@ -314,6 +304,12 @@ class TokenManager {
       usedTokens = 0;
       availableTokens = 500;
       console.log('[TokenManager] Nouvel utilisateur: 500 tokens');
+    }
+
+    if (plan === 'advisor') {
+      usedTokens = 0;
+      totalTokens = -1;
+      availableTokens = -1;
     }
     
     // Vérifier si l'abonnement est expiré
@@ -358,60 +354,6 @@ class TokenManager {
     this.tokenState.hasAccessToAdvancedAnalytics = updates.hasAccessToAdvancedAnalytics;
     this.tokenState.hasAccessToPremiumSuggestions = updates.hasAccessToPremiumSuggestions;
     
-    // Mettre à jour dans Firestore UNE SEULE FOIS si nécessaire
-    let firestoreDB = getDB();
-    if (firestoreDB && userData.id) {
-      // Vérifier si une correction est nécessaire (une seule fois par session)
-      const needsCorrection = 
-        userData.hasAccessToAPI !== updates.hasAccessToAPI ||
-        userData.hasAccessToAdvancedAnalytics !== updates.hasAccessToAdvancedAnalytics ||
-        userData.hasAccessToPremiumSuggestions !== updates.hasAccessToPremiumSuggestions ||
-        userData.plan !== currentPlan ||
-        !userData.tokenState ||
-        userData.tokenState.plan !== currentPlan ||
-        (currentPlan === 'advisor' && (
-          this.tokenState.totalTokens !== -1 ||
-          this.tokenState.availableTokens !== -1 ||
-          this.tokenState.baseTokens !== -1
-        ));
-      
-      if (needsCorrection) {
-        // CORRECTION MAJEURE: Une seule mise à jour avec TOUS les champs nécessaires
-        const updateData = {
-          // Champs racine
-          plan: currentPlan,
-          isPremium: currentPlan !== 'free',
-          availableTokens: this.tokenState.availableTokens,
-          tokensUsed: this.tokenState.usedTokens,
-          totalTokens: this.tokenState.totalTokens,
-          
-          // Flags d'accès
-          hasAccessToAPI: updates.hasAccessToAPI,
-          hasAccessToAdvancedAnalytics: updates.hasAccessToAdvancedAnalytics,
-          hasAccessToPremiumSuggestions: updates.hasAccessToPremiumSuggestions,
-          
-          // Subscription
-          'subscription.plan': currentPlan,
-          'subscription.status': currentPlan !== 'free' ? 'active' : undefined,
-          
-          // TokenState complet
-          tokenState: this.tokenState
-        };
-        
-        // Nettoyer les champs undefined
-        Object.keys(updateData).forEach(key => {
-          if (updateData[key] === undefined) {
-            delete updateData[key];
-          }
-        });
-        
-        console.log('[TokenManager] Correction Firestore nécessaire pour:', userData.id);
-        firestoreDB.collection('users').doc(userData.id).update(updateData).catch(err => {
-          console.warn('[TokenManager] Impossible de corriger:', err);
-        });
-      }
-    }
-    
     this.loyaltyInfo = userData.loyaltyInfo || LoyaltySystem.create(userData.id);
     this.referralInfo = userData.referralInfo;
     this.hasCompanyDiscount = userData.hasCompanyDiscount || false;
@@ -431,6 +373,11 @@ class TokenManager {
   // Vérifier si le tokenState est expiré
   static isExpired() {
     if (!this.tokenState) return false;
+
+    const subscription = this.userData?.subscription;
+    if (subscription?.status && !['active', 'trialing'].includes(subscription.status)) {
+      return true;
+    }
     
     // Vérifier d'abord l'expiration du tokenState
     if (this.tokenState.expiresAt) {
@@ -496,78 +443,6 @@ class TokenManager {
   static get tokenUsagePercentage() {
     if (!this.tokenState) return 0;
     return (this.tokenState.usedTokens / this.tokenState.totalTokens) * 100;
-  }
-
-  static async useTokens(amount, analysisType = 'basic') {
-    // Vérifier si le tokenState est expiré
-    if (this.isExpired()) {
-      throw new Error('Votre abonnement a expiré. Veuillez le renouveler.');
-    }
-    
-    // Vérifier si c'est un service qui nécessite un contact mail (bloqué à 999999 tokens)
-    if (amount === 999999) {
-      throw new Error('CONTACT_PAR_MAIL');
-    }
-    
-    // Seuls les abonnés advisor ont des tokens illimités
-    if (!this.isTokensUnlimited() && this.availableTokens < amount) {
-      throw new Error('Pas assez de tokens');
-    }
-
-    // Si tokens illimités (advisor), on ne déduit pas, on met juste à jour le timestamp
-    if (this.isTokensUnlimited()) {
-      const newState = { ...this.tokenState };
-      const currentPlan = newState.plan;
-      newState.lastTokenUpdate = new Date().toISOString();
-      
-      const firestoreDB = getDB();
-      if (firestoreDB && this.userData && this.userData.id) {
-        await firestoreDB.collection('users').doc(this.userData.id).update({
-          tokenState: newState,
-          plan: currentPlan,
-          'subscription.plan': currentPlan,
-          lastAnalysisAt: firestoreDB.FieldValue.serverTimestamp()
-        });
-      }
-      this.tokenState = newState;
-      return true;
-    }
-
-    const newState = { ...this.tokenState };
-    const currentPlan = newState.plan;
-    newState.usedTokens += amount;
-    newState.availableTokens -= amount;
-    newState.monthlyTokensUsed += amount;
-    
-    // Si c'est la première analyse, ajouter le bonus
-    if (!newState.firstAnalysisDone) {
-      newState.firstAnalysisDone = true;
-      newState.availableTokens += TokenConfig.firstAnalysisBonus;
-      newState.totalTokens += TokenConfig.firstAnalysisBonus;
-    }
-
-    // Mettre à jour la fidélité
-    this.loyaltyInfo = LoyaltySystem.addAnalysis(this.loyaltyInfo);
-    
-    // Sauvegarder dans Firestore (tokenState + champs racine pour compatibilité)
-    const updateData = {
-      tokenState: newState,
-      plan: currentPlan,
-      'subscription.plan': currentPlan,
-      loyaltyInfo: this.loyaltyInfo,
-      availableTokens: newState.availableTokens,
-      tokensUsed: newState.usedTokens,
-      totalTokens: newState.totalTokens
-    };
-    
-    const firestoreDB = getDB();
-    if (firestoreDB && this.userData && this.userData.id) {
-      await firestoreDB.collection('users').doc(this.userData.id).update(updateData);
-    }
-
-    this.tokenState = newState;
-    this.notifyListeners();
-    return true;
   }
 
   static async addTokens(amount, reason = 'achat') {
@@ -861,16 +736,15 @@ class TokenManager {
 
   static isAIAllowed() {
     const plan = this.tokenState?.plan || 'free';
-    return plan === 'api_monthly' || plan === 'advisor';
+    return !this.isExpired() && (plan === 'api_monthly' || plan === 'advisor');
   }
 
   static isAdvisorAllowed() {
-    return this.tokenState?.plan === 'advisor';
+    return this.tokenState?.plan === 'advisor' && !this.isExpired();
   }
 
   static isTokensUnlimited() {
-    // Seuls les abonnés advisor ont des tokens illimités
-    return this.tokenState?.plan === 'advisor';
+    return this.tokenState?.plan === 'advisor' && !this.isExpired();
   }
 
   // Appel à Mistral API
@@ -884,10 +758,13 @@ class TokenManager {
       }
       
       // Appeler l API locale via le proxy Node.js
+      const currentUser = window.authService?.currentUser;
+      if (!currentUser) throw new Error('Utilisateur non connecté');
       const response = await fetch('/api/local-ai/chat', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${await currentUser.getIdToken()}`
         },
         body: JSON.stringify({
           message: prompt,
@@ -924,17 +801,11 @@ class TokenManager {
 
     // Vérifier l'accès à l'IA
     if (!this.isAIAllowed()) {
-      throw new Error('Accès IA non autorisé. Souscrivez à l\'API Mensuel (199 €) ou au Conseiller IA (499 €).');
+      throw new Error('Votre période de démonstration est terminée. Passez à DPAI Premium (199 €/mois) pour continuer.');
     }
 
     // Appeler Mistral
     const response = await this.callLocalAI(prompt);
-
-    // Déduire les tokens pour les utilisateurs non-advisor (api_monthly a des tokens limités)
-    if (!this.isTokensUnlimited()) {
-      const tokenCost = AnalysisCosts[`ai_${type}`] || 100;
-      await this.useTokens(tokenCost, `ai_${type}`);
-    }
 
     return response;
   }

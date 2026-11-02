@@ -20,6 +20,21 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
+
+    function canCreateUserProfile() {
+      return request.resource.data.get('plan', 'free') == 'free' &&
+             request.resource.data.get('isPremium', false) == false &&
+             !request.resource.data.keys().hasAny(['subscription']) &&
+             request.resource.data.get('tokenState', {}).get('plan', 'free') == 'free';
+    }
+
+    function billingFieldsUnchanged() {
+      return request.resource.data.get('plan', 'free') == resource.data.get('plan', 'free') &&
+             request.resource.data.get('isPremium', false) == resource.data.get('isPremium', false) &&
+             request.resource.data.get('subscription', {}) == resource.data.get('subscription', {}) &&
+             request.resource.data.get('tokenState', {}).get('plan', 'free') ==
+                 resource.data.get('tokenState', {}).get('plan', 'free');
+    }
     
     // Fonction pour vérifier qu'un achat appartient à l'utilisateur
     function isPurchaseOwner() {
@@ -72,8 +87,10 @@ service cloud.firestore {
     // =============================================================================
     match /users/{userId} {
       allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
-      allow create: if isAuthenticated() && isOwner(userId);
-      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
+        allow create: if isAuthenticated() && isOwner(userId) && canCreateUserProfile();
+        allow update: if isAuthenticated() && (
+          isAdmin() || (isOwner(userId) && billingFieldsUnchanged())
+        );
       allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
       
       // Sous-collection: analyses
@@ -112,6 +129,10 @@ service cloud.firestore {
         allow create: if isAuthenticated() && isOwner(userId);
         allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
         allow delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      }
+
+      match /dashboard_alerts/{alertId} {
+        allow read, create, update, delete: if isAuthenticated() && (isOwner(userId) || isAdmin());
       }
     }
 

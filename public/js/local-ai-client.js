@@ -385,10 +385,13 @@ async function sendMessage() {
         // En production, vous devriez appeler votre IA locale ici
         // Mais pour l'instant, on contourne le problème CORS
         // Appeler l API locale DPAI via le proxy Node.js
+                const currentUser = window.authService?.currentUser;
+                if (!currentUser) throw new Error('Utilisateur non connecté');
         const response = await fetch('/api/local-ai/chat', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json'
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${await currentUser.getIdToken()}`
           },
           body: JSON.stringify({
             message: message,

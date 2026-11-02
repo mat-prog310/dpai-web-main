@@ -53,10 +53,20 @@ MISTRAL_API_KEY=mstrl_OUgXuc71KYyO2QoWZ8h0okTn14wCYUnG_20gLSU
 
 #### Variables Stripe (si applicable)
 ```
-STRIPE_SECRET_KEY=sk_test_your_secret_key
-STRIPE_PUBLIC_KEY=pk_test_your_public_key
-STRIPE_WEBHOOK_SECRET=whsec_your_webhook_secret
+STRIPE_SECRET_KEY (secret Firebase)
+STRIPE_WEBHOOK_SECRET (secret Firebase)
 ```
+
+Pour activer l’abonnement DPAI Premium, créez les secrets sans les placer dans le dépôt :
+
+```bash
+firebase functions:secrets:set STRIPE_SECRET_KEY
+firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
+```
+
+Dans Stripe, créez un webhook vers `https://us-central1-dpai-8be62.cloudfunctions.net/stripeWebhook` et activez les événements `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.upcoming`, `invoice.paid` et `invoice.payment_failed`. Redéployez ensuite les fonctions Firebase. L’abonnement ne devient actif qu’après réception et validation de l’événement Stripe.
+
+Activez également le portail client dans Stripe (Billing > Customer Portal) pour permettre la gestion et la résiliation des abonnements. En production, configurez `LOCAL_AI_URL` comme variable d’environnement Firebase avec l’URL publique de l’API IA; la valeur `http://localhost:5002` ne fonctionne que pour un service exécuté sur la même machine.
 
 ---
 

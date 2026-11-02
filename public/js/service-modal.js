@@ -1,8 +1,6 @@
 // =============================================================================
 // SERVICE-MODAL.JS - Gestion des modales de détails des services
-// Tous les services sont gratuits avec déduction de tokens
-// Un seul plan : free (500 tokens)
-// Phases 3 & 4 : bloquées (contact par mail via CONTACT_EMAIL)
+// Tous les services sont inclus avec DPAI Premium pendant l’essai et l’abonnement.
 // =============================================================================
 
 // Hiérarchie des plans (un seul plan maintenant)
@@ -134,10 +132,10 @@ const servicesData = {
         icon: 'fa-chart-line',
         difficulty: 'Tous niveaux',
         tokens: 0,
-        description: `Notre tableau de bord intuitif vous permet de suivre toutes vos analyses, vos tokens et vos performances en temps réel. Centralisez toutes vos données stratégiques en un seul endroit.`,
+        description: `Notre tableau de bord intuitif vous permet de suivre toutes vos analyses et vos performances en temps réel. Centralisez toutes vos données stratégiques en un seul endroit.`,
         whatYouGet: [
             'Vue d\'ensemble de toutes vos analyses',
-            'Suivi de vos tokens disponibles et utilisés',
+            'Suivi de vos analyses et performances',
             'Historique complet des analyses réalisées',
             'Statistiques et indicateurs de performance',
             'Accès rapide aux actions fréquentes',
@@ -146,7 +144,7 @@ const servicesData = {
         useCases: [
             'Suivi de votre activité d\'analyse',
             'Gestion de vos projets stratégiques',
-            'Optimisation de l\'utilisation de vos tokens',
+            'Optimisation de vos décisions stratégiques',
             'Prise de décision basée sur les données'
         ],
         requiredPlan: 'free'
@@ -387,16 +385,18 @@ function isServiceAccessible(service, userPlan) {
     const serviceRequiredPlan = service.requiredPlan;
     if (!serviceRequiredPlan) return true; // Pas de restriction = accessible à tous
     
-    // Tous les utilisateurs ont le plan 'free'
-    // Les services avec requiredPlan === 'blocked' ne sont pas accessibles
     if (serviceRequiredPlan === 'blocked') {
-        return false;
+        const subscription = window.authService?.currentUserData?.subscription || {};
+        const expiry = subscription.expiresAt || subscription.trialEndsAt;
+        const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+        const active = ['active', 'trialing'].includes(subscription.status) && (!expiryDate || expiryDate > new Date());
+        return active && (userPlan === 'advisor' || userPlan === 'api_monthly');
     }
     
     return true; // Tous les autres services (free) sont accessibles
 }
 
-// Obtenir l'icône du plan (un seul plan : free)
+// Obtenir l'icône du plan
 function getPlanIcon(plan) {
     const planIcons = {
         free: 'fa-user'
@@ -404,10 +404,12 @@ function getPlanIcon(plan) {
     return planIcons[plan?.toLowerCase()] || 'fa-lock';
 }
 
-// Obtenir le libellé du plan (un seul plan : free)
+// Obtenir le libellé du plan
 function getPlanLabel(plan) {
     const planLabels = {
-        free: 'Gratuit'
+        free: 'Accès expiré',
+        api_monthly: 'DPAI Premium',
+        advisor: 'DPAI Premium'
     };
     return planLabels[plan?.toLowerCase()] || plan || 'Gratuit';
 }
@@ -613,7 +615,7 @@ function showServiceModal(serviceId) {
             <div class="service-modal-header">
                 <div class="service-modal-meta">
                     <span class="service-difficulty">${service.difficulty}</span>
-                    <span class="service-tokens">${service.tokens}</span>
+                    <span class="service-tokens">Inclus</span>
                 </div>
             </div>
             

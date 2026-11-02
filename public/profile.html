@@ -7,7 +7,7 @@
     
     <!-- Balises SEO - Noindex car page privée -->
     <title>Mon Profil | DPAI Strategy - Gestion de Compte et Préférences</title>
-    <meta name="description" content="Espace personnel DPAI : gérez votre profil, mettez à jour vos informations, configurez vos préférences et suivez votre utilisation des tokens (500 gratuits = 125€).">
+    <meta name="description" content="Espace personnel DPAI : gérez votre profil, vos analyses, vos préférences et votre abonnement Premium.">
     <meta name="keywords" content="profil utilisateur, gestion compte, préférences, paramètres, informations personnelles, DPAI profil">
     <meta name="robots" content="noindex, nofollow">
     <meta name="author" content="DPAI Strategy">
@@ -174,11 +174,11 @@
                         </div>
                         <div class="profile-stat">
                             <div class="stat-icon">
-                                <i class="fas fa-coins"></i>
+                                <i class="fas fa-star"></i>
                             </div>
                             <div class="stat-info">
-                                <span class="stat-value" id="profileTotalTokens">0</span>
-                                <span class="stat-label">Tokens utilisés</span>
+                                <span class="stat-value" id="profileSubscriptionStatus">-</span>
+                                <span class="stat-label">Accès DPAI</span>
                             </div>
                         </div>
                         <div class="profile-stat">
@@ -269,39 +269,6 @@
                     </div>
                 </div>
 
-                <div class="section-header" style="margin-top: var(--spacing-xl);">
-                    <span class="section-tag">Fidélité</span>
-                    <h2 class="section-title">Code de parrainage</h2>
-                </div>
-                
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-users"></i> Partagez et gagnez</h3>
-                        <p>Invitez vos amis et gagnez des tokens</p>
-                    </div>
-                    <div class="card-body referral-body">
-                        <div class="referral-code-display">
-                            <span id="referralCodeDisplay">-</span>
-                            <button type="button" class="btn btn-primary btn-sm" onclick="copyReferralCode()">
-                                <i class="fas fa-copy"></i> Copier le code
-                            </button>
-                        </div>
-                        <p class="referral-info">
-                            Vous recevrez <strong>20 tokens</strong> et vos amis <strong>10 tokens</strong> 
-                            lorsqu'ils s'inscriront avec votre code.
-                        </p>
-                        <div class="referral-stats">
-                            <div class="referral-stat">
-                                <span class="referral-stat-value" id="referralCount">0</span>
-                                <span class="referral-stat-label">Filleuls</span>
-                            </div>
-                            <div class="referral-stat">
-                                <span class="referral-stat-value" id="referralTokensEarned">0</span>
-                                <span class="referral-stat-label">Tokens gagnés</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <!-- Account Tab -->
@@ -390,8 +357,8 @@
                     </div>
                     <div class="card-body">
                         <div class="plan-info">
-                            <h3>Tous les services sont <span class="plan-name-highlight">GRATUITS</span></h3>
-                            <p>Vous avez accès à toutes nos analyses stratégiques avec <strong>500 tokens d'une valeur de 125 euros</strong>.</p>
+                            <h3>Votre accès <span class="plan-name-highlight">DPAI</span></h3>
+                            <p>Testez toutes les analyses stratégiques et l’IA pendant 7 jours, puis passez à DPAI Premium à 199 €/mois.</p>
                         </div>
                         
                         <div class="plan-actions" style="margin: var(--spacing-lg) 0;">
@@ -405,7 +372,7 @@
                                 <li><i class="fas fa-check-circle"></i> Analyses SWOT, Porter, PESTEL, Concurrentielle</li>
                                 <li><i class="fas fa-check-circle"></i> Due Diligence & Valorisation</li>
                                 <li><i class="fas fa-check-circle"></i> Benchmarking & Modélisation</li>
-                                <li><i class="fas fa-check-circle"></i> 500 tokens d'une valeur de 125 euros pour commencer</li>
+                                <li><i class="fas fa-check-circle"></i> Démo de 7 jours sans carte bancaire</li>
                             </ul>
                         </div>
                     </div>
@@ -707,7 +674,7 @@
                             <i class="fas fa-info-circle"></i>
                             <div class="warning-content">
                                 <strong>Rétrogradation de plan</strong>
-                                <span>Vous perdrez tous les avantages de votre plan actuel (tokens supplémentaires, accès premium, etc.) et passerez au plan Gratuit. Vos données seront conservées.</span>
+                                <span>Votre accès Premium prendra fin à la date de résiliation. Vos données et analyses seront conservées.</span>
                             </div>
                         </div>
                     </div>
@@ -810,7 +777,7 @@
                     <h4><i class="fas fa-minus-circle"></i> Ce que vous allez perdre :</h4>
                     <ul class="downgrade-loses" id="downgradeLosesList">
                         <li><i class="fas fa-times-circle"></i> Accès aux analyses avancées</li>
-                        <li><i class="fas fa-times-circle"></i> Tokens mensuels supplémentaires</li>
+                        <li><i class="fas fa-times-circle"></i> Accès aux fonctionnalités Premium après échéance</li>
                         <li><i class="fas fa-times-circle"></i> Support prioritaire</li>
                     </ul>
                 </div>
@@ -819,7 +786,7 @@
                     <ul class="downgrade-keeps">
                         <li><i class="fas fa-check-circle"></i> Toutes vos données et analyses</li>
                         <li><i class="fas fa-check-circle"></i> Votre historique</li>
-                        <li><i class="fas fa-check-circle"></i> Vos tokens existants</li>
+                        <li><i class="fas fa-check-circle"></i> Vos données et analyses</li>
                     </ul>
                 </div>
                 <p style="margin-top: var(--spacing-lg);">
@@ -871,7 +838,7 @@
                         <li><a href="dashboard.html">Tableau de bord</a></li>
                         <li><a href="profile.html">Profil</a></li>
                         
-                        <li><a href="plus-de-tokens.html">Plus de tokens</a></li>
+                        <li><a href="pricing.html#premium">DPAI Premium</a></li>
                     </ul>
                 </div>
                 
@@ -897,7 +864,6 @@
     </a>
 
     <!-- Scripts -->
-    <script src="/js/tokens.js"></script>
     <script src="/js/auth.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/profile.js"></script>

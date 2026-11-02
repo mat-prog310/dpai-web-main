@@ -407,6 +407,35 @@
             transform: translateY(-2px);
             box-shadow: 0 10px 25px rgba(155, 89, 182, 0.4);
         }
+        .activation-step {
+            display: flex;
+            align-items: center;
+            gap: .65rem;
+            min-height: 48px;
+            padding: .75rem;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            color: #374151;
+            text-decoration: none;
+        }
+        .activation-step.completed {
+            border-color: #047857;
+            color: #065f46;
+            background: #ecfdf5;
+        }
+        .billing-summary.urgent { color: #b91c1c; font-weight: 600; }
+        .alert-action { display: inline-block; margin-top: .5rem; font-weight: 600; }
+        .alert-dismiss {
+            flex: 0 0 36px;
+            width: 36px;
+            height: 36px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #fff;
+            color: #374151;
+            cursor: pointer;
+        }
+        .alert-dismiss:hover { background: #f3f4f6; }
     </style>
 </head>
 <body>
@@ -437,7 +466,7 @@
                     <div class="user-dropdown">
                         <a href="dashboard.html"><i class="fas fa-tachometer-alt"></i> Tableau de bord</a>
                         <a href="profile.html"><i class="fas fa-user-edit"></i> Profil</a>
-                        <a href="plus-de-tokens.html"><i class="fas fa-coins"></i> Plus de tokens</a>
+                        <a href="pricing.html#premium"><i class="fas fa-star"></i> DPAI Premium</a>
                         <a href="#" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Déconnexion</a>
                     </div>
                 </div>
@@ -490,7 +519,7 @@
         <!-- Company Identity Section -->
         <section class="company-section">
             <div class="container">
-                <div class="company-identity-card">
+                <div class="company-identity-card" id="companyInfo">
                     <div class="company-logo-placeholder">
                         <i class="fas fa-building"></i>
                     </div>
@@ -519,7 +548,7 @@
         </section>
 
         <!-- Quick Actions Section -->
-        <section class="quick-section">
+        <section class="quick-section" id="quickActions">
             <div class="container">
                 <div class="card">
                     <div class="card-header">
@@ -532,7 +561,7 @@
                         </div>
                         <div class="quick-actions-info" style="margin-top: 1rem; text-align: center;">
                             <p style="color: #718096; font-size: 0.875rem;">
-                                <i class="fas fa-info-circle"></i> Les coûts en tokens varient selon votre plan.
+                                <i class="fas fa-info-circle"></i> Toutes les analyses sont incluses pendant votre démo et avec DPAI Premium.
                             </p>
                         </div>
                     </div>
@@ -567,10 +596,10 @@
                                     <i class="fas fa-lock" style="color: #fbbf24; font-size: 1.5rem;"></i>
                                 </div>
                                 <div style="font-size: 0.875rem; font-weight: 600; text-align: center;">
-                                    Réservé au plan Conseiller IA
+                                    Réservé à DPAI Premium
                                 </div>
                                 <div style="font-size: 0.75rem; opacity: 0.9; text-align: center; margin-top: 0.25rem;">
-                                    Souscrivez pour accéder
+                                    Démarrez votre démo ou abonnez-vous
                                 </div>
                             </div>
                         </div>
@@ -605,25 +634,65 @@
             </div>
         </section>
 
-        <!-- Token Stats Section -->
+        <!-- Subscription Status Section -->
         <section class="stats-section">
             <div class="container">
                 <div class="dashboard-stats">
                     <div class="stat-card">
                         <div class="stat-icon">
-                            <i class="fas fa-coins"></i>
+                            <i class="fas fa-star"></i>
                         </div>
-                        <div class="stat-value" id="availableTokens">0</div>
-                        <div class="stat-label">Tokens disponibles</div>
+                        <div class="stat-value" id="accessStatus">DPAI Premium</div>
+                        <div class="stat-label" id="accessStatusDetail">Vérification de votre accès...</div>
                         <div class="progress-bar" style="margin-top: var(--spacing-sm);">
-                            <div class="progress-bar-fill" id="tokenProgress" style="width: 0%;"></div>
+                            <div class="progress-bar-fill" id="trialProgress" style="width: 0%;"></div>
                         </div>
-                        <div class="progress-bar-label">
-                            <span><span id="usedTokens">0</span> utilisés</span>
-                            <span><span id="totalTokens">0</span> total</span>
+                        <div class="progress-bar-label" id="trialProgressLabel">Essai de 7 jours</div>
+                        <div class="card-actions" style="display: flex; gap: .75rem; flex-wrap: wrap; margin-top: 1rem;">
+                            <a class="btn btn-primary" id="upgradeSubscriptionBtn" href="pricing.html#premium">Passer à DPAI Premium</a>
+                            <button type="button" class="btn btn-secondary" id="manageSubscriptionBtn" data-subscription-portal style="display: none;">Gérer mon abonnement</button>
+                        </div>
+                        <p id="billingSummary" class="billing-summary" role="status" aria-live="polite"></p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="quick-section" id="firstValueSection">
+            <div class="container">
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="fas fa-flag-checkered"></i> Votre première valeur</h3>
+                        <p id="activationProgressText">0 sur 3 étapes terminées</p>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress-bar">
+                            <div class="progress-bar-fill" id="activationProgressBar" style="width: 0%;"></div>
+                        </div>
+                        <div class="activation-steps" id="activationSteps" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                            <a href="#companyInfo" class="activation-step" data-activation="company"><i class="fas fa-building"></i> Compléter l’entreprise</a>
+                            <a href="#quickActions" class="activation-step" data-activation="analysis"><i class="fas fa-chart-line"></i> Lancer une analyse</a>
+                            <a href="#actionsTracker" class="activation-step" data-activation="action"><i class="fas fa-list-check"></i> Créer une action</a>
                         </div>
                     </div>
                 </div>
+            </div>
+        </section>
+
+        <section class="kpi-section" id="adminBillingSection" style="display: none;">
+            <div class="container">
+                <div class="section-header">
+                    <span class="section-tag">ADMINISTRATION</span>
+                    <h2>Revenus récurrents</h2>
+                    <p>Données d’abonnement Stripe synchronisées par webhook</p>
+                </div>
+                <div class="kpi-grid">
+                    <div class="kpi-card"><div class="kpi-label">MRR actif</div><div class="kpi-value" id="adminMrr">—</div></div>
+                    <div class="kpi-card"><div class="kpi-label">Abonnements actifs</div><div class="kpi-value" id="adminActiveSubscriptions">—</div></div>
+                    <div class="kpi-card"><div class="kpi-label">Essais actifs</div><div class="kpi-value" id="adminTrials">—</div></div>
+                    <div class="kpi-card"><div class="kpi-label">Paiements échoués</div><div class="kpi-value" id="adminInvoiceFailures">—</div></div>
+                </div>
+                <p id="adminBillingUpdatedAt" class="section-subtitle"></p>
             </div>
         </section>
 
@@ -716,7 +785,7 @@
         </section>
 
         <!-- Actions Tracker Section -->
-        <section class="actions-section">
+        <section class="actions-section" id="actionsTracker">
             <div class="container">
                 <div class="section-header">
                     <span class="section-tag">SUIVI</span>
@@ -765,14 +834,14 @@
             <div class="container">
                 <div class="section-header">
                     <span class="section-tag">PROJECTIONS</span>
-                    <h2>Évolutions Possibles</h2>
-                    <p>Basé sur votre historique et les actions en cours</p>
+                    <h2>Tendances et impact déclaré</h2>
+                    <p>Variations calculées sur vos relevés historiques et estimations saisies pour les actions</p>
                 </div>
                 <div class="projections-grid">
                     <div class="projection-card">
                         <div class="projection-header">
                             <i class="fas fa-chart-line"></i>
-                            <h3 class="projection-title">CA Projeté</h3>
+                            <h3 class="projection-title">CA actuel</h3>
                         </div>
                         <div class="projection-body">
                             <div class="projection-values">
@@ -786,14 +855,14 @@
                             </div>
                             <div class="projection-note">
                                 <i class="fas fa-clock"></i>
-                                <span>Sur 12 mois (si actions implémentées)</span>
+                                <span>Dernier relevé enregistré</span>
                             </div>
                         </div>
                     </div>
                     <div class="projection-card">
                         <div class="projection-header">
                             <i class="fas fa-coins"></i>
-                            <h3 class="projection-title">EBITDA Projeté</h3>
+                            <h3 class="projection-title">EBITDA actuel</h3>
                         </div>
                         <div class="projection-body">
                             <div class="projection-values">
@@ -807,14 +876,14 @@
                             </div>
                             <div class="projection-note">
                                 <i class="fas fa-clock"></i>
-                                <span>Sur 12 mois (si actions implémentées)</span>
+                                <span>Dernier relevé enregistré</span>
                             </div>
                         </div>
                     </div>
                     <div class="projection-card">
                         <div class="projection-header">
                             <i class="fas fa-percentage"></i>
-                            <h3 class="projection-title">Marge Projetée</h3>
+                            <h3 class="projection-title">Marge actuelle</h3>
                         </div>
                         <div class="projection-body">
                             <div class="projection-values">
@@ -828,21 +897,21 @@
                             </div>
                             <div class="projection-note">
                                 <i class="fas fa-clock"></i>
-                                <span>Sur 12 mois (si actions implémentées)</span>
+                                <span>Dernier relevé enregistré</span>
                             </div>
                         </div>
                     </div>
                     <div class="projection-card total-impact">
                         <div class="projection-header">
                             <i class="fas fa-star"></i>
-                            <h3 class="projection-title">Impact Total</h3>
+                            <h3 class="projection-title">Impact estimé des actions</h3>
                         </div>
                         <div class="projection-body">
                             <div class="projection-values large">
                                 <span class="projection-value" id="totalImpact">0 €</span>
                             </div>
                             <div class="projection-change large up" id="totalImpactChange">
-                                <i class="fas fa-arrow-up"></i> Potentiel maximum
+                                <i class="fas fa-info-circle"></i> Somme des actions ouvertes
                             </div>
                         </div>
                     </div>
@@ -863,26 +932,28 @@
                         <div class="chart-header">
                             <h4 class="chart-title">Chiffre d'affaires</h4>
                             <div class="chart-controls">
-                                <button class="chart-btn active" data-period="month">Mois</button>
-                                <button class="chart-btn" data-period="quarter">Trimestre</button>
-                                <button class="chart-btn" data-period="year">Année</button>
+                                <button class="chart-btn" data-chart="revenue" data-period="month">Mois</button>
+                                <button class="chart-btn" data-chart="revenue" data-period="quarter">Trimestre</button>
+                                <button class="chart-btn active" data-chart="revenue" data-period="year">Année</button>
                             </div>
                         </div>
                         <div class="chart-body" id="revenueChart">
                             <canvas id="revenueChartCanvas"></canvas>
+                            <p id="revenueChartEmpty" class="empty-state-message" style="display: none;">Enregistrez le chiffre d’affaires de votre entreprise pour commencer l’historique.</p>
                         </div>
                     </div>
                     <div class="chart-card">
                         <div class="chart-header">
                             <h4 class="chart-title">Analyses réalisées</h4>
                             <div class="chart-controls">
-                                <button class="chart-btn active" data-period="month">Mois</button>
-                                <button class="chart-btn" data-period="quarter">Trimestre</button>
-                                <button class="chart-btn" data-period="year">Année</button>
+                                <button class="chart-btn active" data-chart="analyses" data-period="month">Mois</button>
+                                <button class="chart-btn" data-chart="analyses" data-period="quarter">Trimestre</button>
+                                <button class="chart-btn" data-chart="analyses" data-period="year">Année</button>
                             </div>
                         </div>
                         <div class="chart-body" id="analysesChart">
                             <canvas id="analysesChartCanvas"></canvas>
+                            <p id="analysesChartEmpty" class="empty-state-message" style="display: none;">Vos analyses apparaîtront ici après la première utilisation.</p>
                         </div>
                     </div>
                 </div>
@@ -926,7 +997,7 @@
                         <div class="alert-icon" style="background: #e2e8f0; color: #4a5568;"><i class="fas fa-info-circle"></i></div>
                         <div class="alert-content">
                             <div class="alert-title">Conseil DPAI</div>
-                            <div class="alert-message">Pour maximiser l'impact de vos analyses, nous vous recommandons de souscrire à l'Abonnement Advisor (499 €/mois) pour accéder à l'IA DPAI proprietary et à tous les services, sinon l'abonnement API Monthly vous permet d'acceder à toutes les analyses.</div>
+                            <div class="alert-message">Testez toutes les fonctionnalités et l’IA pendant 7 jours, puis accédez à DPAI Premium pour 199 €/mois.</div>
                         </div>
                         <div class="alert-time">Il y a 15 min</div>
                     </div>
@@ -1050,6 +1121,8 @@
     <script src="/js/auth.js"></script>
     <script src="/js/main.js"></script>
     <script src="/js/dashboard.js"></script>
+    <script src="/js/subscription-checkout.js"></script>
+    <script src="/js/subscription-checkout.js"></script>
     <script>
         // Load dashboard data (defined in dashboard.js)
         async function loadDashboardData() {

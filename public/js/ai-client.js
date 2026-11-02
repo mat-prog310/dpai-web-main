@@ -20,9 +20,6 @@ const AI_ENDPOINTS = {
     // Les analyses utilisent MISTRAL (API externe) - plus utilisé maintenant
     analyze: `${AI_API_BASE_URL}/analyzeWithAI`,
     
-    // Déduction de tokens pour les analyses locales
-    deductTokens: `${AI_API_BASE_URL}/deductAnalysisTokens`,
-    
     // Le Conseiller IA utilise l'API MISTRAL avec prompts DPAI
     chat: `${AI_API_BASE_URL}/advisorChat`,
     
@@ -30,6 +27,15 @@ const AI_ENDPOINTS = {
     deleteConversation: `${AI_API_BASE_URL}/deleteAdvisorConversation`,
     setPlan: `${AI_API_BASE_URL}/setUserPlan`
 };
+
+async function getAIAuthHeaders() {
+    const user = window.authService?.currentUser;
+    if (!user) throw new Error('Utilisateur non connecté');
+    return {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${await user.getIdToken()}`
+    };
+}
 
 // =============================================================================
 // FONCTIONS D'APPEL À L'API IA
@@ -54,9 +60,7 @@ async function callAIAnalysis(type, data) {
         // Format attendu par la fonction onRequest: { userId, type, data }
         const response = await fetch(AI_ENDPOINTS.analyze, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: await getAIAuthHeaders(),
             body: JSON.stringify({
                 userId: TokenManager.userData.id,
                 type: type,
@@ -139,9 +143,7 @@ async function getAdvisorConversations() {
 
         const response = await fetch(`${AI_ENDPOINTS.conversations}?userId=${TokenManager.userData.id}`, {
             method: 'GET',
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            headers: await getAIAuthHeaders()
         });
 
         const responseText = await response.text();
@@ -180,9 +182,7 @@ async function deleteAdvisorConversation(conversationId) {
 
         const response = await fetch(`${AI_ENDPOINTS.deleteConversation}?userId=${TokenManager.userData.id}&conversationId=${conversationId}`, {
             method: 'DELETE',
-            headers: {
-                'Content-Type': 'application/json',
-            }
+            headers: await getAIAuthHeaders()
         });
 
         const responseText = await response.text();
@@ -203,50 +203,6 @@ async function deleteAdvisorConversation(conversationId) {
         }
     } catch (error) {
         console.error('❌ Erreur suppression conversation:', error);
-        throw error;
-    }
-}
-
-/**
- * Déduit les tokens pour une analyse
- * @param {string} analysisType - Type d'analyse (swot, porter, pestel, etc.)
- * @returns {Promise<Object>} Résultat avec tokens mis à jour
- */
-async function deductAnalysisTokens(analysisType) {
-    try {
-        if (!TokenManager || !TokenManager.userData) {
-            throw new Error('Utilisateur non connecté');
-        }
-
-        const response = await fetch(AI_ENDPOINTS.deductTokens, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                userId: TokenManager.userData.id,
-                analysisType: analysisType
-            })
-        });
-
-        const responseText = await response.text();
-        
-        if (!response.ok) {
-            try {
-                const error = JSON.parse(responseText);
-                throw new Error(error.error || error.message || 'Erreur serveur');
-            } catch (parseError) {
-                throw new Error(responseText || 'Erreur serveur');
-            }
-        }
-
-        try {
-            return JSON.parse(responseText);
-        } catch (parseError) {
-            throw new Error(responseText || 'Réponse serveur invalide');
-        }
-    } catch (error) {
-        console.error('❌ Erreur déduction tokens:', error);
         throw error;
     }
 }
@@ -462,7 +418,6 @@ window.AIClient = {
     // API Calls
     callAIAnalysis,
     callAdvisorChat,
-    deductAnalysisTokens,
     getAdvisorConversations,
     deleteAdvisorConversation,
     setUserPlan,

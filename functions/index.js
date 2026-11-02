@@ -8,6 +8,9 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 const cors = require('cors')({origin: true});
+const {defineSecret} = require('firebase-functions/params');
+const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
+const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
 
 // Initialiser Firebase Admin
 if (!admin.apps.length) {
@@ -15,6 +18,7 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
+const {runAIAnalysis, advisorChat} = require('./src/ai-integration');
 
 // Configuration des plans
 const PLAN_CONFIGS = {
@@ -35,14 +39,488 @@ const PLAN_CONFIGS = {
         isPremium: true
     },
     advisor: {
-        name: 'Conseiller IA',
+        name: 'DPAI Premium',
         baseTokens: -1,
         hasAI: true,
         hasAdvisor: true,
-        price: 499,
+        price: 199,
         isPremium: true
     }
 };
+
+const TRIAL_DAYS = 7;
+const PREMIUM_PLAN = 'advisor';
+const PREMIUM_PRICE_EUR = 199;
+
+function getStripe() {
+    const secretKey = process.env.STRIPE_SECRET_KEY || stripeSecretKey.value();
+    if (!secretKey) {
+        throw new Error('Stripe n’est pas configuré.');
+    }
+    const Stripe = require('stripe');
+    return new Stripe(secretKey);
+}
+
+function getAuthenticatedUserId(req) {
+    const authorization = req.headers.authorization || '';
+    const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
+    if (!idToken) {
+        throw new Error('Token Firebase manquant.');
+    }
+    return admin.auth().verifyIdToken(idToken).then(decodedToken => decodedToken.uid);
+}
+
+function getSubscriptionAccess(userData) {
+    const subscription = userData.subscription || {};
+    const expiry = subscription.expiresAt || subscription.trialEndsAt;
+    const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+    const active = ['active', 'trialing'].includes(subscription.status);
+    return active && (!expiryDate || expiryDate > new Date());
+}
+
+exports.validateAIEntitlement = functions.https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        if (req.method !== 'POST') {
+            res.status(405).json({success: false, error: 'Method not allowed'});
+            return;
+        }
+        try {
+            const userId = await getAuthenticatedUserId(req);
+            const userDoc = await db.collection('users').doc(userId).get();
+            if (!userDoc.exists || !getSubscriptionAccess(userDoc.data())) {
+                res.status(403).json({success: false, error: 'Votre période de démonstration est terminée ou votre abonnement est inactif.'});
+                return;
+            }
+            res.status(200).json({success: true, userId});
+        } catch (error) {
+            res.status(401).json({success: false, error: error.message});
+        }
+    });
+});
+
+exports.analyzeWithAI = functions.https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        if (req.method !== 'POST') {
+            res.status(405).json({success: false, error: 'Method not allowed'});
+            return;
+        }
+
+        try {
+            const userId = await getAuthenticatedUserId(req);
+            const {type, data} = req.body || {};
+            if (!type || !data) {
+                res.status(400).json({success: false, error: 'Type et données requis.'});
+                return;
+            }
+            res.status(200).json(await runAIAnalysis(userId, type, data));
+        } catch (error) {
+            console.error('Error running AI analysis:', error);
+            const status = error.message.includes('Token Firebase') ? 401 : 403;
+            res.status(status).json({success: false, error: error.message});
+        }
+    });
+});
+
+exports.advisorChat = functions.https.onCall(async (data, context) => {
+    if (!context.auth) {
+        throw new functions.https.HttpsError('unauthenticated', 'Connexion requise.');
+    }
+    if (typeof data?.message !== 'string' || !data.message.trim()) {
+        throw new functions.https.HttpsError('invalid-argument', 'Message requis.');
+    }
+
+    try {
+        return await advisorChat(context.auth.uid, data.message.trim(), data.conversationId || null);
+    } catch (error) {
+        const code = error.message.includes('période de démonstration') ? 'permission-denied' : 'internal';
+        throw new functions.https.HttpsError(code, error.message);
+    }
+});
+
+exports.listAdvisorConversations = functions.https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        if (req.method !== 'GET') {
+            res.status(405).json({success: false, error: 'Method not allowed'});
+            return;
+        }
+        try {
+            const userId = await getAuthenticatedUserId(req);
+            const snapshot = await db.collection('advisor_conversations')
+                .where('userId', '==', userId)
+                .limit(50)
+                .get();
+            res.status(200).json({
+                conversations: snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
+            });
+        } catch (error) {
+            res.status(401).json({success: false, error: error.message});
+        }
+    });
+});
+
+exports.deleteAdvisorConversation = functions.https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        if (req.method !== 'DELETE') {
+            res.status(405).json({success: false, error: 'Method not allowed'});
+            return;
+        }
+        try {
+            const userId = await getAuthenticatedUserId(req);
+            const conversationId = req.query.conversationId;
+            if (!conversationId) {
+                res.status(400).json({success: false, error: 'Conversation requise.'});
+                return;
+            }
+            const conversationRef = db.collection('advisor_conversations').doc(conversationId);
+            const conversation = await conversationRef.get();
+            if (!conversation.exists || conversation.data().userId !== userId) {
+                res.status(404).json({success: false, error: 'Conversation non trouvée.'});
+                return;
+            }
+            await conversationRef.delete();
+            res.status(200).json({success: true});
+        } catch (error) {
+            res.status(401).json({success: false, error: error.message});
+        }
+    });
+});
+
+async function updateSubscriptionFromStripe(stripeSubscription, fallbackUserId) {
+    const userId = stripeSubscription.metadata?.userId || fallbackUserId;
+    if (!userId) return;
+
+    const active = ['active', 'trialing'].includes(stripeSubscription.status);
+    const periodEnd = stripeSubscription.current_period_end
+        ? new Date(stripeSubscription.current_period_end * 1000).toISOString()
+        : null;
+    const plan = active ? PREMIUM_PLAN : 'free';
+    const tokenState = active ? {
+        plan: PREMIUM_PLAN,
+        baseTokens: -1,
+        totalTokens: -1,
+        availableTokens: -1,
+        usedTokens: 0,
+        expiresAt: periodEnd,
+        isExpired: false
+    } : {
+        plan: 'free',
+        baseTokens: 0,
+        totalTokens: 0,
+        availableTokens: 0,
+        usedTokens: 0,
+        expiresAt: periodEnd,
+        isExpired: true
+    };
+
+    await db.collection('users').doc(userId).update({
+        plan,
+        isPremium: active,
+        hasAccessToAPI: active,
+        hasAccessToAdvancedAnalytics: active,
+        hasAccessToPremiumSuggestions: active,
+        tokenState,
+        availableTokens: tokenState.availableTokens,
+        totalTokens: tokenState.totalTokens,
+        'subscription.plan': plan,
+        'subscription.status': stripeSubscription.status,
+        'subscription.expiresAt': periodEnd,
+        'subscription.currentPeriodEnd': periodEnd,
+        'subscription.cancelAtPeriodEnd': Boolean(stripeSubscription.cancel_at_period_end),
+        'subscription.price': PREMIUM_PRICE_EUR,
+        'subscription.currency': stripeSubscription.items?.data?.[0]?.price?.currency?.toUpperCase() || 'EUR',
+        'subscription.interval': stripeSubscription.items?.data?.[0]?.price?.recurring?.interval || 'month',
+        'subscription.stripeCustomerId': stripeSubscription.customer,
+        'subscription.stripeSubscriptionId': stripeSubscription.id
+    });
+}
+
+async function updateBillingInvoice(invoice, eventType) {
+    if (!invoice.customer) return;
+    const users = await db.collection('users')
+        .where('subscription.stripeCustomerId', '==', invoice.customer)
+        .limit(10)
+        .get();
+    if (users.empty) return;
+
+    const invoiceDate = invoice.created ? new Date(invoice.created * 1000).toISOString() : new Date().toISOString();
+    const amount = (invoice.amount_due ?? invoice.amount_paid ?? 0) / 100;
+    const currency = (invoice.currency || 'eur').toUpperCase();
+    const update = {
+        'subscription.lastInvoiceId': invoice.id,
+        'subscription.lastInvoiceAmount': amount,
+        'subscription.lastInvoiceCurrency': currency,
+        'subscription.lastInvoiceAt': invoiceDate
+    };
+
+    if (eventType === 'invoice.paid') {
+        update['subscription.lastInvoiceStatus'] = 'paid';
+        update['subscription.lastInvoicePaidAt'] = invoice.status_transitions?.paid_at
+            ? new Date(invoice.status_transitions.paid_at * 1000).toISOString()
+            : invoiceDate;
+    } else if (eventType === 'invoice.payment_failed') {
+        update['subscription.lastInvoiceStatus'] = 'payment_failed';
+        update['subscription.lastInvoiceFailedAt'] = invoiceDate;
+    } else {
+        update['subscription.lastInvoiceStatus'] = 'upcoming';
+        const dueTimestamp = invoice.next_payment_attempt || invoice.due_date;
+        update['subscription.nextInvoiceDueAt'] = dueTimestamp
+            ? new Date(dueTimestamp * 1000).toISOString()
+            : null;
+        update['subscription.nextInvoiceAmount'] = amount;
+        update['subscription.nextInvoiceCurrency'] = currency;
+    }
+
+    const batch = db.batch();
+    users.docs.forEach(userDoc => batch.update(userDoc.ref, update));
+    await batch.commit();
+}
+
+exports.getBillingMetrics = functions.https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        if (req.method !== 'GET') {
+            res.status(405).json({success: false, error: 'Method not allowed'});
+            return;
+        }
+        try {
+            const authorization = req.headers.authorization || '';
+            const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
+            if (!idToken) {
+                res.status(401).json({success: false, error: 'Authentification requise.'});
+                return;
+            }
+            const decodedToken = await admin.auth().verifyIdToken(idToken);
+            if (decodedToken.admin !== true) {
+                res.status(403).json({success: false, error: 'Accès réservé à l’administration.'});
+                return;
+            }
+
+            const snapshot = await db.collection('users').get();
+            const now = new Date();
+            const metrics = {
+                monthlyRecurringRevenue: 0,
+                activeSubscriptions: 0,
+                trials: 0,
+                pastDue: 0,
+                cancelled: 0,
+                invoiceFailures: 0
+            };
+
+            snapshot.docs.forEach(userDoc => {
+                const subscription = userDoc.data().subscription || {};
+                const expiry = subscription.currentPeriodEnd || subscription.expiresAt;
+                const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+                const inPeriod = !expiryDate || expiryDate > now;
+
+                if (subscription.status === 'trialing' && inPeriod) metrics.trials++;
+                if (subscription.status === 'past_due') metrics.pastDue++;
+                if (subscription.status === 'canceled') metrics.cancelled++;
+                if (subscription.lastInvoiceStatus === 'payment_failed') metrics.invoiceFailures++;
+
+                if (subscription.status === 'active' && inPeriod) {
+                    metrics.activeSubscriptions++;
+                    const price = Number(subscription.price ?? PREMIUM_PRICE_EUR);
+                    const interval = subscription.interval || 'month';
+                    metrics.monthlyRecurringRevenue += interval === 'year' ? price / 12 : price;
+                }
+            });
+
+            metrics.monthlyRecurringRevenue = Math.round(metrics.monthlyRecurringRevenue * 100) / 100;
+            res.status(200).json({success: true, metrics, generatedAt: now.toISOString()});
+        } catch (error) {
+            console.error('Error loading admin billing metrics:', error);
+            res.status(401).json({success: false, error: 'Impossible de vérifier l’accès administrateur.'});
+        }
+    });
+});
+
+exports.startTrial = functions.https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        if (req.method !== 'POST') {
+            res.status(405).json({success: false, error: 'Method not allowed'});
+            return;
+        }
+
+        try {
+            const userId = await getAuthenticatedUserId(req);
+            const userRef = db.collection('users').doc(userId);
+            const result = await db.runTransaction(async transaction => {
+                const userDoc = await transaction.get(userRef);
+                const userData = userDoc.exists ? userDoc.data() : {};
+                const subscription = userData.subscription || {};
+
+                if (subscription.trialStartedAt || subscription.status === 'active') {
+                    return {subscription, plan: userData.plan || subscription.plan || 'free'};
+                }
+
+                const now = new Date();
+                const trialEndsAt = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+                const trialSubscription = {
+                    plan: PREMIUM_PLAN,
+                    status: 'trialing',
+                    trialStartedAt: now.toISOString(),
+                    trialEndsAt: trialEndsAt.toISOString(),
+                    expiresAt: trialEndsAt.toISOString(),
+                    price: PREMIUM_PRICE_EUR
+                };
+                const tokenState = {
+                    userId,
+                    plan: PREMIUM_PLAN,
+                    baseTokens: -1,
+                    totalTokens: -1,
+                    availableTokens: -1,
+                    usedTokens: 0,
+                    expiresAt: trialEndsAt.toISOString(),
+                    isExpired: false
+                };
+
+                transaction.set(userRef, {
+                    id: userId,
+                    email: userData.email || req.body.email || '',
+                    name: userData.name || req.body.name || 'Utilisateur',
+                    createdAt: userData.createdAt || admin.firestore.FieldValue.serverTimestamp(),
+                    totalAnalyses: userData.totalAnalyses || 0,
+                    monthlyAnalyses: userData.monthlyAnalyses || 0,
+                    loyaltyInfo: userData.loyaltyInfo || {
+                        userId,
+                        totalAnalyses: 0,
+                        monthlyAnalyses: 0,
+                        monthlyLoyaltyTokens: 0,
+                        lastAnalysisDate: null,
+                        lastMonthlyReset: now.toISOString()
+                    },
+                    ...userData,
+                    plan: PREMIUM_PLAN,
+                    isPremium: true,
+                    availableTokens: -1,
+                    totalTokens: -1,
+                    hasAccessToAPI: true,
+                    hasAccessToAdvancedAnalytics: true,
+                    hasAccessToPremiumSuggestions: true,
+                    tokenState,
+                    subscription: trialSubscription
+                }, {merge: true});
+
+                return {subscription: trialSubscription, plan: PREMIUM_PLAN};
+            });
+
+            res.status(200).json({success: true, ...result});
+        } catch (error) {
+            console.error('Error starting trial:', error);
+            res.status(401).json({success: false, error: error.message});
+        }
+    });
+});
+
+exports.createCheckoutSession = functions.runWith({secrets: [stripeSecretKey]}).https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        if (req.method !== 'POST') {
+            res.status(405).json({success: false, error: 'Method not allowed'});
+            return;
+        }
+
+        try {
+            const userId = await getAuthenticatedUserId(req);
+            const userDoc = await db.collection('users').doc(userId).get();
+            const userData = userDoc.exists ? userDoc.data() : {};
+            if (getSubscriptionAccess(userData) && userData.subscription?.stripeSubscriptionId) {
+                res.status(409).json({success: false, error: 'Un abonnement est déjà actif. Gérez-le depuis votre espace client.'});
+                return;
+            }
+            const userRecord = await admin.auth().getUser(userId);
+            const stripe = getStripe();
+            const isLocal = ['localhost', '127.0.0.1'].includes(req.hostname);
+            const siteUrl = isLocal ? `http://${req.hostname}:5000` : 'https://dpai-strategy.com';
+            const session = await stripe.checkout.sessions.create({
+                mode: 'subscription',
+                ...(userData.subscription?.stripeCustomerId
+                    ? {customer: userData.subscription.stripeCustomerId}
+                    : {customer_email: userRecord.email}),
+                client_reference_id: userId,
+                metadata: {userId},
+                subscription_data: {metadata: {userId}},
+                line_items: [{
+                    quantity: 1,
+                    price_data: {
+                        currency: 'eur',
+                        unit_amount: PREMIUM_PRICE_EUR * 100,
+                        recurring: {interval: 'month'},
+                        product_data: {name: 'DPAI Premium'}
+                    }
+                }],
+                success_url: `${siteUrl}/pricing.html?subscription=success`,
+                cancel_url: `${siteUrl}/pricing.html?subscription=cancelled`
+            });
+
+            res.status(200).json({success: true, url: session.url});
+        } catch (error) {
+            console.error('Error creating checkout session:', error);
+            res.status(400).json({success: false, error: error.message});
+        }
+    });
+});
+
+exports.createBillingPortalSession = functions.runWith({secrets: [stripeSecretKey]}).https.onRequest((req, res) => {
+    cors(req, res, async () => {
+        if (req.method !== 'POST') {
+            res.status(405).json({success: false, error: 'Method not allowed'});
+            return;
+        }
+        try {
+            const userId = await getAuthenticatedUserId(req);
+            const userDoc = await db.collection('users').doc(userId).get();
+            const customerId = userDoc.data()?.subscription?.stripeCustomerId;
+            if (!customerId) {
+                res.status(404).json({success: false, error: 'Aucun abonnement Stripe à gérer.'});
+                return;
+            }
+            const stripe = getStripe();
+            const session = await stripe.billingPortal.sessions.create({
+                customer: customerId,
+                return_url: 'https://dpai-strategy.com/pricing.html'
+            });
+            res.status(200).json({success: true, url: session.url});
+        } catch (error) {
+            console.error('Error creating billing portal session:', error);
+            res.status(400).json({success: false, error: error.message});
+        }
+    });
+});
+
+exports.stripeWebhook = functions.runWith({secrets: [stripeSecretKey, stripeWebhookSecret]}).https.onRequest(async (req, res) => {
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || stripeWebhookSecret.value();
+    if (!webhookSecret) {
+        res.status(503).send('Stripe webhook is not configured.');
+        return;
+    }
+
+    let event;
+    try {
+        const stripe = getStripe();
+        event = stripe.webhooks.constructEvent(req.rawBody, req.headers['stripe-signature'], webhookSecret);
+    } catch (error) {
+        res.status(400).send(`Webhook Error: ${error.message}`);
+        return;
+    }
+
+    try {
+        if (['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted'].includes(event.type)) {
+            await updateSubscriptionFromStripe(event.data.object);
+        } else if (event.type === 'checkout.session.completed') {
+            const session = event.data.object;
+            if (session.subscription && session.metadata?.userId) {
+                const stripe = getStripe();
+                const subscription = await stripe.subscriptions.retrieve(session.subscription);
+                await updateSubscriptionFromStripe(subscription, session.metadata.userId);
+            }
+        } else if (['invoice.upcoming', 'invoice.paid', 'invoice.payment_failed'].includes(event.type)) {
+            await updateBillingInvoice(event.data.object, event.type);
+        }
+        res.status(200).json({received: true});
+    } catch (error) {
+        console.error('Error processing Stripe webhook:', error);
+        res.status(500).send('Webhook processing failed.');
+    }
+});
 
 // ============================================================================
 // FONCTIONS ADMIN (avec CORS)
@@ -194,14 +672,12 @@ exports.callLocalAI = functions.https.onRequest((req, res) => {
             }
             
             const userData = userDoc.data();
-            const plan = userData.subscription?.plan || userData.plan || userData.tokenState?.plan || 'free';
-            const expiryDate = userData.subscription?.expiresAt;
-            const isExpired = expiryDate ? new Date(expiryDate) < new Date() : false;
-            
-            if (plan !== 'advisor' || isExpired) {
+            const plan = userData.subscription?.plan || 'free';
+
+            if (plan !== PREMIUM_PLAN || !getSubscriptionAccess(userData)) {
                 res.status(403).json({
                     success: false,
-                    error: 'Accès réservé aux abonnés Conseiller IA (499 €/mois). Votre abonnement est expiré ou non actif.'
+                    error: 'Votre période de démonstration est terminée. Passez à DPAI Premium (199 €/mois) pour continuer.'
                 });
                 return;
             }

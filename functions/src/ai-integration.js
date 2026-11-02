@@ -4,7 +4,6 @@
 // Utilise my_local_ai/api_server.py au lieu de Mistral API
 // =============================================================================
 
-const axios = require('axios');
 const admin = require('firebase-admin');
 
 // Importer les prompts DPAI
@@ -220,11 +219,16 @@ async function runAIAnalysis(userId, type, data) {
     }
 
     const userData = userDoc.data();
-    const plan = userData.subscription?.plan || 'free';
+    const subscription = userData.subscription || {};
+    const plan = subscription.plan || 'free';
+    const expiry = subscription.expiresAt || subscription.trialEndsAt;
+    const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+    const subscriptionActive = ['active', 'trialing'].includes(subscription.status) &&
+        (!expiryDate || expiryDate > new Date());
 
     // 2. Vérifier l'accès à l'IA
-    if (plan !== 'api_monthly' && plan !== 'advisor') {
-        throw new Error('Accès IA non autorisé. Abonnement API Monthly ou Conseiller IA requis.');
+    if ((!['api_monthly', 'advisor'].includes(plan)) || !subscriptionActive) {
+        throw new Error('Accès IA non autorisé. Votre période de démonstration est terminée ou votre abonnement est inactif.');
     }
 
     // 3. Générer le prompt ou utiliser l'analyse structurée
@@ -300,11 +304,16 @@ async function advisorChat(userId, message, conversationId = null) {
     }
 
     const userData = userDoc.data();
-    const plan = userData.subscription?.plan || 'free';
+    const subscription = userData.subscription || {};
+    const plan = subscription.plan || 'free';
+    const expiry = subscription.expiresAt || subscription.trialEndsAt;
+    const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+    const subscriptionActive = ['active', 'trialing'].includes(subscription.status) &&
+        (!expiryDate || expiryDate > new Date());
 
     // 2. Vérifier l'accès au Conseiller IA
-    if (plan !== 'advisor') {
-        throw new Error('Abonnement Conseiller IA requis (499 €/mois)');
+    if (plan !== 'advisor' || !subscriptionActive) {
+        throw new Error('Votre période de démonstration est terminée. Passez à DPAI Premium (199 €/mois).');
     }
 
     // 3. Récupérer le contexte de la conversation

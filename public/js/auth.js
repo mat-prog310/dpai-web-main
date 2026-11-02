@@ -65,6 +65,26 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
         let currentUser = null;
         let currentUserData = null;
 
+        async function startTrialForUser(user, name = user.displayName || '') {
+            const isLocal = ['localhost', '127.0.0.1'].includes(window.location.hostname);
+            const functionsUrl = isLocal
+                ? 'http://localhost:5001/dpai-8be62/us-central1'
+                : 'https://us-central1-dpai-8be62.cloudfunctions.net';
+            const response = await fetch(`${functionsUrl}/startTrial`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${await user.getIdToken()}`
+                },
+                body: JSON.stringify({name, email: user.email || ''})
+            });
+            if (!response.ok) {
+                const result = await response.json().catch(() => ({}));
+                throw new Error(result.error || 'Impossible de démarrer la période de démonstration.');
+            }
+            return response.json();
+        }
+
         // Écouter les changements d'état d'authentification
         auth.onAuthStateChanged(async (user) => {
             console.log('%c[Auth.js] onAuthStateChanged:', 'color: #9C27B0;', user ? 'CONNECTÉ' : 'DÉCONNECTÉ');
@@ -82,27 +102,10 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                             id: user.uid,
                             name: user.displayName || user.email || 'Utilisateur',
                             email: user.email || '',
-                            plan: 'free',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                             lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            availableTokens: 500,
-                            tokensUsed: 0,
-                            totalTokens: 500,
                             totalAnalyses: 0,
                             monthlyAnalyses: 0,
-                            tokenState: {
-                                userId: user.uid,
-                                plan: 'free',
-                                baseTokens: 500,
-                                bonusTokens: 0,
-                                totalTokens: 500,
-                                usedTokens: 0,
-                                availableTokens: 500,
-                                lastTokenUpdate: firebase.firestore.FieldValue.serverTimestamp(),
-                                firstAnalysisDone: false,
-                                monthlyTokensUsed: 0,
-                                lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
-                            },
                             loyaltyInfo: {
                                 userId: user.uid,
                                 totalAnalyses: 0,
@@ -112,7 +115,7 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                                 lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
                             }
                         };
-                        await db.collection('users').doc(user.uid).set(userData);
+                        await db.collection('users').doc(user.uid).set(userData, {merge: true});
                         currentUserData = userData;
                         console.log('%c✅ [Auth.js] Nouvel utilisateur créé dans Firestore', 'color: #28a745;');
                     } else {
@@ -120,6 +123,14 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                         await db.collection('users').doc(user.uid).update({
                             lastLoginAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
+                    }
+
+                    try {
+                        await startTrialForUser(user);
+                        const refreshedDoc = await db.collection('users').doc(user.uid).get();
+                        currentUserData = refreshedDoc.exists ? refreshedDoc.data() : currentUserData;
+                    } catch (trialError) {
+                        console.error('%c[Auth.js] Activation de la démo impossible:', 'color: #F44336;', trialError);
                     }
 
                     // Dispatcher l'événement
@@ -243,43 +254,7 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                     // Envoyer email de vérification
                     await user.sendEmailVerification();
 
-                    // Créer user dans Firestore
-                    const userData = {
-                        id: user.uid,
-                        name: name,
-                        email: email,
-                        plan: 'free',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        availableTokens: 500,
-                        tokensUsed: 0,
-                        totalTokens: 500,
-                        totalAnalyses: 0,
-                        monthlyAnalyses: 0,
-                        tokenState: {
-                            userId: user.uid,
-                            plan: 'free',
-                            baseTokens: 500,
-                            bonusTokens: 0,
-                            totalTokens: 500,
-                            usedTokens: 0,
-                            availableTokens: 500,
-                            lastTokenUpdate: firebase.firestore.FieldValue.serverTimestamp(),
-                            firstAnalysisDone: false,
-                            monthlyTokensUsed: 0,
-                            lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
-                        },
-                        loyaltyInfo: {
-                            userId: user.uid,
-                            totalAnalyses: 0,
-                            monthlyAnalyses: 0,
-                            monthlyLoyaltyTokens: 0,
-                            lastAnalysisDate: null,
-                            lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
-                        }
-                    };
-
-                    await db.collection('users').doc(user.uid).set(userData);
+                    await startTrialForUser(user, name);
 
                     console.log('%c✅ [Auth.js] Inscription réussie:', 'color: #28a745;', user.email);
                     return { success: true, user: user };
@@ -337,45 +312,7 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
                     const result = await auth.signInWithPopup(provider);
                     const user = result.user;
 
-                    // Si nouvel utilisateur, créer dans Firestore
-                    if (result.additionalUserInfo?.isNewUser) {
-                        const userData = {
-                            id: user.uid,
-                            name: user.displayName || user.email || 'Utilisateur',
-                            email: user.email || '',
-                            plan: 'free',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            lastLoginAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            availableTokens: 500,
-                            tokensUsed: 0,
-                            totalTokens: 500,
-                            totalAnalyses: 0,
-                            monthlyAnalyses: 0,
-                            tokenState: {
-                                userId: user.uid,
-                                plan: 'free',
-                                baseTokens: 500,
-                                bonusTokens: 0,
-                                totalTokens: 500,
-                                usedTokens: 0,
-                                availableTokens: 500,
-                                lastTokenUpdate: firebase.firestore.FieldValue.serverTimestamp(),
-                                firstAnalysisDone: false,
-                                monthlyTokensUsed: 0,
-                                lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
-                            },
-                            loyaltyInfo: {
-                                userId: user.uid,
-                                totalAnalyses: 0,
-                                monthlyAnalyses: 0,
-                                monthlyLoyaltyTokens: 0,
-                                lastAnalysisDate: null,
-                                lastMonthlyReset: firebase.firestore.FieldValue.serverTimestamp()
-                            }
-                        };
-                        await db.collection('users').doc(user.uid).set(userData);
-                        console.log('%c✅ [Auth.js] Nouvel utilisateur Google créé dans Firestore', 'color: #28a745;');
-                    }
+                    await startTrialForUser(user);
 
                     console.log('%c✅ [Auth.js] Connexion Google réussie:', 'color: #28a745;', user.email);
                     return { success: true, user: user };

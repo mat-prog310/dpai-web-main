@@ -269,6 +269,29 @@ if (process.env.NODE_ENV !== 'production') {
 // Middleware pour proxy les requetes vers l'API locale Python
 const proxyToLocalAI = async (req, res) => {
     try {
+        const authorization = req.headers.authorization || '';
+        if (!authorization.startsWith('Bearer ')) {
+            return res.status(401).json({success: false, error: 'Connexion requise.'});
+        }
+
+        const entitlementUrl = process.env.FIREBASE_ENTITLEMENT_URL ||
+            'https://us-central1-dpai-8be62.cloudfunctions.net/validateAIEntitlement';
+        const entitlementResponse = await fetch(entitlementUrl, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authorization
+            },
+            body: JSON.stringify({})
+        });
+        if (!entitlementResponse.ok) {
+            const entitlementError = await entitlementResponse.json().catch(() => ({}));
+            return res.status(entitlementResponse.status).json({
+                success: false,
+                error: entitlementError.error || 'Abonnement DPAI Premium actif requis.'
+            });
+        }
+
         if (!localAIAvailable) {
             return res.status(503).json({
                 success: false,

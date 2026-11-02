@@ -85,8 +85,6 @@ function checkProfileAuthStatus(user, userData) {
             // Charger les données du profil
             loadProfileData(userFinal, userDataFinal);
             
-            // Initialiser TokenManager
-            TokenManager.init(userDataFinal);
         }
         
     } else {
@@ -101,7 +99,6 @@ function loadProfileData(user, userData) {
     updateProfileHeader(user, userData);
     updateAccountInfo(user, userData);
     updateLoyaltyInfo(userData);
-    updateReferralInfo(userData);
     
     // Charger les préférences
     loadPreferences(userData);
@@ -115,7 +112,7 @@ function updateProfileHeader(user, userData) {
     const userNameEl = document.getElementById('profileUserName');
     const userEmailEl = document.getElementById('profileUserEmail');
     const totalAnalysesEl = document.getElementById('profileTotalAnalyses');
-    const totalTokensEl = document.getElementById('profileTotalTokens');
+    const subscriptionStatusEl = document.getElementById('profileSubscriptionStatus');
     const memberSinceEl = document.getElementById('profileMemberSince');
     
     if (userNameEl) {
@@ -125,15 +122,26 @@ function updateProfileHeader(user, userData) {
     if (userEmailEl) {
         userEmailEl.textContent = user.email || userData.email || 'email@example.com';
     }
-    
+
     if (totalAnalysesEl) {
         const total = userData.totalAnalyses || userData.loyaltyInfo?.totalAnalyses || 0;
-        totalAnalysesEl.textContent = TokenUtils.formatTokens(total);
+        totalAnalysesEl.textContent = new Intl.NumberFormat('fr-FR').format(total);
     }
-    
-    if (totalTokensEl) {
-        const used = userData.tokensUsed || userData.tokenState?.usedTokens || 0;
-        totalTokensEl.textContent = TokenUtils.formatTokens(used);
+
+    if (subscriptionStatusEl) {
+        const subscription = userData.subscription || {};
+        const expiry = subscription.expiresAt || subscription.trialEndsAt;
+        const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+        const isActive = !expiryDate || expiryDate > new Date();
+        if (subscription.status === 'trialing' && isActive) {
+            subscriptionStatusEl.textContent = 'Démo active';
+        } else if (subscription.status === 'active' && isActive) {
+            subscriptionStatusEl.textContent = 'Premium actif';
+        } else if (subscription.status === 'trialing') {
+            subscriptionStatusEl.textContent = 'Démo terminée';
+        } else {
+            subscriptionStatusEl.textContent = 'Inactif';
+        }
     }
     
     if (memberSinceEl) {
@@ -163,8 +171,10 @@ function updateAccountInfo(user, userData) {
     }
     
     if (planEl) {
-        const planNames = { free: 'Gratuit' };
-        planEl.textContent = 'Gratuit';  // Tous les utilisateurs ont le plan free
+        const subscription = userData.subscription || {};
+        planEl.textContent = subscription.status === 'trialing'
+            ? 'Démo DPAI Premium'
+            : subscription.status === 'active' ? 'DPAI Premium' : 'Inactif';
     }
     
     if (joinDateEl) {
@@ -188,41 +198,15 @@ function updateAccountInfo(user, userData) {
 
 // Mettre à jour les informations de fidélité
 function updateLoyaltyInfo(userData) {
-    const tokensEl = document.getElementById('loyaltyTokensDisplay');
     const totalAnalysesEl = document.getElementById('loyaltyTotalAnalysesDisplay');
     const monthlyAnalysesEl = document.getElementById('loyaltyMonthlyAnalysesDisplay');
     
     if (userData.loyaltyInfo) {
-        if (tokensEl) {
-            tokensEl.textContent = TokenUtils.formatTokens(userData.loyaltyInfo.monthlyLoyaltyTokens || 0);
-        }
         if (totalAnalysesEl) {
-            totalAnalysesEl.textContent = TokenUtils.formatTokens(userData.loyaltyInfo.totalAnalyses || 0);
+            totalAnalysesEl.textContent = new Intl.NumberFormat('fr-FR').format(userData.loyaltyInfo.totalAnalyses || 0);
         }
         if (monthlyAnalysesEl) {
-            monthlyAnalysesEl.textContent = TokenUtils.formatTokens(userData.loyaltyInfo.monthlyAnalyses || 0);
-        }
-    }
-}
-
-// Mettre à jour les informations de parrainage
-function updateReferralInfo(userData) {
-    const codeEl = document.getElementById('referralCodeDisplay');
-    const countEl = document.getElementById('referralCount');
-    const tokensEl = document.getElementById('referralTokensEarned');
-    
-    if (userData.referralCode) {
-        if (codeEl) {
-            codeEl.textContent = userData.referralCode;
-        }
-    }
-    
-    if (userData.referralInfo) {
-        if (countEl) {
-            countEl.textContent = userData.referralInfo.referralCount || 0;
-        }
-        if (tokensEl) {
-            tokensEl.textContent = TokenUtils.formatTokens(userData.referralInfo.tokensEarned || 0);
+            monthlyAnalysesEl.textContent = new Intl.NumberFormat('fr-FR').format(userData.loyaltyInfo.monthlyAnalyses || 0);
         }
     }
 }
@@ -894,144 +878,35 @@ function updateDowngradeLosesList() {
 }
 
 function downgradePlan() {
-    const password = document.getElementById('downgradePassword')?.value;
-    
-    if (!password) {
-        showAlert('error', 'Erreur', 'Veuillez entrer votre mot de passe');
-        return;
-    }
-    
-    const currentUser = authService?.currentUser;
-    const currentUserData = authService?.userData;
-    
-    if (!currentUser || !currentUserData) {
-        showAlert('error', 'Erreur', 'Impossible de rétrograder. Veuillez réessayer.');
-        return;
-    }
-    
-    // Vérifier que l'utilisateur n'est pas déjà en plan gratuit
-    if (currentUserData.plan === 'free') {
-        showAlert('error', 'Erreur', 'Vous êtes déjà sur le plan Gratuit.');
-        hideDowngradeModal();
-        return;
-    }
-    
-    // Re-authentifier l'utilisateur
-    const credential = firebase.auth.EmailAuthProvider.credential(
-        currentUser.email,
-        password
-    );
-    
-    // Afficher un état de chargement sur le bouton
-    const confirmBtn = document.getElementById('downgradeConfirm');
-    if (confirmBtn) {
-        confirmBtn.disabled = true;
-        confirmBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Rétrogradation en cours...';
-    }
-    
-    currentUser.reauthenticateWithCredential(credential)
-        .then(async () => {
-            try {
-                // Mettre à jour le plan en base de données
-                const userRef = authService.db.collection('users').doc(currentUser.uid);
-                
-                // Créer un nouvel état de tokens pour le plan gratuit
-                const newTokenState = TokenManager.createTokenState(currentUser.uid, 'free');
-                
-                await userRef.update({
-                    plan: 'free',
-                    subscriptionStartDate: new Date().toISOString(),
-                    subscriptionEndDate: null,
-                    tokenState: newTokenState,
-                    hasAccessToPremiumSuggestions: false,
-                    hasAccessToAdvancedAnalytics: false,
-                    hasAccessToAPI: false,
-                    hasCompanyDiscount: false
-                });
-                
-                // Recharger les données utilisateur
-                await authService.loadUserData(currentUser.uid);
-                
-                // Restaurer le bouton
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = '<i class="fas fa-arrow-down"></i> Confirmer la rétrogradation';
-                }
-                
-                hideDowngradeModal();
-                
-                showAlert('success', 'Succès', 'Votre plan a été rétrogradé avec succès. Vous avez maintenant le plan Gratuit.');
-                
-                // Déclencher un événement pour mettre à jour l'UI
-                window.dispatchEvent(new CustomEvent('authStateChanged', {
-                    detail: {
-                        user: currentUser,
-                        userData: authService.userData
-                    }
-                }));
-                
-                // Recharger la page pour appliquer les changements
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1500);
-                
-            } catch (error) {
-                // Restaurer le bouton
-                if (confirmBtn) {
-                    confirmBtn.disabled = false;
-                    confirmBtn.innerHTML = '<i class="fas fa-arrow-down"></i> Confirmer la rétrogradation';
-                }
-                
-                console.error('Erreur lors de la rétrogradation:', error);
-                showAlert('error', 'Erreur', 'Une erreur est survenue lors de la rétrogradation. Veuillez réessayer.');
-            }
-        })
-        .catch(error => {
-            // Restaurer le bouton
-            if (confirmBtn) {
-                confirmBtn.disabled = false;
-                confirmBtn.innerHTML = '<i class="fas fa-arrow-down"></i> Confirmer la rétrogradation';
-            }
-            
-            console.error('Erreur d\'authentification:', error);
-            showAlert('error', 'Erreur', 'Mot de passe incorrect. Veuillez réessayer.');
-        });
+    window.location.href = '/pricing.html#premium';
 }
 
 // Mettre à jour l'UI selon le plan
 function updatePlanUI(userData) {
-    const plan = userData?.plan || 'free';
-    const isFree = plan === 'free';
+    const subscription = userData?.subscription || {};
+    const expiry = subscription.expiresAt || subscription.trialEndsAt;
+    const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+    const active = ['active', 'trialing'].includes(subscription.status) && (!expiryDate || expiryDate > new Date());
+    const planName = subscription.status === 'trialing' && active
+        ? 'Démo DPAI Premium'
+        : subscription.status === 'active' && active ? 'DPAI Premium' : 'Accès expiré';
     
     // Boutons de rétrogradation
     const downgradeBtn = document.getElementById('downgradeBtn');
     const dangerDowngradeBtn = document.getElementById('dangerDowngradeBtn');
     
-    if (downgradeBtn) {
-        downgradeBtn.style.display = isFree ? 'none' : 'inline-flex';
-    }
-    
-    if (dangerDowngradeBtn) {
-        dangerDowngradeBtn.style.display = isFree ? 'none' : 'inline-flex';
-    }
+    if (downgradeBtn) downgradeBtn.style.display = 'none';
+    if (dangerDowngradeBtn) dangerDowngradeBtn.style.display = 'none';
     
     // Avertissement de rétrogradation
     const downgradeWarning = document.getElementById('downgradeWarning');
     if (downgradeWarning) {
-        downgradeWarning.style.display = isFree ? 'none' : 'flex';
+        downgradeWarning.style.display = 'none';
     }
     
     // Mettre à jour le badge de plan dans le header
     const planBadge = document.getElementById('profilePlanBadge');
     const accountPlanEl = document.getElementById('accountPlan');
-    
-    const planNames = {
-        free: 'Gratuit',
-        pro: 'Pro',
-        enterprise: 'Entreprise'
-    };
-    
-    const planName = planNames[plan] || plan;
     
     if (planBadge) {
         planBadge.innerHTML = `<i class="fas fa-crown"></i> <span>${planName}</span>`;
@@ -1049,17 +924,20 @@ function updatePlanUI(userData) {
     
     // Mettre à jour la description du plan
     const currentPlanDescription = document.getElementById('currentPlanDescription');
-    const planDescriptions = {
-        free: '500 tokens gratuits. Tous les services Phases 1 & 2 sont accessibles.'
-    };
+    const planDescriptions = active
+        ? ['active', 'trialing'].includes(subscription.status)
+            ? subscription.status === 'trialing'
+                ? 'Toutes les fonctionnalités et l’IA incluses pendant 7 jours.'
+                : 'Toutes les fonctionnalités et l’IA incluses pour 199 €/mois.'
+            : ''
+        : 'Votre accès est terminé. DPAI Premium est disponible à 199 €/mois.';
     if (currentPlanDescription) {
-        currentPlanDescription.textContent = planDescriptions[plan] || '';
+        currentPlanDescription.textContent = planDescriptions;
     }
     
     // Mettre à jour les fonctionnalités affichées
     const currentPlanFeatures = document.getElementById('currentPlanFeatures');
-    const planFeaturesMap = {
-        free: [
+    const planFeatures = [
             'Analyse SWOT',
             'Porter 5 Forces',
             'Analyse PESTEL',
@@ -1069,14 +947,12 @@ function updatePlanUI(userData) {
             'Due Diligence (de base)',
             'Valorisation (de base)',
             'Analyse des Synergies',
-            '500 tokens gratuits',
-            'Support par email pour Phases 3 & 4'
-        ]
-    };
+            'Phases 1 à 4 et Conseiller IA',
+            'Utilisation illimitée pendant l’accès actif'
+    ];
     
     if (currentPlanFeatures) {
-        const features = planFeaturesMap[plan] || [];
-        currentPlanFeatures.innerHTML = features.map(feature => 
+        currentPlanFeatures.innerHTML = planFeatures.map(feature =>
             `<li><i class="fas fa-check"></i> ${feature}</li>`
         ).join('');
     }

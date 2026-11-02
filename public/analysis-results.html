@@ -364,7 +364,7 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-functions.js"></script>
     <script src="/js/firebase-config.js"></script>
     <script src="/js/protocol-check.js"></script>
-    <script src="/js/tokens.js"></script>
+    <script src="/js/insee-data.js"></script>
     <script src="/js/analysis-generator.js"></script>
 </head>
 <body>
@@ -468,7 +468,7 @@
                     <ul>
                         <li><a href="dashboard.html">Tableau de bord</a></li>
                         <li><a href="profile.html">Profil</a></li>
-                        <li><a href="plus-de-tokens.html">Plus de tokens</a></li>
+                        <li><a href="pricing.html#premium">DPAI Premium</a></li>
                     </ul>
                 </div>
 
@@ -491,14 +491,9 @@
     <!-- Scripts -->
     <script src="js/auth.js"></script>
     <script>
-        /* =========================================================
-           Init TokenManager
-           ========================================================= */
         window.addEventListener('authStateChanged', async function(event) {
-            const { user, userData } = event.detail;
-            if (user && userData && window.TokenManager) {
-                TokenManager.init(userData);
-
+            const { user } = event.detail;
+            if (user) {
                 // Recharger l'analyse si l'utilisateur se connecte
                 const raw = localStorage.getItem('dpai_analysis_results');
                 if (raw) {
@@ -511,12 +506,6 @@
                 }
             }
         });
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof window.authService !== "undefined" && window.authService.currentUserData && window.TokenManager) {
-                TokenManager.init(window.authService.currentUserData);
-            }
-        });
-
         /* =========================================================
            Helpers
            ========================================================= */
@@ -861,7 +850,6 @@
             const type = analysisData.type || 'reports';
             const name = analysisData.name || 'Analyse sans nom';
             const description = analysisData.description || '';
-            const cost = analysisData.cost ?? 0;
             const results = analysisData.results || {};
             const score = analysisData.score ?? 0;
             const createdAt = analysisData.createdAt || new Date().toISOString();
@@ -876,7 +864,6 @@
                 <p><strong>Nom</strong>${escapeHtml(name)}</p>
                 <p><strong>Type</strong>${escapeHtml(analysisName)}</p>
                 <p><strong>Date</strong>${formatDate(createdAt)}</p>
-                <p><strong>Coût</strong>${cost} tokens</p>
                 <p><strong>Score global</strong>${scoreBadge(score)}</p>
                 ${description ? `<p class="full"><strong>Description</strong>${escapeHtml(description)}</p>` : ''}
             `;

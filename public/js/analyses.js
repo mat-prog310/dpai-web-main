@@ -3143,19 +3143,13 @@ class AnalysisManager {
     };
 
     static async runAnalysis(type, name, description, companyData, plan = 'free') {
-        // Vérifier le coût
-        const cost = this.analysisCosts[type]?.[plan] || this.analysisCosts[type]?.free;
-        if (!cost) {
+        if (!this.analysisTypes[type]) {
             throw new Error(`Type d'analyse inconnu: ${type}`);
         }
-
-        // Vérifier que l'utilisateur a assez de tokens (sauf si advisor avec tokens illimités)
-        const availableTokens = TokenManager.availableTokens || 0;
-        const isAdvisor = plan === 'advisor';
-        
-        if (!isAdvisor && availableTokens < cost) {
-            throw new Error(`Pas assez de tokens. Nécessaire: ${cost}, Disponible: ${availableTokens}`);
+        if (!TokenManager.isAIAllowed()) {
+            throw new Error('Votre période de démonstration est terminée. Passez à DPAI Premium pour continuer.');
         }
+        const cost = 0;
 
         // Créer et exécuter l'analyse
         const AnalysisClass = this.analysisTypes[type];
@@ -3203,11 +3197,6 @@ class AnalysisManager {
                 userId: user.uid,
                 isAIEnhanced: TokenManager.isAIAllowed()
             });
-
-            // Mettre à jour les tokens (sauf pour advisor avec tokens illimités)
-            if (!TokenManager.isTokensUnlimited()) {
-                await TokenManager.useTokens(cost, type);
-            }
 
             // Mettre à jour les stats utilisateur
             const FieldValue = (window.firebaseDB || firebase.firestore()).FieldValue;
@@ -3964,8 +3953,7 @@ class AIAnalysisManager {
         if (typeof TokenManager === 'undefined' || !TokenManager.tokenState) {
             return false;
         }
-        const plan = TokenManager.tokenState.plan || 'free';
-        return plan === 'api_monthly' || plan === 'advisor';
+        return TokenManager.isAIAllowed();
     }
     
     // Vérifier si l'utilisateur a des tokens illimités
@@ -3985,10 +3973,13 @@ class AIAnalysisManager {
             }
             
             // Utiliser la route proxy vers l API locale
+            const currentUser = window.authService?.currentUser;
+            if (!currentUser) throw new Error('Utilisateur non connecté');
             const response = await fetch('/api/local-ai/chat', {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${await currentUser.getIdToken()}`
                 },
                 body: JSON.stringify({
                     message: prompt,
@@ -4036,17 +4027,6 @@ class AIAnalysisManager {
         
         // Appeler Mistral
         const response = await this.callLocalAI(prompt);
-        
-        // Déduire les tokens si l'utilisateur n'a pas des tokens illimités (seul advisor a illimité)
-        if (!this.hasUnlimitedTokens() && typeof TokenManager !== 'undefined') {
-            const tokenCost = AnalysisCosts[`ai_${type}`] || 100;
-            try {
-                await TokenManager.useTokens(tokenCost, `ai_${type}`);
-            } catch (error) {
-                console.warn('[AIAnalysis] Impossible de déduire les tokens:', error.message);
-                // Continuer quand même, l'analyse est déjà faite
-            }
-        }
         
         return response;
     }
