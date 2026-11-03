@@ -8,6 +8,16 @@ console.log('%c[Register.js] Chargement...', 'color: #FF5722; font-weight: bold;
 document.addEventListener('DOMContentLoaded', () => {
     console.log('%c[Register.js] DOM prêt', 'color: #FF5722;');
 
+    // Pré-remplir le code de parrainage depuis l'URL (?ref=CODE) et le mémoriser
+    try {
+        const refFromUrl = new URLSearchParams(window.location.search).get('ref');
+        const referralInput = document.getElementById('referralCode');
+        if (refFromUrl) {
+            localStorage.setItem('dpai_pending_referral', refFromUrl.toUpperCase());
+            if (referralInput) referralInput.value = refFromUrl.toUpperCase();
+        }
+    } catch (e) { /* ignore */ }
+
     // Éléments du formulaire
     const form = document.getElementById('registerForm');
     const nameInput = document.getElementById('registerName');
@@ -101,9 +111,16 @@ document.addEventListener('DOMContentLoaded', () => {
             return;
         }
 
-        if (password !== confirm) {
+            if (password !== confirm) {
             showError('Les mots de passe ne correspondent pas');
             return;
+        }
+
+        // Mémoriser le code de parrainage saisi (prioritaire sur l'URL)
+        const referralInput = document.getElementById('referralCode');
+        const typedReferral = referralInput?.value?.trim().toUpperCase() || '';
+        if (typedReferral) {
+            localStorage.setItem('dpai_pending_referral', typedReferral);
         }
 
         // Vérifier la checkbox des termes

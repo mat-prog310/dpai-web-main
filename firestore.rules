@@ -21,6 +21,13 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
+    // Autorise la lecture ciblée d'un profil pour l'attribution de parrainage.
+    // Firestore exige que la requête filtre exactement sur referredBy pour que
+    // cette règle soit évaluée — toute autre query reste bloquée.
+    function hasReferralAccess(userId) {
+      return resource.data.get('referredBy', '') == request.auth.uid;
+    }
+
     function canCreateUserProfile() {
       return request.resource.data.get('plan', 'free') == 'free' &&
              request.resource.data.get('isPremium', false) == false &&
@@ -86,7 +93,7 @@ service cloud.firestore {
     // COLLECTION: users
     // =============================================================================
     match /users/{userId} {
-      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin() || hasReferralAccess(userId));
         allow create: if isAuthenticated() && isOwner(userId) && canCreateUserProfile();
         allow update: if isAuthenticated() && (
           isAdmin() || (isOwner(userId) && billingFieldsUnchanged())

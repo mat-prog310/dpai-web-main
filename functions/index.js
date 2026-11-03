@@ -298,6 +298,9 @@ exports.getBillingMetrics = functions.https.onRequest((req, res) => {
             const now = new Date();
             const metrics = {
                 monthlyRecurringRevenue: 0,
+                projectedMrr30: 0,
+                projectedMrr90: 0,
+                trialingMrr: 0,
                 activeSubscriptions: 0,
                 trials: 0,
                 pastDue: 0,
@@ -316,15 +319,31 @@ exports.getBillingMetrics = functions.https.onRequest((req, res) => {
                 if (subscription.status === 'canceled') metrics.cancelled++;
                 if (subscription.lastInvoiceStatus === 'payment_failed') metrics.invoiceFailures++;
 
+                const price = Number(subscription.price ?? PREMIUM_PRICE_EUR) || PREMIUM_PRICE_EUR;
+                const interval = subscription.interval || 'month';
+                const normalizedPrice = interval === 'year' ? price / 12 : price;
+
                 if (subscription.status === 'active' && inPeriod) {
                     metrics.activeSubscriptions++;
-                    const price = Number(subscription.price ?? PREMIUM_PRICE_EUR);
-                    const interval = subscription.interval || 'month';
-                    metrics.monthlyRecurringRevenue += interval === 'year' ? price / 12 : price;
+                    metrics.monthlyRecurringRevenue += normalizedPrice;
+                    metrics.projectedMrr30 += normalizedPrice;
+                    metrics.projectedMrr90 += normalizedPrice;
+                }
+
+                // Scénario : essais convertis au prix affiché, leur échéance tombe avant la fenêtre de projection.
+                if (subscription.status === 'trialing' && inPeriod) {
+                    metrics.trialingMrr += normalizedPrice;
                 }
             });
 
+            metrics.projectedMrr30 += metrics.trialingMrr;
+            metrics.projectedMrr90 += metrics.trialingMrr;
+
             metrics.monthlyRecurringRevenue = Math.round(metrics.monthlyRecurringRevenue * 100) / 100;
+            metrics.projectedMrr30 = Math.round(metrics.projectedMrr30 * 100) / 100;
+            metrics.projectedMrr90 = Math.round(metrics.projectedMrr90 * 100) / 100;
+            metrics.trialingMrr = Math.round(metrics.trialingMrr * 100) / 100;
+            metrics.generatedAt = now.toISOString();
             res.status(200).json({success: true, metrics, generatedAt: now.toISOString()});
         } catch (error) {
             console.error('Error loading admin billing metrics:', error);
@@ -342,6 +361,7 @@ exports.startTrial = functions.https.onRequest((req, res) => {
 
         try {
             const userId = await getAuthenticatedUserId(req);
+            const body = req.body || {};
             const userRef = db.collection('users').doc(userId);
             const result = await db.runTransaction(async transaction => {
                 const userDoc = await transaction.get(userRef);
@@ -352,8 +372,25 @@ exports.startTrial = functions.https.onRequest((req, res) => {
                     return {subscription, plan: userData.plan || subscription.plan || 'free'};
                 }
 
+                // Résoudre le parrain si un code valide est fourni (champ referralCode du parrain).
+                let sponsorData = null;
+                const referralCode = String(body.referralCode || '').trim().toUpperCase();
+                if (referralCode) {
+                    const sponsors = await transaction.get(
+                        db.collection('users').where('referralInfo.referralCode', '==', referralCode).limit(1)
+                    );
+                    if (!sponsors.empty && sponsors.docs[0].id !== userId) {
+                        sponsorData = {id: sponsors.docs[0].id, ...sponsors.docs[0].data()};
+                    }
+                }
+
+                // Générer le propre code de parrainage du nouvel utilisateur.
+                const cleanName = String(body.name || userData.name || 'DPAI').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 8) || 'DPAI';
+                const ownReferralCode = `${cleanName}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+
+                const TRIAL_LENGTH_DAYS = sponsorData ? 14 : TRIAL_DAYS;
                 const now = new Date();
-                const trialEndsAt = new Date(now.getTime() + TRIAL_DAYS * 24 * 60 * 60 * 1000);
+                const trialEndsAt = new Date(now.getTime() + TRIAL_LENGTH_DAYS * 24 * 60 * 60 * 1000);
                 const trialSubscription = {
                     plan: PREMIUM_PLAN,
                     status: 'trialing',
@@ -375,8 +412,8 @@ exports.startTrial = functions.https.onRequest((req, res) => {
 
                 transaction.set(userRef, {
                     id: userId,
-                    email: userData.email || req.body.email || '',
-                    name: userData.name || req.body.name || 'Utilisateur',
+                    email: userData.email || body.email || '',
+                    name: userData.name || body.name || 'Utilisateur',
                     createdAt: userData.createdAt || admin.firestore.FieldValue.serverTimestamp(),
                     totalAnalyses: userData.totalAnalyses || 0,
                     monthlyAnalyses: userData.monthlyAnalyses || 0,
@@ -387,6 +424,18 @@ exports.startTrial = functions.https.onRequest((req, res) => {
                         monthlyLoyaltyTokens: 0,
                         lastAnalysisDate: null,
                         lastMonthlyReset: now.toISOString()
+                    },
+                    ...(sponsorData ? {referredBy: sponsorData.id} : {}),
+                    referralInfo: {
+                        referralCode: ownReferralCode,
+                        ...(sponsorData ? {
+                            sponsorId: sponsorData.id,
+                            sponsorName: sponsorData.name || '',
+                            sponsorEmail: sponsorData.email || '',
+                            status: 'validated',
+                            validatedAt: now.toISOString()
+                        } : {status: 'pending'}),
+                        rewardedAt: null
                     },
                     ...userData,
                     plan: PREMIUM_PLAN,
@@ -400,7 +449,15 @@ exports.startTrial = functions.https.onRequest((req, res) => {
                     subscription: trialSubscription
                 }, {merge: true});
 
-                return {subscription: trialSubscription, plan: PREMIUM_PLAN};
+                // Créditer le parrain d'un mois offert (compteur de filleuls validés).
+                if (sponsorData) {
+                    transaction.update(db.collection('users').doc(sponsorData.id), {
+                        'referralInfo.rewardedFilleuls': admin.firestore.FieldValue.increment(1),
+                        'referralInfo.lastReferralAt': now.toISOString()
+                    });
+                }
+
+                return {subscription: trialSubscription, plan: PREMIUM_PLAN, referralCode: ownReferralCode, trialDays: TRIAL_LENGTH_DAYS};
             });
 
             res.status(200).json({success: true, ...result});

@@ -70,14 +70,16 @@ if (typeof window.DPAI_AUTH_INITIALIZED === 'undefined') {
             const functionsUrl = isLocal
                 ? 'http://localhost:5001/dpai-8be62/us-central1'
                 : 'https://us-central1-dpai-8be62.cloudfunctions.net';
+            const referralCode = localStorage.getItem('dpai_pending_referral') || '';
             const response = await fetch(`${functionsUrl}/startTrial`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${await user.getIdToken()}`
                 },
-                body: JSON.stringify({name, email: user.email || ''})
+                body: JSON.stringify({name, email: user.email || '', referralCode})
             });
+            localStorage.removeItem('dpai_pending_referral');
             if (!response.ok) {
                 const result = await response.json().catch(() => ({}));
                 throw new Error(result.error || 'Impossible de démarrer la période de démonstration.');

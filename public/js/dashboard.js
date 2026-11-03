@@ -93,6 +93,9 @@ async function loadDashboard() {
         // Vérifier l'expiration
         checkExpiration();
         await loadAdminBilling(user);
+        updateMrrWidget(user).catch(error => console.warn('Widget MRR indisponible:', error));
+        initReferralSection();
+        loadReferralCount().catch(error => console.warn('Comptage filleuls indisponible:', error));
         
     } catch (error) {
         console.error('Erreur chargement dashboard:', error);
@@ -439,12 +442,150 @@ function updateFirstValue() {
     const bar = document.getElementById('activationProgressBar');
     if (text) text.textContent = `${doneCount} sur ${steps.length} étapes terminées`;
     if (bar) bar.style.width = `${Math.round((doneCount / steps.length) * 100)}%`;
+    updateProfileCompletion();
     steps.forEach(step => {
         const element = document.querySelector(`[data-activation="${step.id}"]`);
         if (!element) return;
         element.classList.toggle('completed', step.done);
         element.setAttribute('aria-current', step.done ? 'step' : 'false');
     });
+}
+
+function updateProfileCompletion() {
+    const fields = [
+        {label: 'nom de l’entreprise', complete: Boolean(companyData.name?.trim())},
+        {label: 'secteur d’activité', complete: Boolean(companyData.sector?.trim())},
+        {label: 'chiffre d’affaires', complete: Number(companyData.revenue) > 0},
+        {label: 'effectif', complete: Number(companyData.employees) > 0},
+        {label: 'EBITDA', complete: Number(companyData.ebitda) !== 0},
+        {label: 'marge', complete: Number(companyData.margin) > 0}
+    ];
+    const completed = fields.filter(field => field.complete).length;
+    const percent = Math.round((completed / fields.length) * 100);
+    const percentEl = document.getElementById('profileCompletionPercent');
+    const barEl = document.getElementById('profileCompletionBar');
+    const nextEl = document.getElementById('profileCompletionNext');
+    if (percentEl) percentEl.textContent = `${percent} %`;
+    if (barEl) barEl.style.width = `${percent}%`;
+    if (nextEl) {
+        const nextField = fields.find(field => !field.complete);
+        const impactBonus = 15;
+        nextEl.textContent = nextField
+            ? `Profil ${percent} % complété — ajoutez ${nextField.label} pour débloquer des analyses personnalisées (+${impactBonus} % de pertinence).`
+            : `Profil 100 % complété — vos analyses bénéficient de la pertinence maximale.`;
+    }
+}
+
+// =============================================================================
+// MRR (REVENU PRÉVISIONNEL) & PARRAINAGE
+// =============================================================================
+
+async function updateMrrWidget(user) {
+    const valueEl = document.getElementById('kpiMrr');
+    if (!valueEl) return;
+    try {
+        const db = firebase.firestore();
+        const snapshot = await db.collection('users').get();
+        const price = Number(currentUserData?.subscription?.price) || 199;
+        let active = 0, trialing = 0, trialingMrr = 0;
+        const now = new Date();
+        snapshot.forEach(doc => {
+            const subscription = doc.data().subscription || {};
+            if (!['active', 'trialing'].includes(subscription.status)) return;
+            const expiry = subscription.currentPeriodEnd || subscription.expiresAt;
+            const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+            if (expiryDate && expiryDate <= now) return;
+            const interval = subscription.interval || 'month';
+            const monthly = (Number(subscription.price) || 199) / (interval === 'year' ? 12 : 1);
+            if (subscription.status === 'active') {
+                active++;
+            } else {
+                trialing++;
+                trialingMrr += monthly;
+            }
+        });
+        const mrr = active * price;
+        const projected30 = mrr + trialingMrr;
+        valueEl.textContent = formatCurrency(mrr);
+        const trendEl = document.getElementById('kpiMrrTrend');
+        if (trendEl) trendEl.innerHTML = `<i class="fas fa-users"></i><span id="kpiMrrSubscribers">${active} actif(s) · ${trialing} en essai</span>`;
+        const projectionEl = document.getElementById('kpiMrrProjection');
+        if (projectionEl) {
+            projectionEl.textContent = trialing > 0
+                ? `Projection 30 j : ${formatCurrency(projected30)} si les ${trialing} essai(s) se convertissent`
+                : `Projection 30 j : ${formatCurrency(mrr)} (aucun essai en cours)`;
+        }
+    } catch (error) {
+        console.error('Erreur widget MRR:', error);
+        valueEl.textContent = '—';
+    }
+}
+
+function initReferralSection() {
+    const user = firebase.auth().currentUser;
+    if (!user) return;
+    const linkInput = document.getElementById('referralLink');
+    const ownCode = currentUserData?.referralInfo?.referralCode || '';
+    if (linkInput && ownCode) {
+        const origin = window.location.origin || 'https://dpai-strategy.com';
+        linkInput.value = `${origin}/register.html?ref=${encodeURIComponent(ownCode)}`;
+    } else if (linkInput && !linkInput.value) {
+        const origin = window.location.origin || 'https://dpai-strategy.com';
+        linkInput.value = `${origin}/register.html?ref=${encodeURIComponent(user.uid)}`;
+    }
+    const copyBtn = document.getElementById('copyReferralLink');
+    if (copyBtn && !copyBtn.dataset.bound) {
+        copyBtn.dataset.bound = '1';
+        copyBtn.addEventListener('click', async () => {
+            const input = document.getElementById('referralLink');
+            try {
+                await navigator.clipboard.writeText(input.value);
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> Copié';
+                setTimeout(() => { copyBtn.innerHTML = '<i class="fas fa-copy"></i> Copier'; }, 2000);
+            } catch (e) {
+                input.select();
+                document.execCommand('copy');
+            }
+        });
+    }
+    const shareBtn = document.getElementById('shareReferralLink');
+    if (shareBtn && linkInput) {
+        shareBtn.href = `https://www.linkedin.com/sharing/shareOffsite/?url=${encodeURIComponent(linkInput.value)}`;
+    }
+}
+
+async function loadReferralCount() {
+    const user = firebase.auth().currentUser;
+    const countEl = document.getElementById('referralCount');
+    if (!user || !countEl) return;
+    try {
+        const snapshot = await firebase.firestore()
+            .collection('users')
+            .where('referredBy', '==', user.uid)
+            .get();
+        countEl.textContent = snapshot.size;
+    } catch (error) {
+        console.warn('Comptage filleuls indisponible:', error.message);
+        countEl.textContent = '0';
+    }
+}
+
+function updateMonthlyGoal() {
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    const goal = Number(companyData.monthlyGoal) || 0;
+    const actual = companyData.monthlyGoalMonth === currentMonth ? Number(companyData.monthlyActual) || 0 : 0;
+    const goalInput = document.getElementById('monthlyGoalTarget');
+    const actualInput = document.getElementById('monthlyGoalActual');
+    const progress = document.getElementById('monthlyGoalProgress');
+    if (goalInput && document.activeElement !== goalInput) goalInput.value = goal || '';
+    if (actualInput && document.activeElement !== actualInput) actualInput.value = actual || '';
+    if (!progress) return;
+    if (goal <= 0) {
+        progress.textContent = 'Définissez un objectif et votre CA atteint.';
+        return;
+    }
+    const percent = Math.round((actual / goal) * 100);
+    progress.textContent = `Objectif : ${formatCurrency(goal)} · atteint : ${formatCurrency(actual)} (${percent} %)`;
 }
 
 async function loadAdminBilling(user) {
@@ -465,6 +606,8 @@ async function loadAdminBilling(user) {
         if (!response.ok) throw new Error('Données de facturation indisponibles');
         const {metrics, generatedAt} = await response.json();
         document.getElementById('adminMrr').textContent = formatCurrency(metrics.monthlyRecurringRevenue);
+        document.getElementById('adminMrr30').textContent = formatCurrency(metrics.projectedMrr30);
+        document.getElementById('adminMrr90').textContent = formatCurrency(metrics.projectedMrr90);
         document.getElementById('adminActiveSubscriptions').textContent = metrics.activeSubscriptions;
         document.getElementById('adminTrials').textContent = metrics.trials;
         document.getElementById('adminInvoiceFailures').textContent = metrics.invoiceFailures;
@@ -495,6 +638,7 @@ function updateDashboardUI() {
     updateCharts();
     updateAccessPanel(currentUserData);
     updateFirstValue();
+    updateMonthlyGoal();
 }
 
 // Mettre à jour la carte entreprise
@@ -742,10 +886,19 @@ function buildDashboardAlerts() {
 
     if (subscription.lastInvoiceStatus === 'payment_failed') {
         alerts.push({
-            id: 'stripe_payment_failed', kind: 'urgent', priority: 'urgent',
+            id: 'stripe_payment_failed', kind: 'expiration', priority: 'urgent', billingAction: true,
             title: 'Paiement à régulariser',
             message: 'Le dernier prélèvement a échoué. Vérifiez votre moyen de paiement pour conserver DPAI Premium.',
-            action: 'Ouvrir la facturation', href: '#billingSummary'
+            action: 'Régulariser'
+        });
+    }
+
+    if (subscription.status === 'past_due' && subscription.lastInvoiceStatus !== 'payment_failed') {
+        alerts.push({
+            id: 'subscription_past_due', kind: 'expiration', priority: 'urgent', billingAction: true,
+            title: 'Abonnement en retard de paiement',
+            message: 'Mettez à jour votre moyen de paiement pour régulariser votre abonnement.',
+            action: 'Régulariser'
         });
     }
 
@@ -753,12 +906,26 @@ function buildDashboardAlerts() {
         const daysLeft = Math.ceil((trialEndDate - now) / 86400000);
         if (daysLeft <= 3) {
             alerts.push({
-                id: 'trial_ends_soon', kind: 'system', priority: daysLeft <= 1 ? 'urgent' : 'warning',
+                id: 'trial_ends_soon', kind: 'expiration', priority: daysLeft <= 1 ? 'urgent' : 'warning',
                 title: daysLeft <= 0 ? 'Votre essai est terminé' : 'Votre essai se termine bientôt',
                 message: daysLeft <= 0
                     ? 'Choisissez DPAI Premium pour retrouver l’accès complet.'
                     : `Il vous reste ${daysLeft} jour(s) d’essai. DPAI Premium coûte 199 €/mois.`,
-                action: 'Voir l’abonnement'
+                action: 'Voir l’abonnement', href: '/pricing.html#premium'
+            });
+        }
+    }
+
+    const legacyTokens = currentUserData.tokenState || {};
+    const legacyExpiry = legacyTokens.expiresAt?.toDate ? legacyTokens.expiresAt.toDate() : (legacyTokens.expiresAt ? new Date(legacyTokens.expiresAt) : null);
+    if (legacyTokens.plan === 'free' && Number(legacyTokens.availableTokens) > 0 && legacyExpiry && !Number.isNaN(legacyExpiry.getTime())) {
+        const daysLeft = Math.ceil((legacyExpiry - now) / 86400000);
+        if (daysLeft >= 0 && daysLeft < 3) {
+            alerts.push({
+                id: 'legacy_tokens_expiring', kind: 'expiration', priority: daysLeft <= 1 ? 'urgent' : 'warning',
+                title: 'Tokens bientôt expirés',
+                message: `${legacyTokens.availableTokens} token(s) restant(s), échéance dans ${daysLeft} jour(s).`,
+                action: 'Voir les analyses', href: '#quickActions'
             });
         }
     }
@@ -769,7 +936,7 @@ function buildDashboardAlerts() {
             const daysToPayment = Math.ceil((dueDate - now) / 86400000);
             if (daysToPayment >= 0 && daysToPayment <= 3) {
                 alerts.push({
-                    id: 'invoice_due_soon', kind: 'system', priority: daysToPayment <= 1 ? 'urgent' : 'warning',
+                    id: 'invoice_due_soon', kind: 'expiration', priority: daysToPayment <= 1 ? 'urgent' : 'warning',
                     title: 'Prélèvement à venir',
                     message: `Votre prochain prélèvement de ${formatCurrency(subscription.nextInvoiceAmount || subscription.price || 199)} est prévu dans ${daysToPayment} jour(s).`,
                     action: 'Voir la facturation', href: '#billingSummary'
@@ -823,6 +990,20 @@ function buildDashboardAlerts() {
         }
     });
 
+    const latestAiAnalysis = analysisHistory.find(analysis => analysis.isAIEnhanced && analysis.results?.aiEnhancement);
+    const aiRecommendations = latestAiAnalysis?.results?.aiEnhancement?.recommendations;
+    if (Array.isArray(aiRecommendations)) {
+        aiRecommendations.slice(0, 3).forEach((recommendation, index) => {
+            const text = typeof recommendation === 'string' ? recommendation : recommendation?.action || recommendation?.text || recommendation?.title;
+            if (!text) return;
+            alerts.push({
+                id: `ai_recommendation_${latestAiAnalysis.id}_${index}`, kind: 'ai', priority: 'recommendation',
+                title: 'Recommandation issue de votre analyse IA', message: text,
+                action: 'Revoir l’analyse', href: '#analysis-history', analysisId: latestAiAnalysis.id
+            });
+        });
+    }
+
     return alerts.filter(alert => !dismissedDashboardAlerts.has(alert.id));
 }
 
@@ -838,7 +1019,9 @@ function updateAlerts() {
     const alerts = buildDashboardAlerts().filter(alert => {
         if (filter === 'all') return true;
         if (filter === 'urgent') return alert.priority === 'urgent' || alert.priority === 'warning';
+        if (filter === 'expirations') return alert.kind === 'expiration';
         if (filter === 'recommendations') return alert.kind === 'recommendation';
+        if (filter === 'ai') return alert.kind === 'ai';
         if (filter === 'system') return alert.kind === 'system';
         return true;
     });
@@ -851,11 +1034,13 @@ function updateAlerts() {
     const alertIcons = {urgent: 'fa-triangle-exclamation', warning: 'fa-clock', recommendation: 'fa-lightbulb', success: 'fa-circle-check'};
     alertsList.innerHTML = alerts.map(alert => `
         <div class="alert-item ${alert.priority}" data-alert-id="${escapeHtml(alert.id)}">
-            <div class="alert-icon"><i class="fas ${alertIcons[alert.priority] || 'fa-circle-info'}"></i></div>
+            <div class="alert-icon"><i class="fas ${alert.kind === 'ai' ? 'fa-wand-magic-sparkles' : alertIcons[alert.priority] || 'fa-circle-info'}"></i></div>
             <div class="alert-content">
                 <div class="alert-title">${escapeHtml(alert.title)}</div>
                 <div class="alert-message">${escapeHtml(alert.message)}</div>
-                ${alert.action ? `<a class="alert-action" href="${alert.href || '/pricing.html#premium'}">${escapeHtml(alert.action)}</a>` : ''}
+                ${alert.action ? alert.billingAction
+                    ? `<button type="button" class="alert-action" data-open-billing>${escapeHtml(alert.action)}</button>`
+                    : `<a class="alert-action" href="${alert.href || '/pricing.html#premium'}" ${alert.analysisId ? `data-open-analysis="${escapeHtml(alert.analysisId)}"` : ''}>${escapeHtml(alert.action)}</a>` : ''}
             </div>
             <button type="button" class="alert-dismiss" data-dismiss-alert="${escapeHtml(alert.id)}" aria-label="Acquitter la notification" title="Acquitter"><i class="fas fa-check"></i></button>
         </div>
@@ -1054,6 +1239,7 @@ async function changeActionStatus(userId, actionId, newStatus) {
     updateProjections();
     updateFirstValue();
     updateAlerts();
+    updateMonthlyGoal();
 }
 
 // Afficher les détails d'une action
@@ -1119,6 +1305,7 @@ async function saveCompanyInfo(userId) {
     updateProjections();
     updateFirstValue();
     updateAlerts();
+    updateMonthlyGoal();
     
     // Fermer le modal
     document.getElementById('editCompanyModal').classList.remove('visible');
@@ -1288,6 +1475,38 @@ document.addEventListener('DOMContentLoaded', function() {
             await saveCompanyInfo(user.uid);
         }
     });
+
+    document.getElementById('completeProfileBtn')?.addEventListener('click', () => {
+        document.getElementById('editCompanyName').value = companyData.name || '';
+        document.getElementById('editCompanySector').value = companyData.sector || '';
+        document.getElementById('editCompanyRevenue').value = companyData.revenue || '';
+        document.getElementById('editCompanyEmployees').value = companyData.employees || '';
+        document.getElementById('editCompanyEbitda').value = companyData.ebitda || '';
+        document.getElementById('editCompanyMargin').value = companyData.margin || '';
+        document.getElementById('editCompanyModal').classList.add('visible');
+    });
+
+    document.getElementById('monthlyGoalForm')?.addEventListener('submit', async event => {
+        event.preventDefault();
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+        const goal = Math.max(0, Number(document.getElementById('monthlyGoalTarget').value) || 0);
+        const actual = Math.max(0, Number(document.getElementById('monthlyGoalActual').value) || 0);
+        const currentMonth = new Date().toISOString().slice(0, 7);
+        try {
+            await firebase.firestore().collection('users').doc(user.uid).update({
+                'companyInfo.monthlyGoal': goal,
+                'companyInfo.monthlyActual': actual,
+                'companyInfo.monthlyGoalMonth': currentMonth
+            });
+            companyData = {...companyData, monthlyGoal: goal, monthlyActual: actual, monthlyGoalMonth: currentMonth};
+            updateMonthlyGoal();
+            showSuccess('Objectif mensuel enregistré');
+        } catch (error) {
+            console.error('Erreur lors de l’enregistrement de l’objectif:', error);
+            showError('Impossible d’enregistrer votre objectif mensuel.');
+        }
+    });
     
     // Modal Ajouter Action - Boutons
     document.getElementById('closeAddActionModal')?.addEventListener('click', () => {
@@ -1350,6 +1569,17 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     document.getElementById('alertsList')?.addEventListener('click', async event => {
+        const billingButton = event.target.closest('[data-open-billing]');
+        if (billingButton) {
+            document.getElementById('manageSubscriptionBtn')?.click();
+            return;
+        }
+        const analysisLink = event.target.closest('[data-open-analysis]');
+        if (analysisLink) {
+            event.preventDefault();
+            await viewAnalysisDetails(analysisLink.dataset.openAnalysis);
+            return;
+        }
         const dismissButton = event.target.closest('[data-dismiss-alert]');
         if (!dismissButton) return;
         dismissButton.disabled = true;
