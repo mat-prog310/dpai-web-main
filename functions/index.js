@@ -507,7 +507,14 @@ exports.createCheckoutSession = onRequest(
                     : { customer_email: userRecord.email }),
                 client_reference_id: userId,
                 metadata: { userId },
-                subscription_data: { metadata: { userId } },
+                subscription_data: {
+                    trial_period_days: 7,
+                    trial_settings: {
+                        end_behavior: { missing_payment_method: 'cancel' }
+                    },
+                    metadata: { userId }
+                },
+                payment_method_collection: 'if_required',
                 line_items: [{
                     quantity: 1,
                     price_data: {
