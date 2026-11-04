@@ -1,6 +1,7 @@
 {
   "functions": {
-    "source": "./functions"
+    "source": "./functions",
+    "codebase": "default"
   },
   "hosting": {
     "public": "public",
@@ -60,13 +61,6 @@
       }
     ],
     "rewrites": [
-      {
-        "source": "/functions/**",
-        "function": {
-          "region": "us-central1",
-          "functionName": "**"
-        }
-      },
       {
         "source": "**",
         "destination": "/index.html"
