@@ -1,16 +1,26 @@
 /**
- * Firebase Cloud Functions pour DPAI Web
+ * Firebase Cloud Functions pour DPAI Web — v2 (CORS natif)
  * Gère l'IA locale, la gestion des utilisateurs, et les services premium
- * 
- * CORRIGÉ : Ajout du middleware CORS et intégration IA locale
  */
 
-const functions = require('firebase-functions');
+const functionsV1 = require('firebase-functions');
+const { onRequest, onCall, HttpsError } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
-const cors = require('cors')({origin: true});
-const {defineSecret} = require('firebase-functions/params');
+const { defineSecret } = require('firebase-functions/params');
+
 const stripeSecretKey = defineSecret('STRIPE_SECRET_KEY');
 const stripeWebhookSecret = defineSecret('STRIPE_WEBHOOK_SECRET');
+
+// Domaines autorisés pour CORS
+const ALLOWED_ORIGINS = [
+    'https://dpaiweb.com',
+    'https://www.dpaiweb.com',
+    'https://dpai-strategy.com',
+    'https://www.dpai-strategy.com',
+    'http://localhost:5000',
+    'http://localhost:3000',
+    'http://127.0.0.1:5000'
+];
 
 // Initialiser Firebase Admin
 if (!admin.apps.length) {
@@ -18,12 +28,9 @@ if (!admin.apps.length) {
 }
 
 const db = admin.firestore();
-const {runAIAnalysis, advisorChat} = require('./src/ai-integration');
+const { runAIAnalysis, advisorChat: advisorChatService } = require('./src/ai-integration');
 
 // Configuration des plans — UN SEUL PLAN : DPAI Premium.
-// Démo gratuite 7 jours (tout inclus) puis 199 €/mois, illimité, tout inclus, AUCUN token.
-// Les clés historiques ('free', 'api_monthly', 'advisor') pointent toutes vers le même plan
-// pour la compatibilité des anciens comptes Firestore.
 const PREMIUM_PLAN_CONFIG = {
     name: 'DPAI Premium',
     baseTokens: -1,
@@ -34,9 +41,9 @@ const PREMIUM_PLAN_CONFIG = {
 };
 const PLAN_CONFIGS = {
     premium: PREMIUM_PLAN_CONFIG,
-    free: PREMIUM_PLAN_CONFIG,        // alias compatibilité
-    api_monthly: PREMIUM_PLAN_CONFIG, // alias compatibilité
-    advisor: PREMIUM_PLAN_CONFIG      // alias compatibilité
+    free: PREMIUM_PLAN_CONFIG,
+    api_monthly: PREMIUM_PLAN_CONFIG,
+    advisor: PREMIUM_PLAN_CONFIG
 };
 
 const TRIAL_DAYS = 7;
@@ -69,69 +76,80 @@ function getSubscriptionAccess(userData) {
     return active && (!expiryDate || expiryDate > new Date());
 }
 
-exports.validateAIEntitlement = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+// ============================================================================
+// FONCTIONS UTILISATEUR / IA
+// ============================================================================
+
+exports.validateAIEntitlement = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         if (req.method !== 'POST') {
-            res.status(405).json({success: false, error: 'Method not allowed'});
+            res.status(405).json({ success: false, error: 'Method not allowed' });
             return;
         }
         try {
             const userId = await getAuthenticatedUserId(req);
             const userDoc = await db.collection('users').doc(userId).get();
             if (!userDoc.exists || !getSubscriptionAccess(userDoc.data())) {
-                res.status(403).json({success: false, error: 'Votre période de démonstration est terminée ou votre abonnement est inactif.'});
+                res.status(403).json({ success: false, error: 'Votre période de démonstration est terminée ou votre abonnement est inactif.' });
                 return;
             }
-            res.status(200).json({success: true, userId});
+            res.status(200).json({ success: true, userId });
         } catch (error) {
-            res.status(401).json({success: false, error: error.message});
+            res.status(401).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
-exports.analyzeWithAI = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.analyzeWithAI = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         if (req.method !== 'POST') {
-            res.status(405).json({success: false, error: 'Method not allowed'});
+            res.status(405).json({ success: false, error: 'Method not allowed' });
             return;
         }
 
         try {
             const userId = await getAuthenticatedUserId(req);
-            const {type, data} = req.body || {};
+            const { type, data } = req.body || {};
             if (!type || !data) {
-                res.status(400).json({success: false, error: 'Type et données requis.'});
+                res.status(400).json({ success: false, error: 'Type et données requis.' });
                 return;
             }
             res.status(200).json(await runAIAnalysis(userId, type, data));
         } catch (error) {
             console.error('Error running AI analysis:', error);
             const status = error.message.includes('Token Firebase') ? 401 : 403;
-            res.status(status).json({success: false, error: error.message});
+            res.status(status).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
-exports.advisorChat = functions.https.onCall(async (data, context) => {
+// onCall : CORS géré automatiquement par Firebase, pas besoin de config
+exports.advisorChat = onCall(async (request) => {
+    const context = request;
+    const data = request.data;
+
     if (!context.auth) {
-        throw new functions.https.HttpsError('unauthenticated', 'Connexion requise.');
+        throw new HttpsError('unauthenticated', 'Connexion requise.');
     }
     if (typeof data?.message !== 'string' || !data.message.trim()) {
-        throw new functions.https.HttpsError('invalid-argument', 'Message requis.');
+        throw new HttpsError('invalid-argument', 'Message requis.');
     }
 
     try {
-        return await advisorChat(context.auth.uid, data.message.trim(), data.conversationId || null);
+        return await advisorChatService(context.auth.uid, data.message.trim(), data.conversationId || null);
     } catch (error) {
         const code = error.message.includes('période de démonstration') ? 'permission-denied' : 'internal';
-        throw new functions.https.HttpsError(code, error.message);
+        throw new HttpsError(code, error.message);
     }
 });
 
-exports.listAdvisorConversations = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.listAdvisorConversations = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         if (req.method !== 'GET') {
-            res.status(405).json({success: false, error: 'Method not allowed'});
+            res.status(405).json({ success: false, error: 'Method not allowed' });
             return;
         }
         try {
@@ -141,40 +159,45 @@ exports.listAdvisorConversations = functions.https.onRequest((req, res) => {
                 .limit(50)
                 .get();
             res.status(200).json({
-                conversations: snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}))
+                conversations: snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }))
             });
         } catch (error) {
-            res.status(401).json({success: false, error: error.message});
+            res.status(401).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
-exports.deleteAdvisorConversation = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.deleteAdvisorConversation = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         if (req.method !== 'DELETE') {
-            res.status(405).json({success: false, error: 'Method not allowed'});
+            res.status(405).json({ success: false, error: 'Method not allowed' });
             return;
         }
         try {
             const userId = await getAuthenticatedUserId(req);
             const conversationId = req.query.conversationId;
             if (!conversationId) {
-                res.status(400).json({success: false, error: 'Conversation requise.'});
+                res.status(400).json({ success: false, error: 'Conversation requise.' });
                 return;
             }
             const conversationRef = db.collection('advisor_conversations').doc(conversationId);
             const conversation = await conversationRef.get();
             if (!conversation.exists || conversation.data().userId !== userId) {
-                res.status(404).json({success: false, error: 'Conversation non trouvée.'});
+                res.status(404).json({ success: false, error: 'Conversation non trouvée.' });
                 return;
             }
             await conversationRef.delete();
-            res.status(200).json({success: true});
+            res.status(200).json({ success: true });
         } catch (error) {
-            res.status(401).json({success: false, error: error.message});
+            res.status(401).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
+
+// ============================================================================
+// STRIPE / ABONNEMENTS
+// ============================================================================
 
 async function updateSubscriptionFromStripe(stripeSubscription, fallbackUserId) {
     const userId = stripeSubscription.metadata?.userId || fallbackUserId;
@@ -266,22 +289,23 @@ async function updateBillingInvoice(invoice, eventType) {
     await batch.commit();
 }
 
-exports.getBillingMetrics = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.getBillingMetrics = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         if (req.method !== 'GET') {
-            res.status(405).json({success: false, error: 'Method not allowed'});
+            res.status(405).json({ success: false, error: 'Method not allowed' });
             return;
         }
         try {
             const authorization = req.headers.authorization || '';
             const idToken = authorization.startsWith('Bearer ') ? authorization.slice(7) : null;
             if (!idToken) {
-                res.status(401).json({success: false, error: 'Authentification requise.'});
+                res.status(401).json({ success: false, error: 'Authentification requise.' });
                 return;
             }
             const decodedToken = await admin.auth().verifyIdToken(idToken);
             if (decodedToken.admin !== true) {
-                res.status(403).json({success: false, error: 'Accès réservé à l’administration.'});
+                res.status(403).json({ success: false, error: 'Accès réservé à l’administration.' });
                 return;
             }
 
@@ -321,7 +345,6 @@ exports.getBillingMetrics = functions.https.onRequest((req, res) => {
                     metrics.projectedMrr90 += normalizedPrice;
                 }
 
-                // Scénario : essais convertis au prix affiché, leur échéance tombe avant la fenêtre de projection.
                 if (subscription.status === 'trialing' && inPeriod) {
                     metrics.trialingMrr += normalizedPrice;
                 }
@@ -335,18 +358,19 @@ exports.getBillingMetrics = functions.https.onRequest((req, res) => {
             metrics.projectedMrr90 = Math.round(metrics.projectedMrr90 * 100) / 100;
             metrics.trialingMrr = Math.round(metrics.trialingMrr * 100) / 100;
             metrics.generatedAt = now.toISOString();
-            res.status(200).json({success: true, metrics, generatedAt: now.toISOString()});
+            res.status(200).json({ success: true, metrics, generatedAt: now.toISOString() });
         } catch (error) {
             console.error('Error loading admin billing metrics:', error);
-            res.status(401).json({success: false, error: 'Impossible de vérifier l’accès administrateur.'});
+            res.status(401).json({ success: false, error: 'Impossible de vérifier l’accès administrateur.' });
         }
-    });
-});
+    }
+);
 
-exports.startTrial = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.startTrial = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         if (req.method !== 'POST') {
-            res.status(405).json({success: false, error: 'Method not allowed'});
+            res.status(405).json({ success: false, error: 'Method not allowed' });
             return;
         }
 
@@ -360,10 +384,9 @@ exports.startTrial = functions.https.onRequest((req, res) => {
                 const subscription = userData.subscription || {};
 
                 if (subscription.trialStartedAt || subscription.status === 'active') {
-                    return {subscription, plan: userData.plan || subscription.plan || 'free'};
+                    return { subscription, plan: userData.plan || subscription.plan || 'free' };
                 }
 
-                // Résoudre le parrain si un code valide est fourni (champ referralCode du parrain).
                 let sponsorData = null;
                 const referralCode = String(body.referralCode || '').trim().toUpperCase();
                 if (referralCode) {
@@ -371,11 +394,10 @@ exports.startTrial = functions.https.onRequest((req, res) => {
                         db.collection('users').where('referralInfo.referralCode', '==', referralCode).limit(1)
                     );
                     if (!sponsors.empty && sponsors.docs[0].id !== userId) {
-                        sponsorData = {id: sponsors.docs[0].id, ...sponsors.docs[0].data()};
+                        sponsorData = { id: sponsors.docs[0].id, ...sponsors.docs[0].data() };
                     }
                 }
 
-                // Générer le propre code de parrainage du nouvel utilisateur.
                 const cleanName = String(body.name || userData.name || 'DPAI').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 8) || 'DPAI';
                 const ownReferralCode = `${cleanName}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
 
@@ -416,7 +438,7 @@ exports.startTrial = functions.https.onRequest((req, res) => {
                         lastAnalysisDate: null,
                         lastMonthlyReset: now.toISOString()
                     },
-                    ...(sponsorData ? {referredBy: sponsorData.id} : {}),
+                    ...(sponsorData ? { referredBy: sponsorData.id } : {}),
                     referralInfo: {
                         referralCode: ownReferralCode,
                         ...(sponsorData ? {
@@ -425,7 +447,7 @@ exports.startTrial = functions.https.onRequest((req, res) => {
                             sponsorEmail: sponsorData.email || '',
                             status: 'validated',
                             validatedAt: now.toISOString()
-                        } : {status: 'pending'}),
+                        } : { status: 'pending' }),
                         rewardedAt: null
                     },
                     ...userData,
@@ -438,9 +460,8 @@ exports.startTrial = functions.https.onRequest((req, res) => {
                     hasAccessToPremiumSuggestions: true,
                     tokenState,
                     subscription: trialSubscription
-                }, {merge: true});
+                }, { merge: true });
 
-                // Créditer le parrain d'un mois offert (compteur de filleuls validés).
                 if (sponsorData) {
                     transaction.update(db.collection('users').doc(sponsorData.id), {
                         'referralInfo.rewardedFilleuls': admin.firestore.FieldValue.increment(1),
@@ -448,21 +469,22 @@ exports.startTrial = functions.https.onRequest((req, res) => {
                     });
                 }
 
-                return {subscription: trialSubscription, plan: PREMIUM_PLAN, referralCode: ownReferralCode, trialDays: TRIAL_LENGTH_DAYS};
+                return { subscription: trialSubscription, plan: PREMIUM_PLAN, referralCode: ownReferralCode, trialDays: TRIAL_LENGTH_DAYS };
             });
 
-            res.status(200).json({success: true, ...result});
+            res.status(200).json({ success: true, ...result });
         } catch (error) {
             console.error('Error starting trial:', error);
-            res.status(401).json({success: false, error: error.message});
+            res.status(401).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
-exports.createCheckoutSession = functions.runWith({secrets: [stripeSecretKey]}).https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.createCheckoutSession = onRequest(
+    { cors: ALLOWED_ORIGINS, secrets: [stripeSecretKey] },
+    async (req, res) => {
         if (req.method !== 'POST') {
-            res.status(405).json({success: false, error: 'Method not allowed'});
+            res.status(405).json({ success: false, error: 'Method not allowed' });
             return;
         }
 
@@ -471,7 +493,7 @@ exports.createCheckoutSession = functions.runWith({secrets: [stripeSecretKey]}).
             const userDoc = await db.collection('users').doc(userId).get();
             const userData = userDoc.exists ? userDoc.data() : {};
             if (getSubscriptionAccess(userData) && userData.subscription?.stripeSubscriptionId) {
-                res.status(409).json({success: false, error: 'Un abonnement est déjà actif. Gérez-le depuis votre espace client.'});
+                res.status(409).json({ success: false, error: 'Un abonnement est déjà actif. Gérez-le depuis votre espace client.' });
                 return;
             }
             const userRecord = await admin.auth().getUser(userId);
@@ -481,36 +503,37 @@ exports.createCheckoutSession = functions.runWith({secrets: [stripeSecretKey]}).
             const session = await stripe.checkout.sessions.create({
                 mode: 'subscription',
                 ...(userData.subscription?.stripeCustomerId
-                    ? {customer: userData.subscription.stripeCustomerId}
-                    : {customer_email: userRecord.email}),
+                    ? { customer: userData.subscription.stripeCustomerId }
+                    : { customer_email: userRecord.email }),
                 client_reference_id: userId,
-                metadata: {userId},
-                subscription_data: {metadata: {userId}},
+                metadata: { userId },
+                subscription_data: { metadata: { userId } },
                 line_items: [{
                     quantity: 1,
                     price_data: {
                         currency: 'eur',
                         unit_amount: PREMIUM_PRICE_EUR * 100,
-                        recurring: {interval: 'month'},
-                        product_data: {name: 'DPAI Premium'}
+                        recurring: { interval: 'month' },
+                        product_data: { name: 'DPAI Premium' }
                     }
                 }],
                 success_url: `${siteUrl}/pricing.html?subscription=success`,
                 cancel_url: `${siteUrl}/pricing.html?subscription=cancelled`
             });
 
-            res.status(200).json({success: true, url: session.url});
+            res.status(200).json({ success: true, url: session.url });
         } catch (error) {
             console.error('Error creating checkout session:', error);
-            res.status(400).json({success: false, error: error.message});
+            res.status(400).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
-exports.createBillingPortalSession = functions.runWith({secrets: [stripeSecretKey]}).https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.createBillingPortalSession = onRequest(
+    { cors: ALLOWED_ORIGINS, secrets: [stripeSecretKey] },
+    async (req, res) => {
         if (req.method !== 'POST') {
-            res.status(405).json({success: false, error: 'Method not allowed'});
+            res.status(405).json({ success: false, error: 'Method not allowed' });
             return;
         }
         try {
@@ -518,7 +541,7 @@ exports.createBillingPortalSession = functions.runWith({secrets: [stripeSecretKe
             const userDoc = await db.collection('users').doc(userId).get();
             const customerId = userDoc.data()?.subscription?.stripeCustomerId;
             if (!customerId) {
-                res.status(404).json({success: false, error: 'Aucun abonnement Stripe à gérer.'});
+                res.status(404).json({ success: false, error: 'Aucun abonnement Stripe à gérer.' });
                 return;
             }
             const stripe = getStripe();
@@ -526,101 +549,105 @@ exports.createBillingPortalSession = functions.runWith({secrets: [stripeSecretKe
                 customer: customerId,
                 return_url: 'https://dpai-strategy.com/pricing.html'
             });
-            res.status(200).json({success: true, url: session.url});
+            res.status(200).json({ success: true, url: session.url });
         } catch (error) {
             console.error('Error creating billing portal session:', error);
-            res.status(400).json({success: false, error: error.message});
+            res.status(400).json({ success: false, error: error.message });
         }
-    });
-});
-
-exports.stripeWebhook = functions.runWith({secrets: [stripeSecretKey, stripeWebhookSecret]}).https.onRequest(async (req, res) => {
-    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || stripeWebhookSecret.value();
-    if (!webhookSecret) {
-        res.status(503).send('Stripe webhook is not configured.');
-        return;
     }
+);
 
-    let event;
-    try {
-        const stripe = getStripe();
-        event = stripe.webhooks.constructEvent(req.rawBody, req.headers['stripe-signature'], webhookSecret);
-    } catch (error) {
-        res.status(400).send(`Webhook Error: ${error.message}`);
-        return;
-    }
-
-    try {
-        if (['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted'].includes(event.type)) {
-            await updateSubscriptionFromStripe(event.data.object);
-        } else if (event.type === 'checkout.session.completed') {
-            const session = event.data.object;
-            if (session.subscription && session.metadata?.userId) {
-                const stripe = getStripe();
-                const subscription = await stripe.subscriptions.retrieve(session.subscription);
-                await updateSubscriptionFromStripe(subscription, session.metadata.userId);
-            }
-        } else if (['invoice.upcoming', 'invoice.paid', 'invoice.payment_failed'].includes(event.type)) {
-            await updateBillingInvoice(event.data.object, event.type);
-        }
-        res.status(200).json({received: true});
-    } catch (error) {
-        console.error('Error processing Stripe webhook:', error);
-        res.status(500).send('Webhook processing failed.');
-    }
-});
-
-// ============================================================================
-// FONCTIONS ADMIN (avec CORS)
-// ============================================================================
-
-exports.changeUserPlan = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
-        if (req.method !== 'POST') {
-            res.status(405).json({success: false, error: 'Method not allowed. Use POST.'});
+exports.stripeWebhook = onRequest(
+    { secrets: [stripeSecretKey, stripeWebhookSecret], cors: false },
+    async (req, res) => {
+        const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET || stripeWebhookSecret.value();
+        if (!webhookSecret) {
+            res.status(503).send('Stripe webhook is not configured.');
             return;
         }
-        
+
+        let event;
+        try {
+            const stripe = getStripe();
+            event = stripe.webhooks.constructEvent(req.rawBody, req.headers['stripe-signature'], webhookSecret);
+        } catch (error) {
+            res.status(400).send(`Webhook Error: ${error.message}`);
+            return;
+        }
+
+        try {
+            if (['customer.subscription.created', 'customer.subscription.updated', 'customer.subscription.deleted'].includes(event.type)) {
+                await updateSubscriptionFromStripe(event.data.object);
+            } else if (event.type === 'checkout.session.completed') {
+                const session = event.data.object;
+                if (session.subscription && session.metadata?.userId) {
+                    const stripe = getStripe();
+                    const subscription = await stripe.subscriptions.retrieve(session.subscription);
+                    await updateSubscriptionFromStripe(subscription, session.metadata.userId);
+                }
+            } else if (['invoice.upcoming', 'invoice.paid', 'invoice.payment_failed'].includes(event.type)) {
+                await updateBillingInvoice(event.data.object, event.type);
+            }
+            res.status(200).json({ received: true });
+        } catch (error) {
+            console.error('Error processing Stripe webhook:', error);
+            res.status(500).send('Webhook processing failed.');
+        }
+    }
+);
+
+// ============================================================================
+// FONCTIONS ADMIN
+// ============================================================================
+
+exports.changeUserPlan = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
+        if (req.method !== 'POST') {
+            res.status(405).json({ success: false, error: 'Method not allowed. Use POST.' });
+            return;
+        }
+
         try {
             const body = req.body;
-            const {userId, email, newPlan, force = false} = body;
-            
+            const { userId, email, newPlan, force = false } = body;
+
             if (!newPlan) {
-                res.status(400).json({success: false, error: 'newPlan is required'});
+                res.status(400).json({ success: false, error: 'newPlan is required' });
                 return;
             }
-            
+
             const planConfig = PLAN_CONFIGS[newPlan];
             if (!planConfig) {
-                res.status(400).json({success: false, error: `Invalid plan: ${newPlan}`});
+                res.status(400).json({ success: false, error: `Invalid plan: ${newPlan}` });
                 return;
             }
-            
+
             let targetUserId;
             if (userId) {
                 targetUserId = userId;
             } else if (email) {
                 const usersSnapshot = await db.collection('users').where('email', '==', email).limit(1).get();
                 if (usersSnapshot.empty) {
-                    res.status(404).json({success: false, error: `User with email ${email} not found`});
+                    res.status(404).json({ success: false, error: `User with email ${email} not found` });
                     return;
                 }
                 targetUserId = usersSnapshot.docs[0].id;
             } else {
-                res.status(400).json({success: false, error: 'Either userId or email must be provided'});
+                res.status(400).json({ success: false, error: 'Either userId or email must be provided' });
                 return;
             }
-            
+
             const userDoc = await db.collection('users').doc(targetUserId).get();
-            
+
             if (!userDoc.exists) {
-                res.status(404).json({success: false, error: `User ${targetUserId} not found`});
+                res.status(404).json({ success: false, error: `User ${targetUserId} not found` });
                 return;
             }
-            
+
             const userData = userDoc.data();
             const plan = userData.subscription?.plan || userData.plan || userData.tokenState?.plan || 'free';
-            
+
             res.status(200).json({
                 success: true,
                 userId: targetUserId,
@@ -633,24 +660,25 @@ exports.changeUserPlan = functions.https.onRequest((req, res) => {
                 createdAt: userData.createdAt,
                 lastLogin: userData.lastLoginAt
             });
-            
+
         } catch (error) {
             console.error('Error getting user info:', error);
-            res.status(500).json({success: false, error: error.message});
+            res.status(500).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
-exports.listUsers = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.listUsers = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         if (req.method !== 'GET') {
-            res.status(405).json({success: false, error: 'Method not allowed'});
+            res.status(405).json({ success: false, error: 'Method not allowed' });
             return;
         }
-        
+
         try {
             const snapshot = await db.collection('users').get();
-            
+
             const users = snapshot.docs.map(doc => {
                 const data = doc.data();
                 const plan = data.subscription?.plan || data.plan || data.tokenState?.plan || 'free';
@@ -664,61 +692,57 @@ exports.listUsers = functions.https.onRequest((req, res) => {
                     lastLogin: data.lastLoginAt
                 };
             });
-            
-            res.status(200).json({success: true, total: users.length, users: users});
-            
+
+            res.status(200).json({ success: true, total: users.length, users: users });
+
         } catch (error) {
             console.error('Error listing users:', error);
-            res.status(500).json({success: false, error: error.message});
+            res.status(500).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
 // ============================================================================
-// FONCTIONS CONSEILLER IA LOCALE (CORRIGÉES AVEC CORS)
+// FONCTIONS CONSEILLER IA LOCALE
 // ============================================================================
 
-/**
- * Appel à l'IA locale avec vérification advisor
- */
-exports.callLocalAI = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.callLocalAI = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         try {
             if (req.method !== 'POST') {
-                res.status(405).json({success: false, error: 'POST seulement'});
+                res.status(405).json({ success: false, error: 'POST seulement' });
                 return;
             }
-            
-            // Vérifier l'authentification Firebase
+
             if (!req.headers.authorization) {
-                res.status(403).json({success: false, error: 'Token manquant'});
+                res.status(403).json({ success: false, error: 'Token manquant' });
                 return;
             }
-            
+
             const idToken = req.headers.authorization.split('Bearer ')[1];
             let decodedToken;
             try {
                 decodedToken = await admin.auth().verifyIdToken(idToken);
             } catch (error) {
-                res.status(403).json({success: false, error: 'Token invalide ou expiré'});
+                res.status(403).json({ success: false, error: 'Token invalide ou expiré' });
                 return;
             }
-            
+
             const userId = decodedToken.uid;
-            const {message, conversationId} = req.body;
-            
+            const { message, conversationId } = req.body;
+
             if (!message) {
-                res.status(400).json({success: false, error: 'Message vide'});
+                res.status(400).json({ success: false, error: 'Message vide' });
                 return;
             }
-            
-            // Vérifier que l'utilisateur existe et a le plan advisor
+
             const userDoc = await db.collection('users').doc(userId).get();
             if (!userDoc.exists) {
-                res.status(404).json({success: false, error: 'Utilisateur non trouvé'});
+                res.status(404).json({ success: false, error: 'Utilisateur non trouvé' });
                 return;
             }
-            
+
             const userData = userDoc.data();
             const plan = userData.subscription?.plan || 'free';
 
@@ -729,21 +753,18 @@ exports.callLocalAI = functions.https.onRequest((req, res) => {
                 });
                 return;
             }
-            
-            // Créer ou mettre à jour la conversation
+
             const conversationsRef = db.collection('local_ai_conversations');
             let convId = conversationId;
             const timestamp = admin.firestore.FieldValue.serverTimestamp();
-            
-            // Message utilisateur
+
             const userMessage = {
                 role: 'user',
                 content: message,
                 timestamp: timestamp
             };
-            
+
             if (!convId) {
-                // Nouvelle conversation
                 const newConv = {
                     userId: userId,
                     messages: [userMessage],
@@ -754,33 +775,28 @@ exports.callLocalAI = functions.https.onRequest((req, res) => {
                 const convRef = await conversationsRef.add(newConv);
                 convId = convRef.id;
             } else {
-                // Conversation existante
                 await conversationsRef.doc(convId).update({
                     updatedAt: timestamp,
                     messages: admin.firestore.FieldValue.arrayUnion(userMessage)
                 });
             }
-            
-            // **APPELER L'IA LOCALE PYTHON**
-            //Essayer d'appeler le serveur Python local d'abord
+
             let aiResponse;
             try {
-                // URL du serveur Python (à adapter selon votre configuration)
                 const pythonServerUrl = 'http://localhost:5002/api/chat';
-                
-                // Appel HTTP au serveur Python
+
                 const fetch = require('node-fetch');
                 const pythonResponse = await fetch(pythonServerUrl, {
                     method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         userId: userId,
                         message: message,
                         conversationId: convId
                     }),
-                    timeout: 30000 // 30 secondes
+                    timeout: 30000
                 });
-                
+
                 if (pythonResponse.ok) {
                     const pythonData = await pythonResponse.json();
                     aiResponse = pythonData.response || pythonData.answer || "Réponse de l'IA locale";
@@ -790,131 +806,119 @@ exports.callLocalAI = functions.https.onRequest((req, res) => {
                 }
             } catch (pythonError) {
                 console.warn('[callLocalAI] Python server non disponible, utilisation fallback:', pythonError.message);
-                // Fallback: générer une réponse basique
                 aiResponse = generateFallbackResponse(message, userId);
             }
-            
-            // Ajouter la réponse de l'IA à la conversation
+
             const assistantMessage = {
                 role: 'assistant',
                 content: aiResponse,
                 timestamp: timestamp
             };
-            
+
             await conversationsRef.doc(convId).update({
                 updatedAt: timestamp,
                 messages: admin.firestore.FieldValue.arrayUnion(assistantMessage)
             });
-            
+
             res.status(200).json({
                 success: true,
                 response: aiResponse,
                 conversationId: convId
             });
-            
+
         } catch (error) {
             console.error('[callLocalAI] Erreur:', error);
-            res.status(500).json({success: false, error: error.message});
+            res.status(500).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
-/**
- * Lister les conversations IA locale d'un utilisateur
- */
-exports.listLocalAIConversations = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.listLocalAIConversations = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         try {
             if (req.method !== 'GET') {
-                res.status(405).json({success: false, error: 'GET seulement'});
+                res.status(405).json({ success: false, error: 'GET seulement' });
                 return;
             }
-            
-            // Vérifier l'authentification
+
             if (!req.headers.authorization) {
-                res.status(403).json({success: false, error: 'Token manquant'});
+                res.status(403).json({ success: false, error: 'Token manquant' });
                 return;
             }
-            
+
             const idToken = req.headers.authorization.split('Bearer ')[1];
             const decodedToken = await admin.auth().verifyIdToken(idToken);
             const userId = req.query.userId || decodedToken.uid;
-            
+
             if (!userId) {
-                res.status(400).json({success: false, error: 'userId manquant'});
+                res.status(400).json({ success: false, error: 'userId manquant' });
                 return;
             }
-            
+
             const snapshot = await db.collection('local_ai_conversations')
                 .where('userId', '==', userId)
                 .orderBy('updatedAt', 'desc')
                 .get();
-            
+
             const conversations = snapshot.docs.map(doc => ({
                 id: doc.id,
                 ...doc.data()
             }));
-            
-            res.status(200).json({success: true, conversations: conversations});
-            
+
+            res.status(200).json({ success: true, conversations: conversations });
+
         } catch (error) {
             console.error('[listLocalAIConversations] Erreur:', error);
-            res.status(500).json({success: false, error: error.message});
+            res.status(500).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
-/**
- * Supprimer une conversation IA locale
- */
-exports.deleteLocalAIConversation = functions.https.onRequest((req, res) => {
-    cors(req, res, async () => {
+exports.deleteLocalAIConversation = onRequest(
+    { cors: ALLOWED_ORIGINS },
+    async (req, res) => {
         try {
             if (req.method !== 'DELETE') {
-                res.status(405).json({success: false, error: 'DELETE seulement'});
+                res.status(405).json({ success: false, error: 'DELETE seulement' });
                 return;
             }
-            
-            // Vérifier l'authentification
+
             if (!req.headers.authorization) {
-                res.status(403).json({success: false, error: 'Token manquant'});
+                res.status(403).json({ success: false, error: 'Token manquant' });
                 return;
             }
-            
+
             const idToken = req.headers.authorization.split('Bearer ')[1];
             const decodedToken = await admin.auth().verifyIdToken(idToken);
             const userId = decodedToken.uid;
-            const {conversationId} = req.query;
-            
+            const { conversationId } = req.query;
+
             if (!conversationId) {
-                res.status(400).json({success: false, error: 'conversationId manquant'});
+                res.status(400).json({ success: false, error: 'conversationId manquant' });
                 return;
             }
-            
-            // Vérifier que la conversation appartient à l'utilisateur
+
             const convDoc = await db.collection('local_ai_conversations').doc(conversationId).get();
             if (!convDoc.exists || convDoc.data().userId !== userId) {
-                res.status(403).json({success: false, error: 'Non autorisé'});
+                res.status(403).json({ success: false, error: 'Non autorisé' });
                 return;
             }
-            
+
             await db.collection('local_ai_conversations').doc(conversationId).delete();
-            res.status(200).json({success: true});
-            
+            res.status(200).json({ success: true });
+
         } catch (error) {
             console.error('[deleteLocalAIConversation] Erreur:', error);
-            res.status(500).json({success: false, error: error.message});
+            res.status(500).json({ success: false, error: error.message });
         }
-    });
-});
+    }
+);
 
 // ============================================================================
 // FONCTIONS UTILITAIRES
 // ============================================================================
 
-/**
- * Générer une réponse de fallback si Python n'est pas disponible
- */
 function generateFallbackResponse(message, userId) {
     return `Réponse du Conseiller IA DPAI (mode temporaire) :
 
@@ -937,28 +941,25 @@ En attendant, voici une réponse basée sur notre expertise DPAI :
 ${getGenericResponse(message)}`;
 }
 
-/**
- * Réponses génériques basées sur les mots-clés
- */
 function getGenericResponse(message) {
     const lowerMsg = message.toLowerCase();
-    
+
     if (lowerMsg.includes('valorisation') || lowerMsg.includes('ebitda') || lowerMsg.includes('dcf')) {
         return '\n\n**Valorisation :**\n- Multiples sectoriels : Tech 8-12x, Industrie 5-8x, Retail 4-6x\n- Méthode DCF pour cash-flows prévisibles\n- Benchmark avec transactions comparables';
     }
-    
+
     if (lowerMsg.includes('due diligence') || lowerMsg.includes('audit')) {
         return '\n\n**Due Diligence :**\n- Financière : 3-5 ans d\'états financiers\n- Juridique : contrats, litiges, PI\n- Stratégique : positionnement marché, synergies\n- Piège : ne pas négliger les engagements hors bilan';
     }
-    
+
     if (lowerMsg.includes('lbo') || lowerMsg.includes('financement') || lowerMsg.includes('dette')) {
         return '\n\n**Structure LBO :**\n- Capital : 30-40%\n- Dette senior : 50-60%\n- Dette mezzanine : 10-20%\n- Leverage Ratio cible : 3-4x EBITDA\n- IRR cible : 20-25%';
     }
-    
+
     if (lowerMsg.includes('fusion') || lowerMsg.includes('synergie') || lowerMsg.includes('rachat')) {
         return '\n\n**Synergies :**\n- Coûts : économies d\'échelle 10-20%\n- Revenus : cross-selling, nouveaux marchés\n- Financières : optimisation fiscale, meilleure notation\n- Cas DPAI : CASE-001 TechFlow = 15% coûts + 25% revenus';
     }
-    
+
     return '\n\n**Conseil DPAI :** Contactez-nous pour une analyse personnalisée. Votre abonnement Conseiller IA vous donne accès à l\'expertise complète.';
 }
 
