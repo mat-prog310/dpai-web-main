@@ -62,11 +62,12 @@ Tu es **DPAI Strategy**, un cabinet français spécialisé dans la **croissance 
 // Configuration des plans (TOUS LES UTILISATEURS ONT UN PLAN GRATUIT AVEC 500 TOKENS)
 // Pour plus de tokens ou accéder aux Phases 3 & 4: envoyer un email à window.CONTACT_EMAIL
 const TokenConfig = {
-  tokenPriceEUR: 0.25,  // Prix par token en euros
+  tokenPriceEUR: 0,  // Aucun token : tout est inclus
   baseTokenLimits: {
-    free: 500,       // 500 tokens gratuits pour tous les utilisateurs (valeur: 125 €)
-    api_monthly: 1000, // 1000 tokens pour les abonnés API Monthly (valeur: 250 €)
-    advisor: -1      // Tokens illimités + IA illimitée + Conseiller IA
+    premium: -1,
+    free: -1,        // alias compatibilité (anciens comptes)
+    api_monthly: -1, // alias compatibilité (anciens comptes)
+    advisor: -1      // alias compatibilité (anciens comptes)
   },
   
   tokenBonuses: {
@@ -103,29 +104,22 @@ const TokenConfig = {
   subscriptionValidityDays: 30
 };
 
-// Configuration des plans avec accès IA
+// Configuration des plans — UN SEUL PLAN : DPAI Premium.
+// Démo 7 jours (tout inclus) puis 199 €/mois, illimité, tout inclus, AUCUN token.
+// Les clés historiques ('free', 'api_monthly', 'advisor') pointent toutes vers le même plan
+// pour la compatibilité des anciens comptes Firestore.
+const PREMIUM_PLAN_CONFIG = {
+  name: 'DPAI Premium',
+  tokenLimit: -1,
+  hasAI: true,
+  hasAdvisor: true,
+  price: 199
+};
 const PLAN_CONFIG = {
-  free: {
-    name: "Gratuit",
-    tokenLimit: 500,
-    hasAI: false,
-    hasAdvisor: false,
-    price: 0
-  },
-  api_monthly: {
-    name: "API Mensuel",
-    tokenLimit: 1000,
-    hasAI: true,
-    hasAdvisor: false,
-    price: 199
-  },
-  advisor: {
-    name: "DPAI Premium",
-    tokenLimit: -1,
-    hasAI: true,
-    hasAdvisor: true,
-    price: 199
-  }
+  premium: PREMIUM_PLAN_CONFIG,
+  free: PREMIUM_PLAN_CONFIG,        // alias compatibilité
+  api_monthly: PREMIUM_PLAN_CONFIG, // alias compatibilité
+  advisor: PREMIUM_PLAN_CONFIG      // alias compatibilité
 };
 
 // Coûts des analyses par type - Alignés avec functions/index.js
@@ -155,6 +149,20 @@ const AnalysisCosts = {
   maturity_score: 25,
   integration_matrix: 60,
   valuation_simulator: 100,
+  
+  // Outils etendus - Croissance externe (M&A)
+  target_screening: 40,
+  pre_acquisition_checklist: 35,
+  synergy_simulator: 70,
+  hr_due_diligence: 60,
+  plan_100_days: 65,
+  
+  // Outils etendus - Diagnostic interne
+  self_diagnostic: 40,
+  value_chain: 45,
+  action_matrix: 35,
+  growth_readiness: 40,
+  org_impact_simulator: 45,
   
   // PHASE 3 : NÉGOCIATION & SIGNATURE - BLOQUÉ (Contact par mail)
   loi_generation: 999999,
@@ -735,12 +743,21 @@ class TokenManager {
   }
 
   static isAIAllowed() {
+    // MODÈLE UNIQUE : démo 7 jours (tout inclus) puis DPAI Premium 199 €/mois (tout inclus).
+    // L'accès dépend UNIQUEMENT du statut de l'abonnement — plus aucun système de tokens.
+    const subscription = this.userData?.subscription || {};
+    const expiry = subscription.expiresAt || subscription.trialEndsAt;
+    const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+    const active = ['active', 'trialing'].includes(subscription.status) && (!expiryDate || expiryDate > new Date());
+    if (active) return true;
+    // Fallback compatibilité anciens comptes : plan payant non expiré
     const plan = this.tokenState?.plan || 'free';
-    return !this.isExpired() && (plan === 'api_monthly' || plan === 'advisor');
+    return (plan === 'api_monthly' || plan === 'advisor') && !this.isExpired();
   }
 
   static isAdvisorAllowed() {
-    return this.tokenState?.plan === 'advisor' && !this.isExpired();
+    // Un seul plan : DPAI Premium (démo ou abonné) — accès Conseiller IA inclus
+    return this.isAIAllowed();
   }
 
   static isTokensUnlimited() {

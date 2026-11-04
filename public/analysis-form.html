@@ -124,6 +124,7 @@
     <script src="/js/auth.js"></script>
     <script src="/js/ai-client.js"></script>
     <script src="/js/analysis-generator.js"></script>
+    <script src="/js/analysis-extensions.js"></script>
     
     <script>
         // Récupérer le type d'analyse depuis l'URL
@@ -275,6 +276,126 @@
                     { name: 'employees', label: 'Nombre d\'employés', type: 'number', required: false },
                     { name: 'processes', label: 'Processus documentés (%)', type: 'number', required: false },
                     { name: 'team', label: 'Équipe dédiée M&A (oui/non)', type: 'text', required: false }
+                ]
+            },
+            // ===== NOUVEAUX OUTILS - CROISSANCE EXTERNE =====
+            target_screening: {
+                title: 'Screening de Cibles',
+                description: 'Définissez vos critères de ciblage pour une grille de scoring pondérée des cibles potentielles.',
+                fields: [
+                    { name: 'companyName', label: 'Votre entreprise', type: 'text', required: true },
+                    { name: 'targetSector', label: 'Secteur cible', type: 'text', required: true },
+                    { name: 'targetSize', label: 'Taille cible (CA €)', type: 'number', required: true },
+                    { name: 'geoZone', label: 'Zone géographique', type: 'text', required: false },
+                    { name: 'budget', label: 'Budget acquisition (€)', type: 'number', required: true },
+                    { name: 'synergies', label: 'Synergies recherchées', type: 'textarea', required: false }
+                ]
+            },
+            pre_acquisition_checklist: {
+                title: 'Checklist Pré-Acquisition',
+                description: 'Évaluez votre readiness M&A : capacité financière, équipe projet, due diligence, plan d\'intégration.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'budget', label: 'Capacité financière (€)', type: 'number', required: true },
+                    { name: 'funding', label: 'Financement (fonds propres / dette / mix)', type: 'text', required: false },
+                    { name: 'team', label: 'Équipe projet M&A (oui/non)', type: 'text', required: true },
+                    { name: 'ddPlanned', label: 'Due diligence prévue (oui/non)', type: 'text', required: false },
+                    { name: 'integrationPlan', label: 'Plan d\'intégration (oui/non)', type: 'text', required: false }
+                ]
+            },
+            synergy_simulator: {
+                title: 'Simulateur de Synergies',
+                description: 'Estimez le potentiel de valeur des synergies post-acquisition (coûts, cross-selling, économies d\'échelle).',
+                fields: [
+                    { name: 'companyName', label: 'Votre entreprise', type: 'text', required: true },
+                    { name: 'targetName', label: 'Cible', type: 'text', required: true },
+                    { name: 'acquirerRevenue', label: 'Votre CA (€)', type: 'number', required: true },
+                    { name: 'acquirerEmployees', label: 'Vos effectifs', type: 'number', required: false },
+                    { name: 'acquirerCosts', label: 'Vos coûts fixes (€)', type: 'number', required: false },
+                    { name: 'targetRevenue', label: 'CA de la cible (€)', type: 'number', required: true },
+                    { name: 'targetEmployees', label: 'Effectifs de la cible', type: 'number', required: false },
+                    { name: 'targetCosts', label: 'Coûts fixes de la cible (€)', type: 'number', required: false }
+                ]
+            },
+            hr_due_diligence: {
+                title: 'Grille de Due Diligence Humaine',
+                description: 'Points de vérification sur la culture et les équipes de la cible : management, turnover, vision, compétences.',
+                fields: [
+                    { name: 'targetName', label: 'Nom de la cible', type: 'text', required: true },
+                    { name: 'targetSector', label: 'Secteur de la cible', type: 'text', required: false },
+                    { name: 'targetEmployees', label: 'Effectifs de la cible', type: 'number', required: false },
+                    { name: 'managementStyle', label: 'Style de management', type: 'select', options: ['Directif', 'Participatif', 'Déléguatif', 'Inconnu'], required: false },
+                    { name: 'turnover', label: 'Turnover estimé (%)', type: 'number', required: false },
+                    { name: 'keyPeople', label: 'Compétences clés / personnes clés', type: 'textarea', required: false }
+                ]
+            },
+            plan_100_days: {
+                title: 'Plan des 100 Premiers Jours',
+                description: 'Roadmap structurée post-acquisition : priorités, jalons, KPI et rituels de communication.',
+                fields: [
+                    { name: 'targetName', label: 'Nom de la cible', type: 'text', required: true },
+                    { name: 'objectives', label: 'Objectifs de l\'opération', type: 'textarea', required: true },
+                    { name: 'targetEmployees', label: 'Effectifs de la cible', type: 'number', required: false },
+                    { name: 'integrationScope', label: 'Périmètre d\'intégration (complet / partiel / holding)', type: 'text', required: false },
+                    { name: 'closeDate', label: 'Date de closing prévue', type: 'date', required: false }
+                ]
+            },
+            // ===== NOUVEAUX OUTILS - DIAGNOSTIC INTERNE =====
+            self_diagnostic: {
+                title: 'Auto-Diagnostic Interne',
+                description: 'Questionnaire structuré sur vos ressources (humaines, financières, matérielles, immatérielles) avec rapport forces/faiblesses.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur', type: 'text', required: true },
+                    { name: 'employees', label: 'Effectifs', type: 'number', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires (€)', type: 'number', required: true },
+                    { name: 'margin', label: 'Marge nette (%)', type: 'number', required: false },
+                    { name: 'hrResources', label: 'Ressources humaines (description)', type: 'textarea', required: false },
+                    { name: 'intangibleAssets', label: 'Ressources immatérielles (marque, brevets, process)', type: 'textarea', required: false }
+                ]
+            },
+            value_chain: {
+                title: 'Analyse de la Chaîne de Valeur',
+                description: 'Identifiez où se crée la valeur et où sont les inefficacités dans vos activités principales et de soutien.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'sector', label: 'Secteur', type: 'text', required: true },
+                    { name: 'primaryActivities', label: 'Activités principales (production, vente, logistique)', type: 'textarea', required: true },
+                    { name: 'supportActivities', label: 'Activités de soutien (RH, finance, R&D)', type: 'textarea', required: false },
+                    { name: 'mainCosts', label: 'Postes de coûts principaux (€)', type: 'number', required: false }
+                ]
+            },
+            action_matrix: {
+                title: 'Matrice de Priorisation des Actions',
+                description: 'Positionnez vos actions internes sur une matrice Impact / Effort et obtenez un ordre de priorité.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'actions', label: 'Liste des actions internes (une par ligne)', type: 'textarea', required: true },
+                    { name: 'strategicGoal', label: 'Objectif stratégique principal', type: 'text', required: false }
+                ]
+            },
+            growth_readiness: {
+                title: 'Diagnostic de Préparation à la Croissance',
+                description: 'Évaluez vos fondations internes pour soutenir une croissance externe : processus, SI, équipe, finance.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires (€)', type: 'number', required: true },
+                    { name: 'employees', label: 'Effectifs', type: 'number', required: true },
+                    { name: 'processes', label: 'Processus documentés (%)', type: 'number', required: false },
+                    { name: 'itSystem', label: 'SI (ERP, CRM : oui/non/partiel)', type: 'text', required: false },
+                    { name: 'managementTeam', label: 'Équipe de management solide (oui/non)', type: 'text', required: false }
+                ]
+            },
+            org_impact_simulator: {
+                title: 'Simulateur d\'Impact Organisationnel',
+                description: 'Estimez l\'impact d\'une décision interne sur vos KPI : productivité, marge, charge managériale.',
+                fields: [
+                    { name: 'companyName', label: 'Nom de l\'entreprise', type: 'text', required: true },
+                    { name: 'decision', label: 'Décision interne (nouvelle offre, réorganisation, recrutement...)', type: 'textarea', required: true },
+                    { name: 'employees', label: 'Effectifs actuels', type: 'number', required: true },
+                    { name: 'revenue', label: 'Chiffre d\'affaires (€)', type: 'number', required: true },
+                    { name: 'margin', label: 'Marge nette (%)', type: 'number', required: false },
+                    { name: 'decisionType', label: 'Type de décision', type: 'select', options: ['Nouvelle offre', 'Réorganisation', 'Recrutement', 'Investissement', 'Autre'], required: false }
                 ]
             }
         };

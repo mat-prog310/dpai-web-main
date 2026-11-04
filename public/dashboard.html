@@ -66,44 +66,6 @@
         .kpi-section {
             margin: 2rem 0;
         }
-        .profile-completion {
-            margin-bottom: 1.5rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid #e2e8f0;
-        }
-        .profile-completion-heading {
-            display: flex;
-            justify-content: space-between;
-            gap: 1rem;
-            margin-bottom: 0.5rem;
-            color: #1a202c;
-        }
-        .profile-completion p { color: #4a5568; margin: 0.75rem 0; }
-        .monthly-goal {
-            display: grid;
-            grid-template-columns: minmax(220px, 1fr) minmax(300px, 1.4fr);
-            gap: 1.5rem;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 1.25rem 1.5rem;
-            border-left: 4px solid #0f766e;
-            background: #f0fdfa;
-        }
-        .monthly-goal h3 { margin: 0.25rem 0; color: #1a202c; }
-        .monthly-goal p { margin: 0; color: #4a5568; }
-        .monthly-goal-form {
-            display: grid;
-            grid-template-columns: auto minmax(90px, 1fr) auto minmax(90px, 1fr) auto;
-            gap: 0.5rem;
-            align-items: center;
-        }
-        .monthly-goal-form label { font-size: 0.8rem; color: #4a5568; }
-        .monthly-goal-form input { width: 100%; min-width: 0; padding: 0.65rem; border: 1px solid #cbd5e0; border-radius: 6px; }
-        @media (max-width: 800px) {
-            .monthly-goal { grid-template-columns: 1fr; }
-            .monthly-goal-form { grid-template-columns: 1fr 1fr; }
-            .monthly-goal-form button { grid-column: 1 / -1; }
-        }
         .kpi-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -646,47 +608,6 @@
             </div>
         </section>
 
-        <!-- Referral / Growth loop -->
-        <section class="quick-section" id="referralSection">
-            <div class="container">
-                <div class="card">
-                    <div class="card-header">
-                        <h3><i class="fas fa-gift"></i> Parrainage & Partage</h3>
-                        <p>Recommandez DPAI et offrez 1 mois de Démo étendu à vos contacts</p>
-                    </div>
-                    <div class="card-body">
-                        <div style="display: grid; gap: 1rem;">
-                            <div>
-                                <label for="referralLink" style="font-size: 0.875rem; color: #4a5568; display: block; margin-bottom: 0.35rem;">Votre lien de parrainage unique</label>
-                                <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-                                    <input id="referralLink" type="text" readonly class="form-input" style="flex: 1; min-width: 220px;">
-                                    <button type="button" class="btn btn-primary" id="copyReferralLink"><i class="fas fa-copy"></i> Copier</button>
-                                    <a id="shareReferralLink" class="btn btn-secondary" href="#" target="_blank" rel="noopener"><i class="fas fa-share-nodes"></i> Partager</a>
-                                </div>
-                            </div>
-                            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem;">
-                                <div class="company-info-item" style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; color: #1a202c;">
-                                    <div class="company-info-label">Filleuls inscrits</div>
-                                    <div class="company-info-value" id="referralCount" style="color: #1a202c;">0</div>
-                                </div>
-                                <div class="company-info-item" style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; color: #1a202c;">
-                                    <div class="company-info-label">Récompense</div>
-                                    <div class="company-info-value" style="color: #1a202c;">1 mois offert</div>
-                                </div>
-                                <div class="company-info-item" style="background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 8px; color: #1a202c;">
-                                    <div class="company-info-label">Bonus filleul</div>
-                                    <div class="company-info-value" style="color: #1a202c;">Démo 14 j</div>
-                                </div>
-                            </div>
-                            <p style="color: #718096; font-size: 0.8rem; margin: 0;">
-                                Chaque personne inscrite via votre lien démarre avec une démo de 14 jours (au lieu de 7). Vous bénéficiez d’un mois offert dès sa conversion en DPAI Premium.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
         <!-- Recent Analyses Section -->
         <section class="analysis-section">
             <div class="container">
@@ -745,15 +666,6 @@
                         <p id="activationProgressText">0 sur 3 étapes terminées</p>
                     </div>
                     <div class="card-body">
-                        <div class="profile-completion" aria-live="polite">
-                            <div class="profile-completion-heading">
-                                <strong id="profileCompletionTitle">Profil de l’entreprise</strong>
-                                <span id="profileCompletionPercent">0 %</span>
-                            </div>
-                            <div class="progress-bar"><div class="progress-bar-fill" id="profileCompletionBar" style="width: 0%;"></div></div>
-                            <p id="profileCompletionNext">Complétez votre profil pour personnaliser vos analyses.</p>
-                            <button type="button" class="btn btn-secondary btn-sm" id="completeProfileBtn"><i class="fas fa-pen"></i> Compléter le profil</button>
-                        </div>
                         <div class="progress-bar">
                             <div class="progress-bar-fill" id="activationProgressBar" style="width: 0%;"></div>
                         </div>
@@ -776,13 +688,10 @@
                 </div>
                 <div class="kpi-grid">
                     <div class="kpi-card"><div class="kpi-label">MRR actif</div><div class="kpi-value" id="adminMrr">—</div></div>
-                    <div class="kpi-card"><div class="kpi-label">MRR à 30 jours · scénario essais convertis</div><div class="kpi-value" id="adminMrr30">—</div></div>
-                    <div class="kpi-card"><div class="kpi-label">MRR à 90 jours · scénario essais convertis</div><div class="kpi-value" id="adminMrr90">—</div></div>
                     <div class="kpi-card"><div class="kpi-label">Abonnements actifs</div><div class="kpi-value" id="adminActiveSubscriptions">—</div></div>
                     <div class="kpi-card"><div class="kpi-label">Essais actifs</div><div class="kpi-value" id="adminTrials">—</div></div>
                     <div class="kpi-card"><div class="kpi-label">Paiements échoués</div><div class="kpi-value" id="adminInvoiceFailures">—</div></div>
                 </div>
-                <p class="section-subtitle">Les scénarios ajoutent les essais dont l’échéance tombe avant la période, en supposant leur conversion. Ils ne constituent pas une prévision de churn.</p>
                 <p id="adminBillingUpdatedAt" class="section-subtitle"></p>
             </div>
         </section>
@@ -790,20 +699,6 @@
         <!-- KPIs Section -->
         <section class="kpi-section">
             <div class="container">
-                <div class="monthly-goal" aria-labelledby="monthlyGoalTitle">
-                    <div>
-                        <span class="section-tag">OBJECTIF DU MOIS</span>
-                        <h3 id="monthlyGoalTitle">Votre cap de chiffre d’affaires</h3>
-                        <p id="monthlyGoalProgress" aria-live="polite">Définissez un objectif et votre CA atteint.</p>
-                    </div>
-                    <form id="monthlyGoalForm" class="monthly-goal-form">
-                        <label for="monthlyGoalTarget">Objectif (€)</label>
-                        <input id="monthlyGoalTarget" type="number" min="0" step="100" inputmode="decimal" required>
-                        <label for="monthlyGoalActual">Atteint (€)</label>
-                        <input id="monthlyGoalActual" type="number" min="0" step="100" inputmode="decimal" required>
-                        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Enregistrer</button>
-                    </form>
-                </div>
                 <div class="section-header">
                     <span class="section-tag">PERFORMANCE</span>
                     <h2>Indicateurs Clés</h2>
@@ -882,25 +777,6 @@
                             <div class="kpi-trend up" id="kpiGrowthTrend">
                                 <i class="fas fa-arrow-up"></i>
                                 <span>Prévision</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="kpi-card">
-                        <div class="kpi-header">
-                            <div class="kpi-icon ca"><i class="fas fa-recycle"></i></div>
-                            <div>
-                                <div class="kpi-label">Revenu prévisionnel (MRR)</div>
-                            </div>
-                        </div>
-                        <div class="kpi-body">
-                            <div class="kpi-value" id="kpiMrr">—</div>
-                            <div class="kpi-trend stable" id="kpiMrrTrend">
-                                <i class="fas fa-users"></i>
-                                <span id="kpiMrrSubscribers">Abonnés : —</span>
-                            </div>
-                            <div class="projection-note" style="margin-top: .5rem; color: #718096; font-size: 0.8rem;">
-                                <i class="fas fa-chart-line"></i>
-                                <span id="kpiMrrProjection">Projection 30 j : —</span>
                             </div>
                         </div>
                     </div>
@@ -1096,9 +972,7 @@
                     <div class="alerts-tabs">
                         <button class="alert-tab active" data-tab="all">Toutes</button>
                         <button class="alert-tab" data-tab="urgent">Urgentes</button>
-                        <button class="alert-tab" data-tab="expirations">Échéances</button>
                         <button class="alert-tab" data-tab="recommendations">Recommandations</button>
-                        <button class="alert-tab" data-tab="ai">IA</button>
                         <button class="alert-tab" data-tab="system">Système</button>
                     </div>
                 </div>

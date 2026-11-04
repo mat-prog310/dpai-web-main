@@ -379,21 +379,16 @@ const servicesData = {
 };
 
 // Vérifier si un service est accessible avec le plan actuel
+// MODÈLE UNIQUE : démo 7 jours puis DPAI Premium — tout est inclus, aucun token.
+// Seule condition : un abonnement/essai actif (status active/trialing non expiré).
 function isServiceAccessible(service, userPlan) {
     if (!userPlan) return true; // Si pas d'utilisateur, on montre tout
     
-    const serviceRequiredPlan = service.requiredPlan;
-    if (!serviceRequiredPlan) return true; // Pas de restriction = accessible à tous
-    
-    if (serviceRequiredPlan === 'blocked') {
-        const subscription = window.authService?.currentUserData?.subscription || {};
-        const expiry = subscription.expiresAt || subscription.trialEndsAt;
-        const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
-        const active = ['active', 'trialing'].includes(subscription.status) && (!expiryDate || expiryDate > new Date());
-        return active && (userPlan === 'advisor' || userPlan === 'api_monthly');
-    }
-    
-    return true; // Tous les autres services (free) sont accessibles
+    const subscription = window.authService?.currentUserData?.subscription || {};
+    const expiry = subscription.expiresAt || subscription.trialEndsAt;
+    const expiryDate = expiry?.toDate ? expiry.toDate() : (expiry ? new Date(expiry) : null);
+    const active = ['active', 'trialing'].includes(subscription.status) && (!expiryDate || expiryDate > new Date());
+    return active;
 }
 
 // Obtenir l'icône du plan
@@ -456,10 +451,10 @@ function updateServicesByPlan() {
                 
                 // Ajouter un badge de plan requis
                 const metaDiv = article.querySelector('.service-detail-meta');
-                if (metaDiv && service.requiredPlan) {
+                if (metaDiv && service.requiredPlan === 'blocked') {
                     const requiredBadge = document.createElement('span');
                     requiredBadge.className = 'service-requires-plan';
-                    requiredBadge.innerHTML = `<i class="fas fa-${getPlanIcon(service.requiredPlan)}"></i> ${getPlanLabel(service.requiredPlan)} requis`;
+                    requiredBadge.innerHTML = `<i class="fas fa-star"></i> Inclus avec DPAI Premium`;
                     metaDiv.appendChild(requiredBadge);
                 }
             } else {

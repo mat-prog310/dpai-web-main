@@ -366,6 +366,7 @@
     <script src="/js/protocol-check.js"></script>
     <script src="/js/insee-data.js"></script>
     <script src="/js/analysis-generator.js"></script>
+    <script src="/js/analysis-extensions.js"></script>
 </head>
 <body>
     <!-- Navigation -->
@@ -523,7 +524,17 @@
             valuation: 'Valorisation',
             synergy: 'Analyse des Synergies',
             integration_matrix: 'Matrice d\'Intégration',
-            valuation_simulator: 'Simulateur de Valorisation'
+            valuation_simulator: 'Simulateur de Valorisation',
+            target_screening: 'Screening de Cibles',
+            pre_acquisition_checklist: 'Checklist Pré-Acquisition',
+            synergy_simulator: 'Simulateur de Synergies',
+            hr_due_diligence: 'Due Diligence Humaine',
+            plan_100_days: 'Plan des 100 Premiers Jours',
+            self_diagnostic: 'Auto-Diagnostic Interne',
+            value_chain: 'Chaîne de Valeur',
+            action_matrix: 'Matrice de Priorisation',
+            growth_readiness: 'Préparation à la Croissance',
+            org_impact_simulator: 'Impact Organisationnel'
         };
 
         const ANALYSIS_ICONS = {
@@ -540,7 +551,17 @@
             valuation: 'fa-euro-sign',
             synergy: 'fa-link',
             integration_matrix: 'fa-th',
-            valuation_simulator: 'fa-calculator'
+            valuation_simulator: 'fa-calculator',
+            target_screening: 'fa-filter',
+            pre_acquisition_checklist: 'fa-clipboard-check',
+            synergy_simulator: 'fa-calculator',
+            hr_due_diligence: 'fa-users-cog',
+            plan_100_days: 'fa-calendar-check',
+            self_diagnostic: 'fa-stethoscope',
+            value_chain: 'fa-link',
+            action_matrix: 'fa-table',
+            growth_readiness: 'fa-seedling',
+            org_impact_simulator: 'fa-project-diagram'
         };
 
         function escapeHtml(str) {
@@ -1481,6 +1502,215 @@
                     <div class="result-section"><h5><i class="fas fa-sliders-h"></i> Paramètres</h5>${paramsHTML}</div>
                     <div class="result-section"><h5><i class="fas fa-chart-bar"></i> Résultats</h5>${resultsHTML}</div>
                     ${sens}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            /* ---------- OUTILS ÉTENDUS (croissance externe / diagnostic interne) ---------- */
+            target_screening: (r) => {
+                const crit = Array.isArray(r.criteria) ? r.criteria : [];
+                const critHTML = crit.length > 0
+                    ? `<table class="data-table"><thead><tr><th>Critère</th><th>Poids</th><th>Score</th><th>Commentaire</th></tr></thead><tbody>
+                        ${crit.map(c => `<tr><td><strong>${escapeHtml(c.label || '')}</strong></td><td>${escapeHtml(c.weight ?? '—')}%</td><td><span class="score-badge ${scoreClass(c.score)}">${escapeHtml(c.score ?? '—')}</span></td><td>${escapeHtml(c.comment || '')}</td></tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucun critère évalué.');
+                const qs = Array.isArray(r.firstContactQuestions) ? r.firstContactQuestions : [];
+                const qsHTML = qs.length > 0
+                    ? `<div class="result-section"><h5><i class="fas fa-question-circle"></i> Questions de premier contact</h5><ul>${qs.map(q => `<li>${escapeHtml(q)}</li>`).join('')}</ul></div>`
+                    : '';
+                const prof = r.targetProfile || {};
+                return `
+                    <h4 class="result-title"><i class="fas fa-filter"></i> Screening de cibles</h4>
+                    <div class="analysis-info">
+                        <p><strong>Score d'attractivité</strong><span class="score-badge ${scoreClass(r.score)}">${escapeHtml(r.score ?? '—')}/100</span></p>
+                        <p><strong>Secteur cible</strong>${escapeHtml(prof.sector || '—')}</p>
+                        <p><strong>Zone géographique</strong>${escapeHtml(prof.geoZone || '—')}</p>
+                        <p><strong>Budget</strong>${formatCurrency(prof.budget)}</p>
+                    </div>
+                    <div class="result-section"><h5><i class="fas fa-balance-scale"></i> Grille de scoring pondérée</h5>${critHTML}</div>
+                    ${qsHTML}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            pre_acquisition_checklist: (r) => {
+                const dims = Array.isArray(r.dimensions) ? r.dimensions : [];
+                const gaps = Array.isArray(r.gaps) ? r.gaps : [];
+                const dimsHTML = dims.length > 0
+                    ? `<table class="data-table"><thead><tr><th>Dimension</th><th>Score</th></tr></thead><tbody>
+                        ${dims.map(d => `<tr><td>${escapeHtml(d.label || '')}</td><td><span class="score-badge ${scoreClass(d.score)}">${escapeHtml(d.score ?? '—')}</span></td></tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucune dimension évaluée.');
+                const gapsHTML = gaps.length > 0
+                    ? `<div class="result-section"><h5><i class="fas fa-exclamation-triangle"></i> Manques à combler</h5><ul>${gaps.map(g => `<li><strong>${escapeHtml(g.area || '')}</strong> : ${escapeHtml(g.action || '')}</li>`).join('')}</ul></div>`
+                    : '';
+                return `
+                    <h4 class="result-title"><i class="fas fa-clipboard-check"></i> Checklist Pré-Acquisition</h4>
+                    <div class="analysis-info"><p><strong>Score de préparation</strong><span class="score-badge ${scoreClass(r.score)}">${escapeHtml(r.score ?? '—')}/100</span></p></div>
+                    <div class="result-section"><h5><i class="fas fa-tasks"></i> Dimensions évaluées</h5>${dimsHTML}</div>
+                    ${gapsHTML}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            synergy_simulator: (r) => {
+                const bd = Array.isArray(r.breakdown) ? r.breakdown : [];
+                const bdHTML = bd.length > 0
+                    ? `<table class="data-table"><thead><tr><th>Type de synergie</th><th>Valeur annuelle estimée</th></tr></thead><tbody>
+                        ${bd.map(b => `<tr><td>${escapeHtml(b.label || '')}</td><td>${formatCurrency(b.value)}</td></tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucune synergie estimée.');
+                return `
+                    <h4 class="result-title"><i class="fas fa-calculator"></i> Simulateur de Synergies</h4>
+                    <div class="valuation-range">
+                        <div class="vr-item"><div class="label">Synergies annuelles</div><div class="value">${formatCurrency(r.annualSynergies)}</div></div>
+                        <div class="vr-item mid"><div class="label">Potentiel de valeur (€)</div><div class="value">${formatCurrency(r.valuePotential)}</div></div>
+                        <div class="vr-item"><div class="label">CA combiné</div><div class="value">${formatCurrency(r.combinedRevenue)}</div></div>
+                    </div>
+                    <div class="result-section"><h5><i class="fas fa-layer-group"></i> Décomposition des synergies</h5>${bdHTML}</div>
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            hr_due_diligence: (r) => {
+                const checks = Array.isArray(r.checks) ? r.checks : [];
+                const statusClass = (s) => s === 'Alerte' ? 'low' : s === 'Vigilance' ? 'medium' : 'high';
+                const checksHTML = checks.length > 0
+                    ? `<table class="data-table"><thead><tr><th>Axe</th><th>Statut</th><th>Détail / Action</th></tr></thead><tbody>
+                        ${checks.map(c => `<tr><td><strong>${escapeHtml(c.area || '')}</strong></td><td><span class="score-badge ${statusClass(c.status)}">${escapeHtml(c.status || '')}</span></td><td>${escapeHtml(c.detail || '')}</td></tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucun point de contrôle.');
+                return `
+                    <h4 class="result-title"><i class="fas fa-users-cog"></i> Due Diligence Humaine</h4>
+                    <div class="analysis-info">
+                        <p><strong>Score culture / équipes</strong><span class="score-badge ${scoreClass(r.score)}">${escapeHtml(r.score ?? '—')}/100</span></p>
+                        <p><strong>Alertes</strong>${escapeHtml(r.alerts ?? 0)}</p>
+                    </div>
+                    <div class="result-section"><h5><i class="fas fa-clipboard-list"></i> Grille de vérification</h5>${checksHTML}</div>
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            plan_100_days: (r) => {
+                const phases = Array.isArray(r.phases) ? r.phases : [];
+                const phasesHTML = phases.length > 0
+                    ? phases.map(p => `<div class="result-section"><h5><i class="fas fa-flag"></i> ${escapeHtml(p.phase || '')}</h5>
+                        <p><strong>Priorités :</strong></p><ul>${(p.priorities || []).map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+                        <p><strong>KPI de suivi :</strong></p><ul>${(p.kpis || []).map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`).join('')
+                    : emptyInline('Aucune phase définie.');
+                const rituals = Array.isArray(r.communicationRituals) ? r.communicationRituals : [];
+                const ritualsHTML = rituals.length > 0
+                    ? `<div class="result-section"><h5><i class="fas fa-bullhorn"></i> Rituels de communication</h5><ul>${rituals.map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`
+                    : '';
+                return `
+                    <h4 class="result-title"><i class="fas fa-calendar-check"></i> Plan des 100 Premiers Jours</h4>
+                    ${phasesHTML}
+                    ${ritualsHTML}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            self_diagnostic: (r) => {
+                const dims = Array.isArray(r.dimensions) ? r.dimensions : [];
+                const dimsHTML = dims.length > 0
+                    ? `<table class="data-table"><thead><tr><th>Dimension</th><th>Score</th><th>Forces</th><th>Faiblesses</th></tr></thead><tbody>
+                        ${dims.map(d => `<tr><td><strong>${escapeHtml(d.label || '')}</strong></td><td><span class="score-badge ${scoreClass(d.score)}">${escapeHtml(d.score ?? '—')}</span></td><td>${escapeHtml(d.strengths || '—')}</td><td>${escapeHtml(d.weaknesses || '—')}</td></tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucune dimension évaluée.');
+                const feed = r.swotFeed || {};
+                const feedHTML = (feed.strengths || feed.weaknesses)
+                    ? `<div class="result-section"><h5><i class="fas fa-sync-alt"></i> Alimentation automatique du SWOT</h5>
+                        <p><strong>Forces détectées :</strong></p><ul>${(feed.strengths || []).map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul>
+                        <p><strong>Faiblesses détectées :</strong></p><ul>${(feed.weaknesses || []).map(x => `<li>${escapeHtml(x)}</li>`).join('')}</ul></div>`
+                    : '';
+                return `
+                    <h4 class="result-title"><i class="fas fa-stethoscope"></i> Auto-Diagnostic Interne</h4>
+                    <div class="analysis-info"><p><strong>Score global</strong><span class="score-badge ${scoreClass(r.score)}">${escapeHtml(r.score ?? '—')}/100</span></p></div>
+                    <div class="result-section"><h5><i class="fas fa-cubes"></i> Ressources évaluées</h5>${dimsHTML}</div>
+                    ${feedHTML}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            value_chain: (r) => {
+                const prim = Array.isArray(r.primaryActivities) ? r.primaryActivities : [];
+                const sup = Array.isArray(r.supportActivities) ? r.supportActivities : [];
+                const row = (a) => `<tr><td><strong>${escapeHtml(a.activity || '')}</strong></td><td>${escapeHtml(a.type || '')}</td><td>${escapeHtml(a.valueContribution ?? '—')}</td><td>${escapeHtml(a.efficiency ?? '—')}</td><td>${escapeHtml(a.comment || '')}</td></tr>`;
+                const tableHTML = (prim.length + sup.length) > 0
+                    ? `<table class="data-table"><thead><tr><th>Activité</th><th>Type</th><th>Contribution valeur</th><th>Efficacité</th><th>Commentaire</th></tr></thead><tbody>${prim.concat(sup).map(row).join('')}</tbody></table>`
+                    : emptyInline('Aucune activité saisie.');
+                return `
+                    <h4 class="result-title"><i class="fas fa-link"></i> Chaîne de Valeur</h4>
+                    <div class="analysis-info"><p><strong>Score d'efficacité globale</strong><span class="score-badge ${scoreClass(r.score)}">${escapeHtml(r.score ?? '—')}/100</span></p>${r.costFocus ? `<p><strong>Coûts</strong>${escapeHtml(r.costFocus)}</p>` : ''}</div>
+                    <div class="result-section"><h5><i class="fas fa-stream"></i> Décomposition des activités</h5>${tableHTML}</div>
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            action_matrix: (r) => {
+                const matrix = Array.isArray(r.matrix) ? r.matrix : [];
+                const quadClass = (q) => q.indexOf('Quick wins') === 0 ? 'high' : q.indexOf('Projets') === 0 ? 'medium' : q.indexOf('éviter') !== -1 ? 'low' : 'medium';
+                const tableHTML = matrix.length > 0
+                    ? `<table class="data-table"><thead><tr><th>Action</th><th>Impact</th><th>Effort</th><th>Quadrant</th></tr></thead><tbody>
+                        ${matrix.map(m => `<tr><td><strong>${escapeHtml(m.action || '')}</strong></td><td>${escapeHtml(m.impact ?? '—')}</td><td>${escapeHtml(m.effort ?? '—')}</td><td><span class="score-badge ${quadClass(m.quadrant || '')}">${escapeHtml(m.quadrant || '')}</span></td></tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucune action saisie.');
+                const order = Array.isArray(r.priorityOrder) ? r.priorityOrder : [];
+                const orderHTML = order.length > 0
+                    ? `<div class="result-section"><h5><i class="fas fa-sort-numeric-down"></i> Ordre de priorité recommandé</h5><ol>${order.map(x => `<li>${escapeHtml(String(x).replace(/^\d+\.\s*/, ''))}</li>`).join('')}</ol></div>`
+                    : '';
+                return `
+                    <h4 class="result-title"><i class="fas fa-table"></i> Matrice de Priorisation (Impact / Effort)</h4>
+                    <div class="result-section"><h5><i class="fas fa-th-large"></i> Positionnement des actions</h5>${tableHTML}</div>
+                    ${orderHTML}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            growth_readiness: (r) => {
+                const f = Array.isArray(r.foundations) ? r.foundations : [];
+                const gaps = Array.isArray(r.gaps) ? r.gaps : [];
+                const fHTML = f.length > 0
+                    ? `<table class="data-table"><thead><tr><th>Fondation</th><th>Score</th></tr></thead><tbody>
+                        ${f.map(x => `<tr><td>${escapeHtml(x.label || '')}</td><td><span class="score-badge ${scoreClass(x.score)}">${escapeHtml(x.score ?? '—')}</span></td></tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucune fondation évaluée.');
+                const gapsHTML = gaps.length > 0
+                    ? `<div class="result-section"><h5><i class="fas fa-exclamation-triangle"></i> Manques à combler</h5><ul>${gaps.map(g => `<li><strong>${escapeHtml(g.area || '')}</strong> : ${escapeHtml(g.action || '')}</li>`).join('')}</ul></div>`
+                    : '';
+                return `
+                    <h4 class="result-title"><i class="fas fa-seedling"></i> Diagnostic de Préparation à la Croissance</h4>
+                    <div class="analysis-info">
+                        <p><strong>Score global</strong><span class="score-badge ${scoreClass(r.score)}">${escapeHtml(r.score ?? '—')}/100</span></p>
+                        <p><strong>Prêt pour la croissance externe</strong>${r.ready ? 'Oui' : 'Pas encore'}</p>
+                    </div>
+                    <div class="result-section"><h5><i class="fas fa-cubes"></i> Fondations internes</h5>${fHTML}</div>
+                    ${gapsHTML}
+                    ${blockRecommendations(r.recommendations)}
+                    ${blockSummary(r.summary)}
+                `;
+            },
+
+            org_impact_simulator: (r) => {
+                const imp = Array.isArray(r.impacts) ? r.impacts : [];
+                const unitFmt = (v, unit) => unit === '€' ? formatCurrency(v) : (unit === '%' ? formatNumber(v, 1) + ' %' : formatNumber(v, 0));
+                const tableHTML = imp.length > 0
+                    ? `<table class="data-table"><thead><tr><th>KPI</th><th>Avant</th><th>Après</th><th>Delta</th></tr></thead><tbody>
+                        ${imp.map(x => `<tr><td><strong>${escapeHtml(x.kpi || '')}</strong></td><td>${unitFmt(x.before, x.unit)}</td><td>${unitFmt(x.after, x.unit)}</td><td>${x.delta >= 0 ? '+' : ''}${unitFmt(x.delta, x.unit)}</td></tr>`).join('')}
+                        </tbody></table>`
+                    : emptyInline('Aucun impact estimé.');
+                return `
+                    <h4 class="result-title"><i class="fas fa-project-diagram"></i> Impact Organisationnel — ${escapeHtml(r.decisionType || '')}</h4>
+                    <div class="result-section"><h5><i class="fas fa-chart-line"></i> Impacts estimés sur les KPI internes</h5>${tableHTML}</div>
                     ${blockRecommendations(r.recommendations)}
                     ${blockSummary(r.summary)}
                 `;

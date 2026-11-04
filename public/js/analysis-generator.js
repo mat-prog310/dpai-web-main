@@ -359,6 +359,10 @@ function generateDefaultAnalysis(type, data) {
 
 function generateAnalysis(type, data) {
     const normalizedType = type.toLowerCase().trim();
+    // Délégation aux outils étendus (croissance externe / diagnostic interne)
+    if (typeof window !== 'undefined' && window.generateExtendedAnalysis && (window.EXTENDED_ANALYSIS_TYPES || []).indexOf(normalizedType) !== -1) {
+        return window.generateExtendedAnalysis(type, data);
+    }
     switch (normalizedType) {
         case 'swot': return generateSWOT(data);
         case 'porter': case 'porter5forces': case 'porter 5 forces': return generatePorter(data);

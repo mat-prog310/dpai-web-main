@@ -20,32 +20,23 @@ if (!admin.apps.length) {
 const db = admin.firestore();
 const {runAIAnalysis, advisorChat} = require('./src/ai-integration');
 
-// Configuration des plans
+// Configuration des plans — UN SEUL PLAN : DPAI Premium.
+// Démo gratuite 7 jours (tout inclus) puis 199 €/mois, illimité, tout inclus, AUCUN token.
+// Les clés historiques ('free', 'api_monthly', 'advisor') pointent toutes vers le même plan
+// pour la compatibilité des anciens comptes Firestore.
+const PREMIUM_PLAN_CONFIG = {
+    name: 'DPAI Premium',
+    baseTokens: -1,
+    hasAI: true,
+    hasAdvisor: true,
+    price: 199,
+    isPremium: true
+};
 const PLAN_CONFIGS = {
-    free: {
-        name: 'Gratuit',
-        baseTokens: 500,
-        hasAI: false,
-        hasAdvisor: false,
-        price: 0,
-        isPremium: false
-    },
-    api_monthly: {
-        name: 'API Mensuel',
-        baseTokens: 1000,
-        hasAI: true,
-        hasAdvisor: false,
-        price: 199,
-        isPremium: true
-    },
-    advisor: {
-        name: 'DPAI Premium',
-        baseTokens: -1,
-        hasAI: true,
-        hasAdvisor: true,
-        price: 199,
-        isPremium: true
-    }
+    premium: PREMIUM_PLAN_CONFIG,
+    free: PREMIUM_PLAN_CONFIG,        // alias compatibilité
+    api_monthly: PREMIUM_PLAN_CONFIG, // alias compatibilité
+    advisor: PREMIUM_PLAN_CONFIG      // alias compatibilité
 };
 
 const TRIAL_DAYS = 7;
