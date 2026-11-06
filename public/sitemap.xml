@@ -3,7 +3,7 @@
         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
         xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
 
-    <!-- Page d'accueil - PrioritÃ© maximale -->
+    <!-- Page d'accueil - Priorité maximale -->
     <url>
         <loc>https://dpaiweb.com/</loc>
         <lastmod>2026-10-09</lastmod>
@@ -33,7 +33,7 @@
         <priority>0.9</priority>
     </url>
 
-    <!-- Landing Pages SEO OptimisÃ©es - Croissance Externe & Outils -->
+    <!-- Landing Pages SEO Optimisées - Croissance Externe & Outils -->
     <url>
         <loc>https://dpaiweb.com/croissance-externe.html</loc>
         <lastmod>2026-10-20</lastmod>
@@ -105,7 +105,7 @@
         <priority>0.9</priority>
     </url>
 
-    <!-- Pages lÃ©gales -->
+    <!-- Pages légales -->
     <url>
         <loc>https://dpaiweb.com/terms.html</loc>
         <lastmod>2026-10-09</lastmod>
@@ -127,7 +127,7 @@
         <priority>0.7</priority>
     </url>
 
-    <!-- Pages utilisateur (noindex dans robots.txt, mais inclues pour rÃ©fÃ©rence) -->
+    <!-- Pages utilisateur (noindex dans robots.txt, mais inclues pour référence) -->
     <url>
         <loc>https://dpaiweb.com/dashboard.html</loc>
         <lastmod>2026-10-01</lastmod>
@@ -149,7 +149,7 @@
         <priority>0.3</priority>
     </url>
 
-    <!-- Blog DPAI Strategy - Contenu SEO optimisÃ© -->
+    <!-- Blog DPAI Strategy - Contenu SEO optimisé -->
     <url>
         <loc>https://dpaiweb.com/blog/</loc>
         <lastmod>2026-10-20</lastmod>
@@ -164,7 +164,7 @@
         <priority>0.9</priority>
     </url>
 
-    <!-- Articles de blog - StratÃ©gie -->
+    <!-- Articles de blog - Stratégie -->
     <url>
         <loc>https://dpaiweb.com/blog/10-erreurs-croissance-externe.html</loc>
         <lastmod>2026-10-09</lastmod>
@@ -250,7 +250,7 @@
         <priority>0.8</priority>
     </url>
 
-    <!-- CatÃ©gories de blog -->
+    <!-- Catégories de blog -->
     <url>
         <loc>https://dpaiweb.com/blog/category-strategie.html</loc>
         <lastmod>2026-10-20</lastmod>

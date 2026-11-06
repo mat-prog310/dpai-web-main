@@ -15,7 +15,7 @@ Disallow: /dashboard.html
 Disallow: /profile.html
 Disallow: /analysis-results.html
 
-# Bloquer l'indexation des rÃ©pertoires techniques
+# Bloquer l'indexation des répertoires techniques
 Disallow: /js/
 Disallow: /css/
 Disallow: /images/
@@ -49,8 +49,8 @@ Allow: /blog/category-strategie.html
 Allow: /blog/category-ma.html
 Allow: /blog/category-analysis.html
 
-# Crawl-delay pour Ã©viter de surcharger le serveur
+# Crawl-delay pour éviter de surcharger le serveur
 Crawl-delay: 2
 
-# Host pour indiquer le domaine prÃ©fÃ©rÃ©
+# Host pour indiquer le domaine préféré
 Host: https://dpaiweb.com/
