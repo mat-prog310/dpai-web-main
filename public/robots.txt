@@ -1,5 +1,5 @@
-# robots.txt pour DPAI Strategy
-# https://dpai-strategy.com/robots.txt
+﻿# robots.txt pour DPAI Strategy
+# https://dpaiweb.com/robots.txt
 
 User-agent: *
 
@@ -7,14 +7,15 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://dpai-strategy.com/sitemap.xml
+Sitemap: https://dpaiweb.com/sitemap.xml
+Sitemap: https://dpaiweb.com/sitemap.xml
 
 # Bloquer l'indexation des pages sensibles
 Disallow: /dashboard.html
 Disallow: /profile.html
 Disallow: /analysis-results.html
 
-# Bloquer l'indexation des répertoires techniques
+# Bloquer l'indexation des rÃ©pertoires techniques
 Disallow: /js/
 Disallow: /css/
 Disallow: /images/
@@ -25,7 +26,6 @@ Allow: /services.html
 Allow: /pricing.html
 Allow: /register.html
 Allow: /login.html
-Allow: /plus-de-tokens.html
 Allow: /conseiller-dpai.html
 Allow: /analysis-form.html
 
@@ -49,8 +49,8 @@ Allow: /blog/category-strategie.html
 Allow: /blog/category-ma.html
 Allow: /blog/category-analysis.html
 
-# Crawl-delay pour éviter de surcharger le serveur
+# Crawl-delay pour Ã©viter de surcharger le serveur
 Crawl-delay: 2
 
-# Host pour indiquer le domaine préféré
-Host: https://dpai-strategy.com/
+# Host pour indiquer le domaine prÃ©fÃ©rÃ©
+Host: https://dpaiweb.com/

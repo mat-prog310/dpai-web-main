@@ -1,16 +1,16 @@
-# humans.txt pour DPAI Strategy
-# https://dpai-strategy.com/humans.txt
+﻿# humans.txt pour DPAI Strategy
+# https://dpaiweb.com/humans.txt
 
-# L'ÉQUIPE
+# L'Ã‰QUIPE
 
-DPAI Strategy est développé par une équipe passionnée par l'analyse stratégique
-et la croissance externe. Nous croyons que chaque entreprise mérite d'avoir
-accès à des outils d'analyse professionnels pour prendre des décisions éclairées.
+DPAI Strategy est dÃ©veloppÃ© par une Ã©quipe passionnÃ©e par l'analyse stratÃ©gique
+et la croissance externe. Nous croyons que chaque entreprise mÃ©rite d'avoir
+accÃ¨s Ã  des outils d'analyse professionnels pour prendre des dÃ©cisions Ã©clairÃ©es.
 
 # CONTACT
 
-Site web: https://dpai-strategy.com
-Email: contact@dpai-strategy.com
+Site web: https://dpaiweb.com
+Email: contact@dpaiweb.com
 
 # TECHNOLOGIES
 
@@ -21,26 +21,26 @@ Icons: Font Awesome 6
 Polices: Inter (Google Fonts)
 
 Backend: Firebase (Authentication, Firestore, Functions)
-Hébergement: Firebase Hosting
+HÃ©bergement: Firebase Hosting
 
-# CRÉDITS
+# CRÃ‰DITS
 
-Conception et développement: Équipe DPAI Strategy
-Design UI/UX: Inspiré par les meilleures pratiques du secteur
-Analyse stratégique: Méthodologies éprouvées (SWOT, Porter, PESTEL, etc.)
+Conception et dÃ©veloppement: Ã‰quipe DPAI Strategy
+Design UI/UX: InspirÃ© par les meilleures pratiques du secteur
+Analyse stratÃ©gique: MÃ©thodologies Ã©prouvÃ©es (SWOT, Porter, PESTEL, etc.)
 
 # STANDARDS
 
 Doctype: HTML5
 Charset: UTF-8
 Viewport: Responsive
-SEO: Optimisé pour les moteurs de recherche
-Accessibilité: Conforme WCAG 2.1 AA
+SEO: OptimisÃ© pour les moteurs de recherche
+AccessibilitÃ©: Conforme WCAG 2.1 AA
 
 # LICENCE
 
-© 2026 DPAI Strategy. Tous droits réservés.
+Â© 2026 DPAI Strategy. Tous droits rÃ©servÃ©s.
 
-# DERNIÈRE MISE À JOUR
+# DERNIÃˆRE MISE Ã€ JOUR
 
 2026-10-01

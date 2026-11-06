@@ -499,7 +499,7 @@ exports.createCheckoutSession = onRequest(
             const userRecord = await admin.auth().getUser(userId);
             const stripe = getStripe();
             const isLocal = ['localhost', '127.0.0.1'].includes(req.hostname);
-            const siteUrl = isLocal ? `http://${req.hostname}:5000` : 'https://dpai-strategy.com';
+            const siteUrl = isLocal ? `http://${req.hostname}:5000` : 'https://dpaiweb.com';
             const session = await stripe.checkout.sessions.create({
                 mode: 'subscription',
                 ...(userData.subscription?.stripeCustomerId
@@ -554,7 +554,7 @@ exports.createBillingPortalSession = onRequest(
             const stripe = getStripe();
             const session = await stripe.billingPortal.sessions.create({
                 customer: customerId,
-                return_url: 'https://dpai-strategy.com/pricing.html'
+                return_url: 'https://dpaiweb.com/pricing.html'
             });
             res.status(200).json({ success: true, url: session.url });
         } catch (error) {
